@@ -66,10 +66,10 @@
           packages.hello-unfree = pkgsAllowUnfree.hello-unfree;
           packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
-          templates.default = {
+          templates = ({
             description = "Base configuration";
             path = ./src/templates/start-config;
-          };
+          });
         }
     );
 }
