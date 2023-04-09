@@ -37,37 +37,40 @@
       ];
     in
       flake-utils.lib.eachSystem suportedSystems (suportedSystem:
-    let pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
-    in {
+        let pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
+        in {
 
-      devShells.default = pkgsAllowUnfree.mkShell {
-        buildInputs = with pkgsAllowUnfree; [
-          bashInteractive
-          coreutils
-          curl
-          gnumake
-          patchelf
-          poetry
-          python3Full
-          tmate
-        ];
+          devShells.default = pkgsAllowUnfree.mkShell {
+            buildInputs = with pkgsAllowUnfree; [
+              bashInteractive
+              coreutils
+              curl
+              gnumake
+              patchelf
+              poetry
+              python3Full
+              tmate
+            ];
 
-        shellHook = ''
-          echo -e 'Education and Science' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
-        '';
-      };
-      # TODO: put nixosConfigurations here later
+            shellHook = ''
+              echo -e 'Education and Science' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
+            '';
+          };
+          # TODO: put nixosConfigurations here later
 
-      checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
+          checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
-      packages.hello = pkgsAllowUnfree.hello;
-      packages.hello-unfree = pkgsAllowUnfree.hello-unfree;
-      packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
+          packages.default = self.packages."${suportedSystem}".hello;
 
-      templates = {
-        description = "Base configuration";
-        path = ./src/templates/start-config;
-      };
-    });
+          packages.hello = pkgsAllowUnfree.hello;
+          packages.hello-unfree = pkgsAllowUnfree.hello-unfree;
+          packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
+
+          templates.default = {
+            description = "Base configuration";
+            path = ./src/templates/start-config;
+          };
+        }
+    );
 }
 
