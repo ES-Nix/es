@@ -103,7 +103,8 @@ export DUMMY_HOME=/home/"$USER"
 export DUMMY_HOSTNAME="$(hostname)"
 
 # HM_ATTR_FULL_NAME="$(nix eval --impure --raw --expr 'builtins.currentSystem')"-'"'"$DUMMY_USER"-"$DUMMY_HOSTNAME"'"'
-# FLAKE_ATTR="$DIRECTORY_TO_CLONE""#homeConfigurations."'\"'"$HM_ATTR_FULL_NAME"'\"'".activationPackage"
+HM_ATTR_FULL_NAME='"'"$DUMMY_USER"-"$DUMMY_HOSTNAME"'"'
+FLAKE_ATTR="$DIRECTORY_TO_CLONE""#homeConfigurations."'\"'"$HM_ATTR_FULL_NAME"'\"'".activationPackage"
 
 # "$(nix eval --impure --raw --expr 'builtins.currentSystem')"-
 #HM_ATTR_FULL_NAME='"'"$DUMMY_USER"-"$DUMMY_HOSTNAME"'"'

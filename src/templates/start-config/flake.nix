@@ -108,8 +108,8 @@
       };
 
       homeConfigurations = {
-        "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; arg-nixpkgs = pkgsAllowUnfree; username = "vagrant"; };
-        "ubuntu-ubuntu2204-ec2" = f { system = "${suportedSystem}"; arg-nixpkgs = pkgsAllowUnfree; username = "ubuntu"; };
+        "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; arg-nixpkgs = pkgsAllowUnfree; home = ./home.nix; username = "vagrant"; };
+        "ubuntu-ubuntu2204-ec2" = f { system = "${suportedSystem}"; arg-nixpkgs = pkgsAllowUnfree;; home = ./home.nix; username = "ubuntu"; };
       };
 
     });
