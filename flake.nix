@@ -2,42 +2,43 @@
   description = "This is an 'nix flake' :)";
 
   inputs = {
+
+    nixpkgs-darwin-stable.url = "github:nixos/nixpkgs/nixpkgs-22.11-darwin";
+    nixpkgs-linux-stable.url = "github:nixos/nixpkgs/nixos-22.11";
+
+    nixpkgs-linux-unstable.url = "nixpkgs/nixos-unstable";
+
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs-linux-stable";
+    };
+
     flake-utils.url = "github:numtide/flake-utils";
+    # flake-utils.inputs.nixpkgs.follows = "nixpkgs-linux-stable";
+
   };
 
   outputs =
     { self
-    , nixpkgs
+    , nixpkgs-linux-stable
+    , nixpkgs-linux-unstable
+    , nixpkgs-darwin-stable
     , flake-utils
+    , nixos-generators
+    ,
     }:
-    flake-utils.lib.eachDefaultSystem (system:
     let
       name = "es";
 
-      pkgsAllowUnfree = import nixpkgs {
-        # inherit system;
-        system = "x86_64-linux";
-        config = { allowUnfree = true; };
-      };
-
+      suportedSystems = [
+        "x86_64-linux"
+        # "aarch64-linux"
+        # "aarch64-darwin"
+      ];
     in
-    rec {
-
-      templates = import ./src/templates { system = "${system}"; } ;
-
-      packages.checkNixFormat = pkgsAllowUnfree.runCommand "check-nix-format" { } ''
-        ${pkgsAllowUnfree.nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
-
-        # For fix
-        # find . -type f -iname '*.nix' -exec nixpkgs-fmt {} \;
-
-        mkdir $out #sucess
-      '';
-
-      apps.${name} = flake-utils.lib.mkApp {
-        inherit name;
-        drv = packages.${name};
-      };
+      flake-utils.lib.eachSystem suportedSystems (suportedSystem:
+    let pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
+    in {
 
       devShells.default = pkgsAllowUnfree.mkShell {
         buildInputs = with pkgsAllowUnfree; [
@@ -55,5 +56,18 @@
           echo -e 'Education and Science' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
         '';
       };
+      # TODO: put nixosConfigurations here later
+
+      checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
+
+      packages.hello = pkgsAllowUnfree.hello;
+      packages.hello-unfree = pkgsAllowUnfree.hello-unfree;
+      packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
+
+      templates = {
+        description = "Base configuration";
+        path = ./src/templates/start-config;
+      };
     });
 }
+

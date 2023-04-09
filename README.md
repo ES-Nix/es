@@ -84,3 +84,22 @@ checks.suportedSystem = self.packages.suportedSystem;
 
 mkdir -pv hosts/minimal-example-nixos
 
+
+
+
+      # templates = import ./src/templates { system = "x86_64-linux"; } ;
+      # templates.default = import ./src/templates;
+
+#      packages.checkNixFormat = pkgsAllowUnfree.runCommand "check-nix-format" { } ''
+#        ${pkgsAllowUnfree.nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
+#
+#        # For fix
+#        # find . -type f -iname '*.nix' -exec nixpkgs-fmt {} \;
+#
+#        mkdir $out #sucess
+#      '';
+#
+#      apps.${name} = flake-utils.lib.mkApp {
+#        inherit name;
+#        drv = packages.${name};
+#      };

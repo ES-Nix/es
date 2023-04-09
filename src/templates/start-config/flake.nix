@@ -78,11 +78,15 @@
         };
 
     in
-    flake-utils.lib.eachSystem suportedSystems (suportedSystem:
+      flake-utils.lib.eachSystem suportedSystems (suportedSystem:
     let pkgs = import nixpkgs-linux-stable { system = suportedSystem; };
     in rec {
       devShells.default =
-        pkgs.mkShell { buildInputs = with pkgs; [ bashInteractive ]; };
+        pkgs.mkShell { buildInputs = with pkgs; [
+            bashInteractive
+            # hello-unfree
+          ];
+        };
     } // {
       # TODO: put nixosConfigurations here later
 
@@ -97,7 +101,6 @@
       };
 
       homeConfigurations = {
-
         "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; username = "vagrant"; };
         "ubuntu-ubuntu2204-ec2" = f { system = "${suportedSystem}"; username = "ubuntu"; };
       };
