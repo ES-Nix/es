@@ -23,7 +23,7 @@
     in
     rec {
 
-      templates = import ./src/templates;
+      templates = import ./src/templates { system = "${system}"; } ;
 
       packages.checkNixFormat = pkgsAllowUnfree.runCommand "check-nix-format" { } ''
         ${pkgsAllowUnfree.nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}

@@ -69,9 +69,13 @@ mkdir -pv ~/sandbox/sandbox \
 && cd ~/sandbox/sandbox
 ```
 
+```bash
 nix flake init --template github:ES-nix/es#startConfig
-git init && git add .
+```
 
+```bash
+git init && git add .
+```
 
 nix --extra-experimental-features 'nix-command flakes' build -L --rebuild .#hello
 
