@@ -79,10 +79,10 @@
 
     in
       flake-utils.lib.eachSystem suportedSystems (suportedSystem:
-    let pkgs = import nixpkgs-linux-stable { system = suportedSystem; };
+    let pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
     in rec {
       devShells.default =
-        pkgs.mkShell { buildInputs = with pkgs; [
+        pkgsAllowUnfree.mkShell { buildInputs = with pkgsAllowUnfree; [
             bashInteractive
             # hello-unfree
           ];
@@ -92,17 +92,24 @@
 
       checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
-      packages.hello = pkgs.hello;
-      packages.python3WithPandas = pkgs.python3Packages.pandas;
+      packages.hello = pkgsAllowUnfree.hello;
+      packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
-      apps.hello = {
-        type = "app";
-        program = self.packages."${suportedSystem}".hello;
+#      apps.hello = {
+#        type = "app";
+#        program = self.packages."${suportedSystem}".hello;
+#      };
+
+      apps."${suportedSystem}" = {
+          hello = flake-utils.lib.mkApp {
+            name = "hello";
+            drv = self.packages."${suportedSystem}".hello;
+          };
       };
 
       homeConfigurations = {
-        "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; username = "vagrant"; };
-        "ubuntu-ubuntu2204-ec2" = f { system = "${suportedSystem}"; username = "ubuntu"; };
+        "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; arg-nixpkgs = pkgsAllowUnfree; username = "vagrant"; };
+        "ubuntu-ubuntu2204-ec2" = f { system = "${suportedSystem}"; arg-nixpkgs = pkgsAllowUnfree; username = "ubuntu"; };
       };
 
     });
