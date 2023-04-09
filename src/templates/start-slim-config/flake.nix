@@ -19,19 +19,20 @@
 
   };
 
-  outputs = {
-    self, 
-    nixpkgs-linux-stable,
-    nixpkgs-linux-unstable, 
-    nixpkgs-darwin-stable, 
-    flake-utils, 
-    nixos-generators,
-    home-manager,
-  }:
+  outputs =
+    { self
+    , nixpkgs-linux-stable
+    , nixpkgs-linux-unstable
+    , nixpkgs-darwin-stable
+    , flake-utils
+    , nixos-generators
+    , home-manager
+    ,
+    }:
     let
 
-      suportedSystems = [ 
-        "x86_64-linux" 
+      suportedSystems = [
+        "x86_64-linux"
         # "aarch64-linux"
         "aarch64-darwin"
       ];
@@ -45,59 +46,60 @@
           ] ++ extraModules;
         };
 
-        f = { system, username, arg-nixpkgs, home ? "", stateVersion ? "22.11" }:
-            let
-              pkgs = "${arg-nixpkgs}".legacyPackages."${system}";
-            in
-            home-manager.lib.homeManagerConfiguration {
-              modules = [
-                {
-                  home = {
-                    username = "${username}";
-                    homeDirectory = "/home/" + "${username}";
-                    stateVersion = "${stateVersion}";
-                    packages = with pkgs; [
-                      sl
-                      cowsay
-                    ];
-                  };
+      f = { system, username, arg-nixpkgs, home ? "", stateVersion ? "22.11" }:
+        let
+          pkgs = "${arg-nixpkgs}".legacyPackages."${system}";
+        in
+        home-manager.lib.homeManagerConfiguration {
+          modules = [
+            {
+              home = {
+                username = "${username}";
+                homeDirectory = "/home/" + "${username}";
+                stateVersion = "${stateVersion}";
+                packages = with pkgs; [
+                  sl
+                  cowsay
+                ];
+              };
 
-                  programs.home-manager.enable = true;
+              programs.home-manager.enable = true;
 
-                }
+            }
 
-                "${home}"
-                
-              ];
+            "${home}"
 
-              # TODO: how to: Optionally use extraSpecialArgs
-              # to pass through arguments to home.nix
-              # extraSpecialArgs = { pkgs-unstable = pkgs; };
-            };
+          ];
 
-    in flake-utils.lib.eachSystem suportedSystems (suportedSystem:
-      let pkgs = import nixpkgs-linux-stable { system = suportedSystem; };
-      in rec {
-        devShells.default =
-          pkgs.mkShell { buildInputs = with pkgs; [ bashInteractive ]; };
-      } // {
-        # TODO: put nixosConfigurations here later
-
-        checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
-
-        packages.hello = pkgs.hello;
-        packages.python3WithPandas = pkgs.python3Packages.pandas;
-
-        apps.hello = {
-          type = "app";
-          program = self.packages."${suportedSystem}".hello;
+          # TODO: how to: Optionally use extraSpecialArgs
+          # to pass through arguments to home.nix
+          # extraSpecialArgs = { pkgs-unstable = pkgs; };
         };
 
-        homeConfigurations = {
+    in
+    flake-utils.lib.eachSystem suportedSystems (suportedSystem:
+    let pkgs = import nixpkgs-linux-stable { system = suportedSystem; };
+    in rec {
+      devShells.default =
+        pkgs.mkShell { buildInputs = with pkgs; [ bashInteractive ]; };
+    } // {
+      # TODO: put nixosConfigurations here later
 
-          "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; username = "vagrant"; };
-          "ubuntu-ubuntu2204-ec2" = f { system = "${suportedSystem}"; username = "ubuntu"; };
-        };
+      checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
-      });
+      packages.hello = pkgs.hello;
+      packages.python3WithPandas = pkgs.python3Packages.pandas;
+
+      apps.hello = {
+        type = "app";
+        program = self.packages."${suportedSystem}".hello;
+      };
+
+      homeConfigurations = {
+
+        "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; username = "vagrant"; };
+        "ubuntu-ubuntu2204-ec2" = f { system = "${suportedSystem}"; username = "ubuntu"; };
+      };
+
+    });
 }
