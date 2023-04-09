@@ -33,7 +33,7 @@
       suportedSystems = [
         "x86_64-linux"
         # "aarch64-linux"
-        # "aarch64-darwin"
+        "aarch64-darwin"
       ];
     in
       flake-utils.lib.eachSystem suportedSystems (suportedSystem:
@@ -66,10 +66,25 @@
           packages.hello-unfree = pkgsAllowUnfree.hello-unfree;
           packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
-          templates = ({
-            description = "Base configuration";
-            path = ./src/templates/start-config;
-          });
+#          templates."${suportedSystem}" = {
+#            startConfig = ({
+#              description = "Base configuration";
+#              path = ./src/templates/start-config;
+#            });
+#          };
+
+#          templates."${suportedSystem}".startConfig = ({
+#              description = "Base configuration";
+#              path = ./src/templates/start-config;
+#            });
+
+#          templates."${suportedSystem}".startConfig = {
+#              description = "Base configuration";
+#              path = ./src/templates/start-config;
+#            };
+
+          templates = import ./src/templates;
+
         }
     );
 }
