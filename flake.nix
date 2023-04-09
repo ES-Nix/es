@@ -89,7 +89,7 @@
 
           templates = import ./src/templates;
 
-          apps."${suportedSystem}" = {
+          apps = {
             # Após longa briga pra fazer
             # nix flake show .#
             # nix flake check .#
