@@ -51,6 +51,8 @@
           pkgs = "${arg-nixpkgs}".legacyPackages."${system}";
         in
         home-manager.lib.homeManagerConfiguration {
+          pkgs = pkgs;
+
           modules = [
             {
               home = {
