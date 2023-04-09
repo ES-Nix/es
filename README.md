@@ -58,7 +58,18 @@ nix flake show .#
 
 
 
+```bash
+mkdir -pv ~/sandbox/sandbox \
+&& cd ~/sandbox/sandbox
+```
 
+
+```bash
+mkdir -pv ~/sandbox/sandbox \
+&& cd ~/sandbox/sandbox
+```
+
+nix flake init --template github:ES-nix/es#startConfig
 git init && git add .
 
 

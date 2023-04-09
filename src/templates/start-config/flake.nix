@@ -55,6 +55,7 @@
             {
               home = {
                 username = "${username}";
+                # homeDirectory = "${if stdenv.isLinux "/home/" + "${username}" else if stdenv.isDarwin "/User/" + "${username}" else trown "Unsuported system!"}";
                 homeDirectory = "/home/" + "${username}";
                 stateVersion = "${stateVersion}";
                 packages = with pkgs; [
