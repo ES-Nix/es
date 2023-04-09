@@ -60,11 +60,15 @@
 
           checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
+
+          # packages_ = (import ./src/pkgs { pkgs = pkgsAllowUnfree; nixos-lib = nixos-lib; });
           packages.default = self.packages."${suportedSystem}".hello;
 
           packages.hello = pkgsAllowUnfree.hello;
           packages.hello-unfree = pkgsAllowUnfree.hello-unfree;
           packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
+
+          packages.installStartConfigTemplate = (import ./src/pkgs/install-start-config-template { pkgs = pkgsAllowUnfree;});
 
 #          templates."${suportedSystem}" = {
 #            startConfig = ({
@@ -85,6 +89,16 @@
 
           templates = import ./src/templates;
 
+          apps."${suportedSystem}" = {
+            # Após longa briga pra fazer
+            # nix flake show .#
+            # nix flake check .#
+            # funcionarem
+            installStartConfigTemplate = flake-utils.lib.mkApp {
+              name = "install-start-config-template";
+              drv = self.packages."${suportedSystem}".installStartConfigTemplate;
+            };
+          };
         }
     );
 }
