@@ -46,9 +46,9 @@
           ] ++ extraModules;
         };
 
-      f = { system, username, arg-nixpkgs, home ? "", stateVersion ? "22.11" }:
+      f = { system, username, arg-pkgs, home ? "", stateVersion ? "22.11" }:
         let
-          pkgs = "${arg-nixpkgs}".legacyPackages."${system}";
+          pkgs = arg-pkgs;
         in
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgs;
