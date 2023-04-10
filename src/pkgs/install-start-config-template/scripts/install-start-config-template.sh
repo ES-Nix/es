@@ -80,7 +80,7 @@ build \
 $FLAKE_ATTR
 
 export NIXPKGS_ALLOW_UNFREE=1 \
-&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#"$HM_ATTR_FULL_NAME" \
+&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$HM_ATTR_FULL_NAME \
 && home-manager generations
 
 #
