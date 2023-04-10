@@ -421,7 +421,7 @@
   ];
 
   # https://github.com/nix-community/home-manager/blob/782cb855b2f23c485011a196c593e2d7e4fce746/modules/targets/generic-linux.nix
-  targets.genericLinux.enable = true;
+  # targets.genericLinux.enable = true;
 
   nix = {
     enable = true;
@@ -456,7 +456,7 @@
     # android_sdk.accept_license = true;
   };
 
-  services.systembus-notify.enable = true;
+  # services.systembus-notify.enable = true;
   # services.spotifyd.enable = true;
 
   fonts = {
