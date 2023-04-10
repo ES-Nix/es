@@ -73,8 +73,9 @@ $FLAKE_ATTR
 
 echo hm
 
+# && time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$HM_ATTR_FULL_NAME \
 export NIXPKGS_ALLOW_UNFREE=1 \
-&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$HM_ATTR_FULL_NAME \
+&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$(nix eval --impure --raw --expr 'builtins.currentSystem').$DUMMY_USER-$DUMMY_HOSTNAME \
 && home-manager generations
 
 
