@@ -4,7 +4,7 @@
 1)
 ```bash
 command -v curl || (command -v apt && sudo apt-get update && sudo apt-get install -y curl)
-command -v curl || (command -v apk && sudo apk add --no-cache -y curl)
+command -v curl || (command -v apk && sudo apk add --no-cache curl)
 
 
 NIX_RELEASE_VERSION=2.10.2 \
