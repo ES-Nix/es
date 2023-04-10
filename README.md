@@ -57,6 +57,14 @@ nix flake show .#
 
 
 
+```bash
+nix \
+--refresh \
+run \
+github:ES-nix/es#installStartConfigTemplate
+```
+
+
 
 ```bash
 mkdir -pv ~/sandbox/sandbox \
