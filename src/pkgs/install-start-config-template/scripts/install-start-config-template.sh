@@ -19,7 +19,7 @@ export DUMMY_HOSTNAME="$(hostname)"
 
 
 
-BASE_HM_ATTR_NAME='"'"$DUMMY_USER"-"$DUMMY_HOSTNAME"'"'
+BASE_HM_ATTR_NAME="$DUMMY_USER"-"$DUMMY_HOSTNAME"
 FLAKE_ARCHITECTURE=$(nix eval --impure --raw --expr 'builtins.currentSystem').
 
 HM_ATTR_FULL_NAME="$FLAKE_ARCHITECTURE$BASE_HM_ATTR_NAME"
