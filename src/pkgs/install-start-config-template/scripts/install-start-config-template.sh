@@ -39,18 +39,17 @@ FLAKE_ATTR="$DIRECTORY_TO_CLONE"'#homeConfigurations.'$HM_ATTR_FULL_NAME'.activa
 # nix profile install github:NixOS/nixpkgs/f5ffd5787786dde3a8bf648c7a1b5f78c4e01abb#git
 
 
-echo $DIRECTORY_TO_CLONE
-rm -frv $DIRECTORY_TO_CLONE
-mkdir -pv $DIRECTORY_TO_CLONE
-
-cd $DIRECTORY_TO_CLONE
+echo "$DIRECTORY_TO_CLONE" \
+&& rm -frv "$DIRECTORY_TO_CLONE" \
+&& mkdir -pv "$DIRECTORY_TO_CLONE" \
+&& cd "$DIRECTORY_TO_CLONE"
 
 nix \
 --refresh \
 flake \
 init \
 --template \
-github:ES-nix/es#"$(nix eval --impure --raw --expr 'builtins.currentSystem')".startConfig
+github:ES-nix/es#$(nix eval --impure --raw --expr 'builtins.currentSystem').startConfig
 
 sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
 && sed -i 's/hostname = ".*";/hostname = "'"$DUMMY_HOSTNAME"'";/g' flake.nix \
