@@ -23,7 +23,7 @@ echo 'DUMMY_USER:' $DUMMY_USER
 echo 'DUMMY_HOME:' $DUMMY_HOME
 echo 'DUMMY_HOSTNAME:' $DUMMY_HOSTNAME
 
-BASE_HM_ATTR_NAME=$DUMMY_USER'-'$DUMMY_HOSTNAME
+BASE_HM_ATTR_NAME='"'$DUMMY_USER'-'$DUMMY_HOSTNAME'"'
 FLAKE_ARCHITECTURE=$(nix eval --impure --raw --expr 'builtins.currentSystem').
 
 echo $FLAKE_ARCHITECTURE
@@ -65,17 +65,17 @@ sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
 
 echo "$FLAKE_ATTR"
 # TODO: --max-jobs 0 \
-#nix \
-#--option eval-cache false \
-#--option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
-#--option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
-#build \
-#--keep-failed \
-#--max-jobs 0 \
-#--no-link \
-#--print-build-logs \
-#--print-out-paths \
-#"$FLAKE_ATTR"
+nix \
+--option eval-cache false \
+--option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
+--option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
+build \
+--keep-failed \
+--max-jobs 0 \
+--no-link \
+--print-build-logs \
+--print-out-paths \
+$FLAKE_ATTR
 
 #export NIXPKGS_ALLOW_UNFREE=1 \
 #&& home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#"$HM_ATTR_FULL_NAME" \
