@@ -46,35 +46,35 @@ init \
 --template \
 github:ES-nix/es#$(nix eval --impure --raw --expr 'builtins.currentSystem').startConfig
 
-#
-#echo Debug
-#
-#sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
-#&& sed -i 's/hostname = ".*";/hostname = "'"$DUMMY_HOSTNAME"'";/g' flake.nix \
-#&& git init \
-#&& git status \
-#&& git add . \
-#&& nix flake update --override-input nixpkgs github:NixOS/nixpkgs/f5ffd5787786dde3a8bf648c7a1b5f78c4e01abb \
-#&& git status \
-#&& git add .
-#
-#echo "$FLAKE_ATTR"
-## TODO: --max-jobs 0 \
-#
-#time \
-#nix \
-#--option eval-cache false \
-#--option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
-#--option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
-#build \
-#--keep-failed \
-#--no-link \
-#--print-build-logs \
-#--print-out-paths \
-#$FLAKE_ATTR
-#
-#echo hm
-#
+
+echo Debug
+
+sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
+&& sed -i 's/hostname = ".*";/hostname = "'"$DUMMY_HOSTNAME"'";/g' flake.nix \
+&& git init \
+&& git status \
+&& git add . \
+&& nix flake update --override-input nixpkgs github:NixOS/nixpkgs/f5ffd5787786dde3a8bf648c7a1b5f78c4e01abb \
+&& git status \
+&& git add .
+
+echo "$FLAKE_ATTR"
+# TODO: --max-jobs 0 \
+
+time \
+nix \
+--option eval-cache false \
+--option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
+--option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
+build \
+--keep-failed \
+--no-link \
+--print-build-logs \
+--print-out-paths \
+$FLAKE_ATTR
+
+echo hm
+
 #export NIXPKGS_ALLOW_UNFREE=1 \
 #&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$HM_ATTR_FULL_NAME \
 #&& home-manager generations
