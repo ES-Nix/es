@@ -398,6 +398,26 @@
         nix repl --expr 'import <nixpkgs> {}'
       ''
     )
+
+    (
+      writeScriptBin "self-send-to-cache" ''
+        #! ${pkgs.runtimeShell} -e
+
+            nix path-info --impure --recursive \
+              /home/"$USER"/.config/nixpkgs#homeConfigurations.""$(id -un)"-"$(hostname)"".activationPackage \
+            | wc -l
+
+            nix path-info --impure --recursive \
+              /home/"$USER"/.config/nixpkgs#homeConfigurations.""$(id -un)"-"$(hostname)"".activationPackage \
+            | xargs -I{} nix \
+                copy \
+                --max-jobs $(nproc) \
+                -vvv \
+                --no-check-sigs \
+                {} \
+                --to 's3://playing-bucket-nix-cache-test'
+      ''
+    )
   ];
 
   # https://github.com/nix-community/home-manager/blob/782cb855b2f23c485011a196c593e2d7e4fce746/modules/targets/generic-linux.nix
