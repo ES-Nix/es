@@ -23,7 +23,7 @@ echo 'DUMMY_USER:' $DUMMY_USER
 echo 'DUMMY_HOME:' $DUMMY_HOME
 echo 'DUMMY_HOSTNAME:' $DUMMY_HOSTNAME
 
-BASE_HM_ATTR_NAME="$DUMMY_USER-$DUMMY_HOSTNAME"
+BASE_HM_ATTR_NAME='"'"$DUMMY_USER-$DUMMY_HOSTNAME"'"'
 FLAKE_ARCHITECTURE=$(nix eval --impure --raw --expr 'builtins.currentSystem').
 
 echo '@#$' $FLAKE_ARCHITECTURE
@@ -58,7 +58,7 @@ sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
 && git status \
 && git add .
 
-echo "$FLAKE_ATTR"
+echo $FLAKE_ATTR
 # TODO: --max-jobs 0 \
 
 time \
