@@ -8,8 +8,59 @@
   # home.homeDirectory = "/home/ubuntu";
 
   home.packages = with pkgs; [
+    # Graphical packages
+    #anydesk
+    #blender
+    #brave
+    #dbeaver
+    #discord
+    #gimp
+    #gitkraken
+    #google-chrome
+    #inkscape
+    #insomnia
+    #jetbrains.pycharm-community
+    #keepassxc
+    #kolourpaint
+    #libreoffice
+    #obsidian
+    #okular
+    #peek
+    #postman
+    #qbittorrent
+    #slack
+    #spotify
+    #tdesktop
+    #virt-manager
+    #vlc
+    #vscodium
+
+    # sudo $(which lshw) -C display
+    # sudo dmesg | grep drm
+    # glxgears -info
+    # lspci | grep -i vga
+    # mesa
+    # mesa-demos
+    # libglvnd # find / -name 'libGL.so' 2>/dev/null
+    # vulkan-loader
+    # vulkan-headers
+    # mesa_drivers
+    # linuxPackages.nvidia_x11
+    # cudatoolkit
+    # cudatoolkit.lib
+    # mpi
+
+    #
+    # steam-run
+
     xorg.xclock
     hello
+    sl
+#    asciiquarium
+#    figlet
+#    cowsay
+#    ponysay
+#    cmatrix
 
     # Just enabling it is ok, and might be better
     # nix
@@ -20,7 +71,15 @@
 
     # # TODO: testar com o zsh
     ## bashInteractive # https://www.reddit.com/r/NixOS/comments/zx4kmh/alpinewsl_home_manager_bash_issue/
+    awscli
     coreutils
+    binutils
+    utillinux
+    xorg.xkill
+    glibc.bin
+    patchelf
+    gparted
+    # glxinfo
     file
     findutils
     gnugrep
@@ -30,36 +89,80 @@
     hexdump
     which
     xz
+    exfat
     procps
     curl
+    wget
     lsof
     tree
     killall
-    btop
-    #    nmap
-    #    netcat
-    #    nettools
+    nmap
+    netcat
+    nettools
+    ripgrep
     tmate
     strace
     # ptrace
-    #    traceroute
+    traceroute
     man
     man-db
-    #    (aspellWithDicts (d: with d; [ de en pt_BR ])) # nix repl --expr 'import <nixpkgs> {}' <<<'builtins.attrNames aspellDicts' | tr ' ' '\n'
-    #    nix-prefetch-git
-    #    nixfmt
-    #    hydra-check
-    #    nixos-option
-    #    shellcheck
+    (aspellWithDicts (d: with d; [ de en pt_BR ])) # nix repl --expr 'import <nixpkgs> {}' <<<'builtins.attrNames aspellDicts' | tr ' ' '\n'
+    gnome.simple-scan
+    imagemagick
+    nix-prefetch-git
+    nixfmt
+    hydra-check
+    nixos-option
+    shellcheck
 
-    # fontconfig
+    nano
+    neovim
+
+    fontconfig
     # fontforge-gtk # TODO: testar fontes usando esse programa
     # pango
 
-    #    nerdfonts
-    #    powerline
-    #    powerline-fonts
-
+    # arphic-ukai
+    # arphic-uming
+    # aurulent-sans
+    # comic-relief
+    # corefonts           # Microsoft free fonts
+    # dejavu_fonts
+    # dina-font
+    # fira                # Monospace
+    # fira-code
+    # fira-code-symbols
+    # font-awesome # font-awesome-ttf, font-awesome_4
+    # freefont_ttf
+    # hack-font
+    # hasklig
+    # inconsolata         # Monospace
+    # ionicons
+    # lato
+    # liberation_ttf
+    # lineicons
+    # montserrat
+    # mplus-outline-fonts
+    nerdfonts # Really big, but only this font fixed some issues with starship
+    # noto-fonts
+    # noto-fonts-emoji
+    # noto-fonts-extra
+    powerline
+    powerline-fonts
+    # source-han-sans-japanese
+    # source-han-sans-korean
+    # source-han-sans-simplified-chinese
+    # source-han-sans-traditional-chinese
+    # source-sans
+    # source-sans-pro
+    # sudo-font
+    # symbola
+    # twemoji-color-font
+    # ubuntu_font_family
+    # unifont             # International languages
+    # wqy_microhei
+    # wqy_zenhei
+    # xkcd-font
 
     # (nerdfonts.override { fonts = [ "FiraCode"]; })
     #      (
@@ -91,137 +194,185 @@
     # clang
     # rustc
     # python3Full
+    python3
     # julia-bin
 
-    #    graphviz # dot command comes from here
-    #    jq
-    #    unixtools.xxd
+    graphviz # dot command comes from here
+    jq
+    unixtools.xxd
 
-    #    gzip
-    #    # unrar
-    #    unzip
-    #    gnutar
-    #
-    #    btop
-    #    htop
-    #    asciinema
+    gzip
+    # unrar
+    unzip
+    gnutar
+
+    btop
+    htop
+    asciinema
     git
     openssh
+    # sshfs # TODO: testar
 
-    (
-      writeScriptBin "ix" ''
-        #! ${pkgs.runtimeShell} -e
-          "$@" | "curl" -F 'f:1=<-' ix.io
-      ''
-    )
+    # #podman
+    # runc
+    # skopeo
+    # conmon
+    # slirp4netns
+    # shadow
 
-    (
-      writeScriptBin "erw" ''
-        #! ${pkgs.runtimeShell} -e
-        echo "$(readlink -f "$(which $1)")"
-      ''
-    )
+      (
+        writeScriptBin "ix" ''
+         #! ${pkgs.runtimeShell} -e
+           "$@" | "curl" -F 'f:1=<-' ix.io
+        ''
+      )
 
-    (
-      writeScriptBin "crw" ''
-        #! ${pkgs.runtimeShell} -e
-        cat "$(readlink -f "$(which $1)")"
-      ''
-    )
+      (
+        writeScriptBin "fix-kvm" ''
+         #! ${pkgs.runtimeShell} -e
 
-    (
-      writeScriptBin "myexternalip" ''
-        #! ${pkgs.runtimeShell} -e
-        # https://askubuntu.com/questions/95910/command-for-determining-my-public-ip#comment1985064_712144
+            echo "Start kvm stuff..." \
+            && getent group kvm || sudo groupadd kvm \
+            && sudo usermod --append --groups kvm "$USER" \
+            && echo "End kvm stuff!"
+        ''
+      )
 
-        curl https://checkip.amazonaws.com
-      ''
-    )
+      (
+        writeScriptBin "erw" ''
+         #! ${pkgs.runtimeShell} -e
+         echo "$(readlink -f "$(which $1)")"
+       ''
+       )
 
-    (
-      writeScriptBin "mynatip" ''
-        #! ${pkgs.runtimeShell} -e
-           # https://unix.stackexchange.com/a/569306
-           # https://serverfault.com/a/256506
+      (
+        writeScriptBin "crw" ''
+         #! ${pkgs.runtimeShell} -e
+         cat "$(readlink -f "$(which $1)")"
+       ''
+      )
 
-           NETWORK_INTERFACE_NAME=$(route | awk '
-                   BEGIN           { min = -1 }
-                   $1 == "default" {
-                                       if (min < 0  ||  $5 < min) {
-                                           min   = $5
-                                           iface = $8
-                                       }
-                                   }
-                   END             {
-                                       if (iface == "") {
-                                           print "No \"default\" route found!" > "/dev/stderr"
-                                           exit 1
-                                       } else {
-                                           print iface
-                                           exit 0
-                                       }
-                                   }
-                   '
-           )
+      (
+        writeScriptBin "myexternalip" ''
+         #! ${pkgs.runtimeShell} -e
+         # https://askubuntu.com/questions/95910/command-for-determining-my-public-ip#comment1985064_712144
 
-           ip addr show dev $NETWORK_INTERFACE_NAME | grep "inet " | awk '{ print $2 }' | cut -d'/' -f1
-      ''
-    )
+         curl https://checkip.amazonaws.com
+       ''
+      )
 
-    (
-      writeScriptBin "generate-new-ed25519-key-pair" ''
-        #! ${pkgs.runtimeShell} -e
-        ssh-keygen \
-        -t ed25519 \
-        -C "$(git config user.email)" \
-        -f "$HOME"/.ssh/id_ed25519 \
-        -N "" \
-        && echo \
-        && cat "$HOME"/.ssh/id_ed25519.pub \
-        && echo
-      ''
-    )
+      (
+        writeScriptBin "mynatip" ''
+         #! ${pkgs.runtimeShell} -e
+            # https://unix.stackexchange.com/a/569306
+            # https://serverfault.com/a/256506
 
-    (
-      writeScriptBin "try-install-openssh-server" ''
-        #! ${pkgs.runtimeShell} -e
-          command -v sshd || (command -v apt && sudo apt-get update && sudo apt-get install -y openssh-server)
-          command -v sshd || (command -v apk && sudo apk add --no-cache -y openssh-server)
-      ''
-    )
+            NETWORK_INTERFACE_NAME=$(route | awk '
+                    BEGIN           { min = -1 }
+                    $1 == "default" {
+                                        if (min < 0  ||  $5 < min) {
+                                            min   = $5
+                                            iface = $8
+                                        }
+                                    }
+                    END             {
+                                        if (iface == "") {
+                                            print "No \"default\" route found!" > "/dev/stderr"
+                                            exit 1
+                                        } else {
+                                            print iface
+                                            exit 0
+                                        }
+                                    }
+                    '
+            )
 
-    (
-      writeScriptBin "try-ubuntu-screensaver-lock-disable" ''
-        #! ${pkgs.runtimeShell} -e
-        # https://linuxhint.com/disable-screen-lock-ubuntu/
+            ip addr show dev $NETWORK_INTERFACE_NAME | grep "inet " | awk '{ print $2 }' | cut -d'/' -f1
+       ''
+      )
 
-        gsettings set org.gnome.desktop.screensaver lock-enabled false
-      ''
-    )
+      (
+        writeScriptBin "generate-new-ed25519-key-pair" ''
+         #! ${pkgs.runtimeShell} -e
 
-    (
-      writeScriptBin "try-ubuntu-screensaver-lock-enable" ''
-        #! ${pkgs.runtimeShell} -e
-        gsettings set org.gnome.desktop.screensaver lock-enabled true
-      ''
-    )
+         ssh-keygen \
+         -t ed25519 \
+         -C "$(git config user.email)" \
+         -f "$HOME"/.ssh/id_ed25519 \
+         -N "" \
+         && echo \
+         && cat "$HOME"/.ssh/id_ed25519.pub \
+         && echo
+        ''
+      )
 
-    (
-      writeScriptBin "nfm" ''
-        #! ${pkgs.runtimeShell} -e
-        nix flake metadata $1 --json | jq -r '.url'
-      ''
-    )
+      (
+        writeScriptBin "nfm" ''
+          #! ${pkgs.runtimeShell} -e
+          nix flake metadata $1 --json | jq -r '.url'
+        ''
+      )
+
+      (
+        writeScriptBin "build-pulling-all-from-cache" ''
+         #! ${pkgs.runtimeShell} -e
+
+            set -x
+
+            export NIXPKGS_ALLOW_UNFREE=1
+
+            nix \
+            --option eval-cache false \
+            --option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
+            --option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
+            build \
+            --impure \
+            --keep-failed \
+            --max-jobs 0 \
+            --no-link \
+            --print-build-logs \
+            --print-out-paths \
+            ~/.config/nixpkgs#homeConfigurations."$(id -un)"-"$(hostname)".activationPackage
+        ''
+      )
+
+      (
+        writeScriptBin "build-in-local-remote-builder" ''
+         #! ${pkgs.runtimeShell} -e
+
+            set -x
+
+            export NIXPKGS_ALLOW_UNFREE=1
+
+            nix \
+            build \
+            --impure \
+            --eval-store auto \
+            --keep-failed \
+            --max-jobs 0 \
+            --no-link \
+            --print-build-logs \
+            --print-out-paths \
+            --store ssh-ng://builder \
+            --substituters "" \
+            ~/.config/nixpkgs#homeConfigurations."$(id -un)"-"$(hostname)".activationPackage
+        ''
+      )
 
     (
       writeScriptBin "hms" ''
-        export NIXPKGS_ALLOW_UNFREE=1; \
+        #! ${pkgs.runtimeShell} -e
+
+        export NIXPKGS_ALLOW_UNFREE=1;
+
         home-manager switch --impure --flake "$HOME/.config/nixpkgs"#"$(id -un)"-"$(hostname)"
       ''
     )
 
     (
       writeScriptBin "gphms" ''
+        #! ${pkgs.runtimeShell} -e
+
         echo $(cd "$HOME/.config/nixpkgs" && git pull) \
         && export NIXPKGS_ALLOW_UNFREE=1; \
         home-manager switch --impure --flake "$HOME/.config/nixpkgs"#"$(id -un)"-"$(hostname)"
@@ -229,33 +380,10 @@
     )
 
     (
-      writeScriptBin "build-pulling-all-from-cache" ''
-        #! ${pkgs.runtimeShell} -e
-
-           set -x
-
-           export NIXPKGS_ALLOW_UNFREE=1
-
-           nix \
-           --option eval-cache false \
-           --option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
-           --option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
-           build \
-           --impure \
-           --keep-failed \
-           --max-jobs 0 \
-           --no-link \
-           --print-build-logs \
-           --print-out-paths \
-           ~/.config/nixpkgs#homeConfigurations."$(id -un)"-"$(hostname)".activationPackage
-      ''
-    )
-
-    (
       writeScriptBin "gphms-cache" ''
         #! ${pkgs.runtimeShell} -e
 
-        build-pulling-all-from-cache || true
+        build-pulling-all-from-cache
 
         echo $(cd "$HOME/.config/nixpkgs" && git pull) \
         && export NIXPKGS_ALLOW_UNFREE=1; \
@@ -265,6 +393,8 @@
 
     (
       writeScriptBin "nr" ''
+        #! ${pkgs.runtimeShell} -e
+
         nix repl --expr 'import <nixpkgs> {}'
       ''
     )
