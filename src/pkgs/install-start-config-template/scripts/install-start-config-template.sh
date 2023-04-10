@@ -3,8 +3,8 @@
 
 # Precisa das variáveis de ambiente USER e HOME
 
-# DIRECTORY_TO_CLONE=/home/"$USER"/.config/nixpkgs
-DIRECTORY_TO_CLONE=/home/"$USER"/sandbox/sandbox
+DIRECTORY_TO_CLONE=/home/"$USER"/.config/nixpkgs
+# DIRECTORY_TO_CLONE=/home/"$USER"/sandbox/sandbox
 
 # export DUMMY_USER=alpine
 export DUMMY_USER="$USER"
@@ -36,6 +36,7 @@ echo "$DIRECTORY_TO_CLONE" \
 && mkdir -pv "$DIRECTORY_TO_CLONE" \
 && cd "$DIRECTORY_TO_CLONE"
 
+
 time \
 nix \
 --refresh \
@@ -45,7 +46,6 @@ init \
 github:ES-nix/es#$(nix eval --impure --raw --expr 'builtins.currentSystem').startConfig
 
 
-echo Debug
 
 sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
 && sed -i 's/hostname = ".*";/hostname = "'"$DUMMY_HOSTNAME"'";/g' flake.nix \
@@ -71,7 +71,6 @@ build \
 --print-out-paths \
 $FLAKE_ATTR
 
-echo hm
 
 $(nix build --impure --print-out-paths $FLAKE_ATTR)/activate
 

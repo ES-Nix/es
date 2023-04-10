@@ -65,6 +65,9 @@ github:ES-nix/es#installStartConfigTemplate
 ```
 
 
+```bash
+rm -frv ~/.cache/nix/*
+```
 
 ```bash
 mkdir -pv ~/sandbox/sandbox \
