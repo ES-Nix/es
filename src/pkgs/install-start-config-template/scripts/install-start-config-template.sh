@@ -44,6 +44,7 @@ echo "$DIRECTORY_TO_CLONE" \
 && mkdir -pv "$DIRECTORY_TO_CLONE" \
 && cd "$DIRECTORY_TO_CLONE"
 
+time \
 nix \
 --refresh \
 flake \
@@ -65,38 +66,39 @@ sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
 
 echo "$FLAKE_ATTR"
 # TODO: --max-jobs 0 \
+
+time \
 nix \
 --option eval-cache false \
 --option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
 --option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
 build \
 --keep-failed \
---max-jobs 0 \
 --no-link \
 --print-build-logs \
 --print-out-paths \
 $FLAKE_ATTR
 
-#export NIXPKGS_ALLOW_UNFREE=1 \
-#&& home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#"$HM_ATTR_FULL_NAME" \
-#&& home-manager generations
+export NIXPKGS_ALLOW_UNFREE=1 \
+&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#"$HM_ATTR_FULL_NAME" \
+&& home-manager generations
+
 #
-##
-#TARGET_SHELL='zsh' \
-#&& FULL_TARGET_SHELL=/home/"$DUMMY_USER"/.nix-profile/bin/"$TARGET_SHELL" \
-#&& echo \
-#&& ls -al "$FULL_TARGET_SHELL" \
-#&& echo \
-#&& echo "$FULL_TARGET_SHELL" | sudo tee -a /etc/shells \
-#&& echo \
-#&& sudo \
-#      -k \
-#      usermod \
-#      -s \
-#      /home/"$DUMMY_USER"/.nix-profile/bin/"$TARGET_SHELL" \
-#      "$DUMMY_USER"
-#
-#
+TARGET_SHELL='zsh' \
+&& FULL_TARGET_SHELL=/home/"$DUMMY_USER"/.nix-profile/bin/"$TARGET_SHELL" \
+&& echo \
+&& ls -al "$FULL_TARGET_SHELL" \
+&& echo \
+&& echo "$FULL_TARGET_SHELL" | sudo tee -a /etc/shells \
+&& echo \
+&& sudo \
+      -k \
+      usermod \
+      -s \
+      /home/"$DUMMY_USER"/.nix-profile/bin/"$TARGET_SHELL" \
+      "$DUMMY_USER"
+
+
 
 #time \
 #nix \
