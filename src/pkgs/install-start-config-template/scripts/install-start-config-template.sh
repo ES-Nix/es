@@ -76,7 +76,7 @@ echo hm
 set -x
 ## && time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$HM_ATTR_FULL_NAME \
 export NIXPKGS_ALLOW_UNFREE=1 \
-&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$DUMMY_USER-$DUMMY_HOSTNAME \
+&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#"$DUMMY_USER-$DUMMY_HOSTNAME" \
 && home-manager generations
 
 
