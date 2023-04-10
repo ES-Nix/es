@@ -73,25 +73,25 @@ $FLAKE_ATTR
 
 echo hm
 
-# && time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$HM_ATTR_FULL_NAME \
-export NIXPKGS_ALLOW_UNFREE=1 \
-&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$DUMMY_USER-$DUMMY_HOSTNAME \
-&& home-manager generations
-
-
-TARGET_SHELL='zsh' \
-&& FULL_TARGET_SHELL=/home/"$DUMMY_USER"/.nix-profile/bin/"$TARGET_SHELL" \
-&& echo \
-&& ls -al "$FULL_TARGET_SHELL" \
-&& echo \
-&& echo "$FULL_TARGET_SHELL" | sudo tee -a /etc/shells \
-&& echo \
-&& sudo \
-      -k \
-      usermod \
-      -s \
-      /home/"$DUMMY_USER"/.nix-profile/bin/"$TARGET_SHELL" \
-      "$DUMMY_USER"
+## && time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$HM_ATTR_FULL_NAME \
+#export NIXPKGS_ALLOW_UNFREE=1 \
+#&& time home-manager switch -b backuphm --impure --flake "$DIRECTORY_TO_CLONE"#$DUMMY_USER-$DUMMY_HOSTNAME \
+#&& home-manager generations
+#
+#
+#TARGET_SHELL='zsh' \
+#&& FULL_TARGET_SHELL=/home/"$DUMMY_USER"/.nix-profile/bin/"$TARGET_SHELL" \
+#&& echo \
+#&& ls -al "$FULL_TARGET_SHELL" \
+#&& echo \
+#&& echo "$FULL_TARGET_SHELL" | sudo tee -a /etc/shells \
+#&& echo \
+#&& sudo \
+#      -k \
+#      usermod \
+#      -s \
+#      /home/"$DUMMY_USER"/.nix-profile/bin/"$TARGET_SHELL" \
+#      "$DUMMY_USER"
 
 
 
