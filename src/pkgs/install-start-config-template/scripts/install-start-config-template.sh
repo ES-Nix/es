@@ -3,8 +3,8 @@
 
 # Precisa das variáveis de ambiente USER e HOME
 
-# DIRECTORY_TO_CLONE=/home/"$USER"/.config/nixpkgs
-DIRECTORY_TO_CLONE=/home/"$USER"/sandbox/sandbox
+DIRECTORY_TO_CLONE=/home/"$USER"/.config/nixpkgs
+# DIRECTORY_TO_CLONE=/home/"$USER"/sandbox/sandbox
 
 # export DUMMY_USER=alpine
 export DUMMY_USER="$USER"

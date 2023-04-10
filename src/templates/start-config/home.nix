@@ -404,11 +404,11 @@
         #! ${pkgs.runtimeShell} -e
 
             nix path-info --impure --recursive \
-              /home/"$USER"/.config/nixpkgs#homeConfigurations.""$(id -un)"-"$(hostname)"".activationPackage \
+              /home/"$USER"/.config/nixpkgs#homeConfigurations.$(nix eval --impure --raw --expr 'builtins.currentSystem').\""$(id -un)"-"$(hostname)"\".activationPackage \
             | wc -l
 
             nix path-info --impure --recursive \
-              /home/"$USER"/.config/nixpkgs#homeConfigurations.""$(id -un)"-"$(hostname)"".activationPackage \
+              /home/"$USER"/.config/nixpkgs#homeConfigurations.$(nix eval --impure --raw --expr 'builtins.currentSystem').\""$(id -un)"-"$(hostname)"\".activationPackage \
             | xargs -I{} nix \
                 copy \
                 --max-jobs $(nproc) \
