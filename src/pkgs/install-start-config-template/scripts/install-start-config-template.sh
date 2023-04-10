@@ -24,7 +24,7 @@ FLAKE_ARCHITECTURE=$(nix eval --impure --raw --expr 'builtins.currentSystem').
 
 HM_ATTR_FULL_NAME="$FLAKE_ARCHITECTURE""$BASE_HM_ATTR_NAME"
 
-FLAKE_ATTR="$DIRECTORY_TO_CLONE""#homeConfigurations.""$HM_ATTR_FULL_NAME"".activationPackage"
+FLAKE_ATTR="$DIRECTORY_TO_CLONE"#homeConfigurations."$HM_ATTR_FULL_NAME"".activationPackage"
 
 # "$(nix eval --impure --raw --expr 'builtins.currentSystem')"-
 #HM_ATTR_FULL_NAME='"'"$DUMMY_USER"-"$DUMMY_HOSTNAME"'"'
