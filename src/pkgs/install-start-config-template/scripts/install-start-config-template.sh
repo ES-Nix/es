@@ -22,9 +22,11 @@ if [ "$IS_LINUX" = "true" ]; then
 fi
 
 
+CONFIG_NIXPKGS=${OVERRIDE_DIRECTORY_CONFIG_NIXPKGS:-.config/nixpkgs}
+
 export DUMMY_HOME="$DUMMY_HOME_PREFIX"/"$USER"
 
-DIRECTORY_TO_CLONE="$DUMMY_HOME"/.config/nixpkgs
+DIRECTORY_TO_CLONE="$DUMMY_HOME"/"$CONFIG_NIXPKGS"
 # DIRECTORY_TO_CLONE="$DUMMY_HOME_PREFIX"/"$USER"/sandbox/sandbox
 
 # export DUMMY_USER=alpine
@@ -74,6 +76,21 @@ sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
 
 echo $FLAKE_ATTR
 # TODO: --max-jobs 0 \
+
+if [ -n "$OVERRIDE_DIRECTORY_CONFIG_NIXPKGS" ]; then
+
+  nix \
+  build \
+  --eval-store auto \
+  --keep-failed \
+  --max-jobs 0 \
+  --no-link \
+  --print-build-logs \
+  --print-out-paths \
+  --rebuild \
+  --store ssh-ng://builder \
+  $FLAKE_ATTR
+fi
 
 time \
 nix \
