@@ -77,12 +77,16 @@ sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
 echo $FLAKE_ATTR
 # TODO: --max-jobs 0 \
 
+
+export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
+
 time \
 nix \
 --option eval-cache false \
 --option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
 --option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
 build \
+--impure \
 --keep-failed \
 --no-link \
 --print-build-logs \
