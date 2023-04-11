@@ -21,6 +21,19 @@ github:ES-nix/es#installStartConfigTemplate
 ```
 
 
+```bash
+export OVERRIDE_DIRECTORY_CONFIG_NIXPKGS="$(pwd)"/sandboxdir \
+&& mkdir -pv "$OVERRIDE_DIRECTORY_CONFIG_NIXPKGS" \
+&& cd "$OVERRIDE_DIRECTORY_CONFIG_NIXPKGS" \
+&& time \
+    nix \
+    --refresh \
+    run \
+    github:ES-nix/es#installStartConfigTemplate
+```
+
+
+
 error: derivation '/nix/store/v8hi07w07q0dvdf035y73xm6ia2ps09y-python3-3.10.10.drv' may not be deterministic: output '/nix/store/ppjxjd3li8r9b61n1nn5jqgdd20bcvj7-python3-3.10.10' differs
 
 export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1

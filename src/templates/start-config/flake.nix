@@ -114,6 +114,7 @@
         "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "vagrant"; };
         "ubuntu-ubuntu2204-ec2" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "ubuntu"; };
         "alvaro-Maquina-Virtual-de-Alvaro.local" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "ubuntu"; };
+        "nixuser-nixos" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "ubuntu"; };
       };
 
     });
