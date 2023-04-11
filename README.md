@@ -24,6 +24,7 @@ github:ES-nix/es#installStartConfigTemplate
 ```bash
 nix \
 run \
+--refresh \
 github:ES-nix/es#sendToCacheInstallStartConfigTemplate
 ```
 

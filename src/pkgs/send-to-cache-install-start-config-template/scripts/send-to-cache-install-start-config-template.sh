@@ -95,7 +95,6 @@ echo $FLAKE_ATTR
 
 export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
 
-
 nix \
 build \
 --impure \
@@ -103,7 +102,17 @@ build \
 --no-link \
 --print-build-logs \
 --print-out-paths \
-'.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
+'.#homeConfigurations.aarch64-linux."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
+
+
+#nix \
+#build \
+#--impure \
+#--keep-failed \
+#--no-link \
+#--print-build-logs \
+#--print-out-paths \
+#'.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
 
 
 #nix \
