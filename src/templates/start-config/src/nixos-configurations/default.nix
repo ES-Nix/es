@@ -1,4 +1,4 @@
-{ lib, path, my-overlays, ... }:
+{ lib, path, ... }:
 let
   # Shared base configuration.
   exampleBase = {
