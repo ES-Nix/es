@@ -86,6 +86,5 @@ build \
 --no-link \
 --print-build-logs \
 --print-out-paths \
---rebuild \
 --store ssh-ng://builder \
 $FLAKE_ATTR
