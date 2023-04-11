@@ -95,14 +95,25 @@ echo $FLAKE_ATTR
 
 export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
 
+
 nix \
 build \
 --impure \
---eval-store auto \
 --keep-failed \
---max-jobs 0 \
 --no-link \
 --print-build-logs \
 --print-out-paths \
---store ssh-ng://builder \
 '.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
+
+
+#nix \
+#build \
+#--impure \
+#--eval-store auto \
+#--keep-failed \
+#--max-jobs 0 \
+#--no-link \
+#--print-build-logs \
+#--print-out-paths \
+#--store ssh-ng://builder \
+#'.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
