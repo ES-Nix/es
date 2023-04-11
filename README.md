@@ -22,14 +22,10 @@ github:ES-nix/es#installStartConfigTemplate
 
 
 ```bash
-export OVERRIDE_DIRECTORY_CONFIG_NIXPKGS=sandboxdir \
-&& mkdir -pv "$OVERRIDE_DIRECTORY_CONFIG_NIXPKGS" \
-&& cd "$OVERRIDE_DIRECTORY_CONFIG_NIXPKGS" \
-&& time \
-    nix \
-    --refresh \
-    run \
-    github:ES-nix/es#installStartConfigTemplate
+nix \
+--refresh \
+run \
+github:ES-nix/es#sendToCacheInstallStartConfigTemplate
 ```
 
 

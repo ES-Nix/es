@@ -69,6 +69,7 @@
           packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
           packages.installStartConfigTemplate = (import ./src/pkgs/install-start-config-template { pkgs = pkgsAllowUnfree;});
+          packages.sendToCacheInstallStartConfigTemplate = (import ./src/pkgs/send-to-cache-install-start-config-template { pkgs = pkgsAllowUnfree;});
 
 #          templates."${suportedSystem}" = {
 #            startConfig = ({

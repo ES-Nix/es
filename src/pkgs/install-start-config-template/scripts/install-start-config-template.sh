@@ -77,21 +77,6 @@ sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
 echo $FLAKE_ATTR
 # TODO: --max-jobs 0 \
 
-if [ -n "$OVERRIDE_DIRECTORY_CONFIG_NIXPKGS" ]; then
-
-  nix \
-  build \
-  --eval-store auto \
-  --keep-failed \
-  --max-jobs 0 \
-  --no-link \
-  --print-build-logs \
-  --print-out-paths \
-  --rebuild \
-  --store ssh-ng://builder \
-  $FLAKE_ATTR
-fi
-
 time \
 nix \
 --option eval-cache false \
