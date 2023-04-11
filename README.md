@@ -21,6 +21,10 @@ github:ES-nix/es#installStartConfigTemplate
 ```
 
 
+error: derivation '/nix/store/v8hi07w07q0dvdf035y73xm6ia2ps09y-python3-3.10.10.drv' may not be deterministic: output '/nix/store/ppjxjd3li8r9b61n1nn5jqgdd20bcvj7-python3-3.10.10' differs
+
+export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
+nix build --impure --print-build-logs nixpkgs#glibc
 
 FLAKE_ATTR="$DIRECTORY_TO_CLONE"'#homeConfigurations.'$FLAKE_ARCHITECTURE'"'"$DUMMY_USER-$DUMMY_HOSTNAME"'"''.activationPackage'
 
@@ -41,6 +45,27 @@ build \
 '.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
 
 $FLAKE_ATTR
+
+```bash
+nix \
+build \
+--impure \
+--print-build-logs \
+--print-out-paths \
+--rebuild \
+--expr \
+'
+  (                                         
+    with builtins.getFlake "github:NixOS/nixpkgs/f0fa012b649a47e408291e96a15672a4fe925d65";
+    with legacyPackages.${builtins.currentSystem};
+    (pkgsStatic.python3Minimal.override
+      {
+        reproducibleBuild = true;
+      }
+    )
+  )
+'
+```
 
 ```bash
 nix registry list

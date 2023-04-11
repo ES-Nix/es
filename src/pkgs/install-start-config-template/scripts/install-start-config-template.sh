@@ -1,20 +1,35 @@
 #!/usr/bin/env bash
 
 
-# Precisa das variáveis de ambiente USER e HOME
 
 # TODO:
-# DIRECTORY_TO_CLONE=/home/"$USER"/.config/nixpkgs
-DIRECTORY_TO_CLONE=/Users/"$USER"/.config/nixpkgs
-# DIRECTORY_TO_CLONE=/home/"$USER"/sandbox/sandbox
+# nix eval --impure --expr '((builtins.getFlake "github:NixOS/nixpkgs/8ba90bbc63e58c8c436f16500c526e9afcb6b00a").legacyPackages.${builtins.currentSystem}.stdenv.isDarwin)'
+
+IS_DARWIN=$(nix eval --impure --expr '((builtins.getFlake "github:NixOS/nixpkgs").legacyPackages.${builtins.currentSystem}.stdenv.isDarwin)')
+IS_LINUX=$(nix eval --impure --expr '((builtins.getFlake "github:NixOS/nixpkgs").legacyPackages.${builtins.currentSystem}.stdenv.isLinux)')
+
+
+FLAKE_ARCHITECTURE=$(nix eval --impure --raw --expr 'builtins.currentSystem').
+
+if [ "$IS_DARWIN" = "true" ]; then
+  echo 'The system archtecture was detected as: '"$FLAKE_ARCHITECTURE"
+  DUMMY_HOME_PREFIX='/Users'
+fi
+
+if [ "$IS_LINUX" = "true" ]; then
+  echo 'The system archtecture was detected as: '"$FLAKE_ARCHITECTURE"
+  DUMMY_HOME_PREFIX='/home'
+fi
+
+
+export DUMMY_HOME="$DUMMY_HOME_PREFIX"/"$USER"
+
+DIRECTORY_TO_CLONE="$DUMMY_HOME"/.config/nixpkgs
+# DIRECTORY_TO_CLONE="$DUMMY_HOME_PREFIX"/"$USER"/sandbox/sandbox
 
 # export DUMMY_USER=alpine
 export DUMMY_USER="$USER"
 # export DUMMY_USER="$(id -un)"
-
-# TODO: Mac
-# export DUMMY_HOME="$HOME"
-export DUMMY_HOME=/home/"$USER"
 
 # export DUMMY_HOSTNAME=alpine316.localdomain
 export DUMMY_HOSTNAME="$(hostname)"
@@ -26,7 +41,6 @@ echo 'DUMMY_HOME:' $DUMMY_HOME
 echo 'DUMMY_HOSTNAME:' $DUMMY_HOSTNAME
 
 # BASE_HM_ATTR_NAME='"'"$DUMMY_USER-$DUMMY_HOSTNAME"'"'
-FLAKE_ARCHITECTURE=$(nix eval --impure --raw --expr 'builtins.currentSystem').
 
 #
 HM_ATTR_FULL_NAME=$FLAKE_ARCHITECTURE$DUMMY_USER-$DUMMY_HOSTNAME
