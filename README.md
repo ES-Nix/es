@@ -22,7 +22,7 @@ github:ES-nix/es#installStartConfigTemplate
 
 
 ```bash
-export OVERRIDE_DIRECTORY_CONFIG_NIXPKGS="$(pwd)"/sandboxdir \
+export OVERRIDE_DIRECTORY_CONFIG_NIXPKGS=sandboxdir \
 && mkdir -pv "$OVERRIDE_DIRECTORY_CONFIG_NIXPKGS" \
 && cd "$OVERRIDE_DIRECTORY_CONFIG_NIXPKGS" \
 && time \
