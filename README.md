@@ -28,7 +28,15 @@ run \
 github:ES-nix/es#sendToCacheInstallStartConfigTemplate
 ```
 
+```bash
+export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 \
+&& nix show-derivation --impure github:NixOS/nixpkgs/nixpkgs-unstable#darwin.builder
+```
 
+```bash
+export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 \
+&& nix build --impure --print-build-logs github:NixOS/nixpkgs/nixpkgs-unstable#darwin.builder
+```
 
 error: derivation '/nix/store/v8hi07w07q0dvdf035y73xm6ia2ps09y-python3-3.10.10.drv' may not be deterministic: output '/nix/store/ppjxjd3li8r9b61n1nn5jqgdd20bcvj7-python3-3.10.10' differs
 

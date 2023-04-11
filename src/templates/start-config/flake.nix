@@ -94,7 +94,7 @@
         };
     } // {
 
-      nixosConfigurations = (import ./src/nixosConfigurations {
+      nixosConfigurations = (import ./src/nixos-configurations {
         inherit lib;
         path = pkgsAllowUnfree.path;
         # my-overlays = my-overlays;
