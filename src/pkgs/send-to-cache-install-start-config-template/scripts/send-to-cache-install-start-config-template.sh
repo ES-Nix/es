@@ -93,8 +93,11 @@ echo $FLAKE_ATTR
 #$FLAKE_ATTR
 
 
+export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
+
 nix \
 build \
+--impure \
 --eval-store auto \
 --keep-failed \
 --max-jobs 0 \
