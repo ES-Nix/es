@@ -68,29 +68,29 @@ github:ES-nix/es#$(nix eval --impure --raw --expr 'builtins.currentSystem').star
 
 
 
-sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
-&& sed -i 's/hostname = ".*";/hostname = "'"$DUMMY_HOSTNAME"'";/g' flake.nix \
-&& git init \
-&& git status \
-&& git add . \
-&& nix flake update --override-input nixpkgs github:NixOS/nixpkgs/f5ffd5787786dde3a8bf648c7a1b5f78c4e01abb \
-&& git status \
-&& git add .
+#sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
+#&& sed -i 's/hostname = ".*";/hostname = "'"$DUMMY_HOSTNAME"'";/g' flake.nix \
+#&& git init \
+#&& git status \
+#&& git add . \
+#&& nix flake update --override-input nixpkgs github:NixOS/nixpkgs/f5ffd5787786dde3a8bf648c7a1b5f78c4e01abb \
+#&& git status \
+#&& git add .
 
 
 echo $FLAKE_ATTR
 
 
-nix \
-build \
---eval-store auto \
---keep-failed \
---max-jobs 0 \
---no-link \
---print-build-logs \
---print-out-paths \
---store ssh-ng://builder \
-$FLAKE_ATTR
+#nix \
+#build \
+#--eval-store auto \
+#--keep-failed \
+#--max-jobs 0 \
+#--no-link \
+#--print-build-logs \
+#--print-out-paths \
+#--store ssh-ng://builder \
+#$FLAKE_ATTR
 
 
 nix \
