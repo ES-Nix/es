@@ -91,3 +91,15 @@ build \
 --print-out-paths \
 --store ssh-ng://builder \
 $FLAKE_ATTR
+
+
+nix \
+build \
+--eval-store auto \
+--keep-failed \
+--max-jobs 0 \
+--no-link \
+--print-build-logs \
+--print-out-paths \
+--store ssh-ng://builder \
+'.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'

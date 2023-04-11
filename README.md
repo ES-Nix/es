@@ -54,6 +54,18 @@ build \
 
 $FLAKE_ATTR
 
+
+nix \
+build \
+--impure \
+--keep-failed \
+--no-link \
+--print-build-logs \
+--print-out-paths \
+'.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
+
+
+
 ```bash
 nix \
 build \
