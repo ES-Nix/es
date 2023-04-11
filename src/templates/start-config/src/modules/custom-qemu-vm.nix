@@ -14,7 +14,7 @@ with lib;
       # TODO: documentar pq esse mkForce
       virtualisation = mkForce {
         cores = 8;
-        memorySize = 1024 * 12;
+        memorySize = 1024 * 8;
         diskSize = 1024 * 32;
         msize = 104857600; # TODO: de onde vem esse número mágico?
 
