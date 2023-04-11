@@ -82,7 +82,9 @@
 
     in
       flake-utils.lib.eachSystem suportedSystems (suportedSystem:
-    let pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
+    let
+      pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
+      lib = nixpkgs-linux-stable.lib;
     in rec {
       devShells.default =
         pkgsAllowUnfree.mkShell { buildInputs = with pkgsAllowUnfree; [
@@ -91,7 +93,12 @@
           ];
         };
     } // {
-      # TODO: put nixosConfigurations here later
+
+      nixosConfigurations = (import ./src/nixosConfigurations {
+        inherit lib;
+        path = pkgsAllowUnfree.path;
+        # my-overlays = my-overlays;
+      });
 
       checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
