@@ -49,6 +49,8 @@
       f = { system, username, arg-pkgs, home ? "", stateVersion ? "22.11" }:
         let
           pkgs = arg-pkgs;
+          baseHomeDirectory = "${if stdenv.isLinux then "/home/" else "${if stdenv.isDarwin then "/User/" else trown "Unsuported system!"}"}";
+          homeDirectory = "${baseHomeDirectory}" + "${username}";
         in
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgs;
@@ -57,8 +59,7 @@
             {
               home = {
                 username = "${username}";
-                # homeDirectory = "${if stdenv.isLinux "/home/" + "${username}" else if stdenv.isDarwin "/User/" + "${username}" else trown "Unsuported system!"}";
-                homeDirectory = "/home/" + "${username}";
+                homeDirectory = "${homeDirectory}";
                 stateVersion = "${stateVersion}";
                 packages = with pkgs; [
                   sl
