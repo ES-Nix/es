@@ -71,7 +71,7 @@ in
       ../modules/custom-boot.nix
       ../modules/custom-dev.nix
       ../modules/custom-qemu-vm.nix
-      ../modules/custom-docker.nix
+      ../modules/custom-podman.nix
     ];
   };
 

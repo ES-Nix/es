@@ -38,6 +38,12 @@ export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 \
 && nix build --impure --print-build-logs github:NixOS/nixpkgs/nixpkgs-unstable#darwin.builder
 ```
 
+```bash
+nix build --impure --no-link --print-build-logs \
+"$HOME"/.config/nixpkgs#nixosConfigurations.x86_64-linux.build-vm-dev.config.system.build.vm
+```
+
+
 error: derivation '/nix/store/v8hi07w07q0dvdf035y73xm6ia2ps09y-python3-3.10.10.drv' may not be deterministic: output '/nix/store/ppjxjd3li8r9b61n1nn5jqgdd20bcvj7-python3-3.10.10' differs
 
 export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
