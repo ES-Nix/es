@@ -81,28 +81,28 @@ github:ES-nix/es#$(nix eval --impure --raw --expr 'builtins.currentSystem').star
 echo $FLAKE_ATTR
 
 
-#nix \
-#build \
-#--eval-store auto \
-#--keep-failed \
-#--max-jobs 0 \
-#--no-link \
-#--print-build-logs \
-#--print-out-paths \
-#--store ssh-ng://builder \
-#$FLAKE_ATTR
-
-
-export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
-
 nix \
 build \
---impure \
+--eval-store auto \
 --keep-failed \
+--max-jobs 0 \
 --no-link \
 --print-build-logs \
 --print-out-paths \
-'.#homeConfigurations.aarch64-linux."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
+--store ssh-ng://builder \
+$FLAKE_ATTR
+
+
+#export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
+#
+#nix \
+#build \
+#--impure \
+#--keep-failed \
+#--no-link \
+#--print-build-logs \
+#--print-out-paths \
+#'.#homeConfigurations.aarch64-linux."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
 
 
 #nix \
