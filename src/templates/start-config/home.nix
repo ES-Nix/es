@@ -246,6 +246,13 @@
        )
 
       (
+        writeScriptBin "frw" ''
+         #! ${pkgs.runtimeShell} -e
+         file "$(readlink -f "$(which $1)")"
+       ''
+       )
+
+      (
         writeScriptBin "crw" ''
          #! ${pkgs.runtimeShell} -e
          cat "$(readlink -f "$(which $1)")"
