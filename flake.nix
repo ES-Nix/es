@@ -53,7 +53,9 @@
             ];
 
             shellHook = ''
-              echo -e 'Education and Science' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
+              echo -e 'Education' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
+              echo -e '       and' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
+              echo -e 'Science' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
             '';
           };
           # TODO: put nixosConfigurations here later
