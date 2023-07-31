@@ -3,7 +3,7 @@
 ## Contributing
 
 ```bash
-nix flake clone 'github:ES-Nix/es' --dest es \
+nix flake clone 'git+ssh://git@github.com/ES-Nix/es.git' --dest es \
 && cd es 1>/dev/null 2>/dev/null \
 && (direnv --version 1>/dev/null 2>/dev/null && direnv allow) \
 || nix develop $SHELL
