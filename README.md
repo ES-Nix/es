@@ -1,5 +1,15 @@
 # es
 
+## Contributing
+
+```bash
+nix flake clone 'github:ES-Nix/es' --dest es \
+&& cd es 1>/dev/null 2>/dev/null \
+&& (direnv --version 1>/dev/null 2>/dev/null && direnv allow) \
+|| nix develop $SHELL
+```
+
+## Using 
 
 1)
 ```bash
@@ -43,9 +53,11 @@ nix build --impure --no-link --print-build-logs \
 "$HOME"/.config/nixpkgs#nixosConfigurations.x86_64-linux.build-vm-dev.config.system.build.vm
 ```
 
-
+```bash
 error: derivation '/nix/store/v8hi07w07q0dvdf035y73xm6ia2ps09y-python3-3.10.10.drv' may not be deterministic: output '/nix/store/ppjxjd3li8r9b61n1nn5jqgdd20bcvj7-python3-3.10.10' differs
+```
 
+```bash
 export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
 nix build --impure --print-build-logs nixpkgs#glibc
 
@@ -78,7 +90,7 @@ build \
 --print-build-logs \
 --print-out-paths \
 '.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
-
+```
 
 
 ```bash
@@ -173,12 +185,12 @@ github:ES-nix/es#"$(nix eval --impure --raw --expr 'builtins.currentSystem')".st
 nix shell nixpkgs#git -c sh -c 'git init && git add .'
 ```
 
-
+```bash
 checks.suportedSystem = self.packages.suportedSystem;
 
 
 mkdir -pv hosts/minimal-example-nixos
-
+```
 
 
 ```bash
@@ -281,19 +293,21 @@ EOF
 ```
 
 
-      # templates = import ./src/templates { system = "x86_64-linux"; } ;
-      # templates.default = import ./src/templates;
+```bash
+templates = import ./src/templates { system = "x86_64-linux"; } ;
+templates.default = import ./src/templates;
 
-#      packages.checkNixFormat = pkgsAllowUnfree.runCommand "check-nix-format" { } ''
-#        ${pkgsAllowUnfree.nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
-#
-#        # For fix
-#        # find . -type f -iname '*.nix' -exec nixpkgs-fmt {} \;
-#
-#        mkdir $out #sucess
-#      '';
-#
-#      apps.${name} = flake-utils.lib.mkApp {
-#        inherit name;
-#        drv = packages.${name};
-#      };
+packages.checkNixFormat = pkgsAllowUnfree.runCommand "check-nix-format" { } ''
+    ${pkgsAllowUnfree.nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
+    
+    # For fix
+    # find . -type f -iname '*.nix' -exec nixpkgs-fmt {} \;
+    
+    mkdir $out #sucess
+'';
+
+apps.${name} = flake-utils.lib.mkApp {
+    inherit name;
+    drv = packages.${name};
+};
+```
