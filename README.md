@@ -143,6 +143,255 @@ nix flake init --template templates#full
 nix flake show .#
 ```
 
+```bash
+git init \
+&& git status \
+&& git add . \
+&& nix flake update --override-input nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b \
+&& git status \
+&& git add . \
+&& git commit -m 'First nix flake commit'"$(date +'%d/%m/%Y %H:%M:%S:%3N')" \
+&& nix flake lock \
+&& git add . \
+&& git commit -m 'Second nix flake commit'"$(date +'%d/%m/%Y %H:%M:%S:%3N')" \
+&& git status
+```
+
+
+{
+  description = "A template that shows all standard flake outputs";
+
+  # Inputs
+  # https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs
+
+  # The flake in the current directory.
+  # inputs.currentDir.url = ".";
+
+  # A flake in some other directory.
+  # inputs.otherDir.url = "/home/alice/src/patchelf";
+
+  # A flake in some absolute path
+  # inputs.otherDir.url = "path:/home/alice/src/patchelf";
+
+  # The nixpkgs entry in the flake registry.
+  inputs.nixpkgsRegistry.url = "nixpkgs";
+
+  # The nixpkgs entry in the flake registry, overriding it to use a specific Git revision.
+  inputs.nixpkgsRegistryOverride.url = "nixpkgs/a3a3dda3bacf61e8a39258a0ed9c924eeca8e293";
+
+  # The master branch of the NixOS/nixpkgs repository on GitHub.
+  inputs.nixpkgsGitHub.url = "github:NixOS/nixpkgs";
+
+  # Inputs as attrsets.
+  # An indirection through the flake registry.
+  inputs.nixpkgsIndirect = {
+    type = "indirect";
+    id = "nixpkgs";
+  };
+
+  # Transitive inputs can be overridden from a flake.nix file. For example, the following overrides the nixpkgs input of the nixops input:
+  inputs.nixops.inputs.nixpkgs = {
+    type = "github";
+    owner = "NixOS";
+    repo = "nixpkgs";
+  };
+
+  # It is also possible to "inherit" an input from another input. This is useful to minimize
+  # flake dependencies. For example, the following sets the nixpkgs input of the top-level flake
+  # to be equal to the nixpkgs input of the nixops input of the top-level flake:
+  inputs.nixpkgs.url = "nixpkgs";
+
+  inputs.c-hello.url = "github:NixOS/templates?dir=c-hello";
+  inputs.rust-web-server.url = "github:NixOS/templates?dir=rust-web-server";
+  inputs.nix-bundle.url = "github:NixOS/bundlers";
+
+  # Work-in-progress: refer to parent/sibling flakes in the same repository
+  # inputs.c-hello.url = "path:../c-hello";
+
+  outputs = all@{ self, c-hello, rust-web-server, nixpkgs, nix-bundle, ... }: {
+
+    # Utilized by `nix flake check`
+    checks.x86_64-linux.test = c-hello.checks.x86_64-linux.test;
+
+    # Utilized by `nix build .`
+    defaultPackage.x86_64-linux = c-hello.defaultPackage.x86_64-linux;
+
+    # Utilized by `nix build`
+    packages.x86_64-linux.hello = c-hello.packages.x86_64-linux.hello;
+
+    # Utilized by `nix run .#<name>`
+    apps.x86_64-linux.hello = {
+      type = "app";
+      program = c-hello.packages.x86_64-linux.hello;
+    };
+
+    # Utilized by `nix bundle -- .#<name>` (should be a .drv input, not program path?)
+    bundlers.x86_64-linux.example = nix-bundle.bundlers.x86_64-linux.toArx;
+
+    # Utilized by `nix bundle -- .#<name>`
+    defaultBundler.x86_64-linux = self.bundlers.x86_64-linux.example;
+
+    # Utilized by `nix run . -- <args?>`
+    defaultApp.x86_64-linux = self.apps.x86_64-linux.hello;
+
+    # Utilized for nixpkgs packages, also utilized by `nix build .#<name>`
+    legacyPackages.x86_64-linux.hello = c-hello.defaultPackage.x86_64-linux;
+
+    # Default overlay, for use in dependent flakes
+    overlay = final: prev: { };
+
+    # # Same idea as overlay but a list or attrset of them.
+    overlays = { exampleOverlay = self.overlay; };
+
+    nixosConfigurations.myvm = let
+        pkgs = import nixpkgs {
+          system = "x86_64-linux";
+          # system = "aarch64-linux";
+          config = { allowUnfree = true; };
+        };
+     in
+        nixpkgs.lib.nixosSystem 
+        {
+        # system = "aarch64-linux";
+        system = "x86_64-linux";
+        modules = let
+                     nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly";      
+          in [
+          "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/build-vm.nix"
+          "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-vm.nix"
+          # "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-guest.nix"
+          "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/installer/cd-dvd/channel.nix"
+
+          ({
+            boot.kernelParams = [
+              "console=tty0"
+              "console=ttyAMA0,115200n8"
+              # Set sensible kernel parameters
+              # https://nixos.wiki/wiki/Bootloader
+              # https://git.redbrick.dcu.ie/m1cr0man/nix-configs-rb/commit/ddb4d96dacc52357e5eaec5870d9733a1ea63a5a?lang=pt-PT
+              "boot.shell_on_fail"
+              "panic=30"
+              "boot.panic_on_fail" # reboot the machine upon fatal boot issues
+              # TODO: test it
+              "intel_iommu=on"
+              "iommu=pt"
+
+              # https://discuss.linuxcontainers.org/t/podman-wont-run-containers-in-lxd-cgroup-controller-pids-unavailable/13049/2
+              # https://github.com/NixOS/nixpkgs/issues/73800#issuecomment-729206223
+              # https://github.com/canonical/microk8s/issues/1691#issuecomment-977543458
+              # https://github.com/grahamc/nixos-config/blob/35388280d3b06ada5882d37c5b4f6d3baa43da69/devices/petunia/configuration.nix#L36
+              # cgroup_no_v1=all
+              "swapaccount=0"
+              "systemd.unified_cgroup_hierarchy=0"
+              "group_enable=memory"
+            ];
+
+            boot.tmpOnTmpfs = false;
+            # https://github.com/AtilaSaraiva/nix-dotfiles/blob/main/lib/modules/configHost/default.nix#L271-L273
+            boot.tmpOnTmpfsSize = "100%";
+
+            # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
+            users.extraGroups.nixgroup.gid = 999;
+
+            users.users.nixuser = {
+              isSystemUser = true;
+              password = "";
+              createHome = true;
+              home = "/home/nixuser";
+              homeMode = "0700";
+              description = "The VM tester user";
+              group = "nixgroup";
+              extraGroups = [
+                              "podman"
+                              "kvm"
+                              "libvirtd"
+                              "wheel"
+              ];
+              packages = with pkgs; [
+                  direnv
+                  file
+                  gnumake
+                  which
+                  coreutils
+              ];
+              shell = pkgs.bashInteractive;
+              uid = 1234;
+              autoSubUidGidRange = true;
+
+              openssh.authorizedKeys.keyFiles = [
+                "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly" }"
+              ];
+
+              openssh.authorizedKeys.keys = [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly"
+              ];
+            };
+
+              virtualisation = {
+                # following configuration is added only when building VM with build-vm
+                memorySize = 3072; # Use MiB memory.
+                diskSize = 1024 * 16; # Use MiB memory.
+                cores = 6;         # Simulate 6 cores.
+                
+                #
+                docker.enable = false;
+                podman.enable = true;
+                
+                #
+                useNixStoreImage = true;
+                writableStore = true; # TODO
+              };
+
+              nixpkgs.config.allowUnfree = true;
+              nix = {
+                # package = nixpkgs.pkgs.nix;
+                extraOptions = "experimental-features = nix-command flakes";
+                readOnlyStore = true;
+              };
+
+              # https://github.com/NixOS/nixpkgs/issues/21332#issuecomment-268730694
+              services.openssh = {
+                allowSFTP = true;
+                kbdInteractiveAuthentication = false;
+                enable = true;
+                forwardX11 = false;
+                passwordAuthentication = false;
+                permitRootLogin = "yes";
+                ports = [ 10022 ];
+                authorizedKeysFiles = [
+                  "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly" }"
+                ];
+              };
+
+            time.timeZone = "America/Recife";
+            system.stateVersion = "22.11";
+
+            users.users.root = {
+              password = "root";
+              initialPassword = "root";
+              openssh.authorizedKeys.keyFiles = [
+                "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly" }"
+              ];
+            };
+          })
+        ];
+    };
+
+    # Utilized by Hydra build jobs
+    hydraJobs.example.x86_64-linux = self.defaultPackage.x86_64-linux;
+  };
+}
+
+
+
+```bash
+wget -q http://ix.io/4uHn -O flake.nix \
+&& git add .
+```
+
+```bash
+nix build --no-show-trace -L .#nixosConfigurations.myvm.config.system.build.toplevel
+```
 
 ### 
 
