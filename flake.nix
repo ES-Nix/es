@@ -19,7 +19,8 @@
   };
 
   outputs =
-    { self
+    allAttrs@{
+    self
     , nixpkgs-linux-stable
     , nixpkgs-linux-unstable
     , nixpkgs-darwin-stable
@@ -37,7 +38,12 @@
       ];
     in
       flake-utils.lib.eachSystem suportedSystems (suportedSystem:
-        let pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
+        let
+          pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
+
+          # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
+          pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
+            (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
         in {
 
           devShells.default = pkgsAllowUnfree.mkShell {
@@ -50,12 +56,22 @@
               poetry
               python3Full
               tmate
+
+              pleaseKeepMyInputs
             ];
 
             shellHook = ''
               echo -e 'Education' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
               echo -e '       and' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
               echo -e 'Science' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
+
+              test -d .profiles || mkdir -v .profiles
+
+              test -L .profiles/dev \
+              || nix develop .# --profile .profiles/dev --command id
+
+              test -L .profiles/dev-shell-default \
+              || nix build $(nix eval --impure --raw .#devShells."$system".default.drvPath) --out-link .profiles/dev-shell-"$system"-default
             '';
           };
           # TODO: put nixosConfigurations here later
