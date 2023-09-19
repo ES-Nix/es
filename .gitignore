@@ -1,4 +1,4 @@
 .idea*
 result*
-.profiles*
-.direnv*
+.profiles/*
+.direnv/*
