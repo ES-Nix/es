@@ -20,7 +20,7 @@
   };
 
   outputs =
-    { self
+    allAttrs@{ self
     , nixpkgs-linux-stable
     , nixpkgs-linux-unstable
     , nixpkgs-darwin-stable
@@ -85,12 +85,31 @@
     let
       pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
       lib = nixpkgs-linux-stable.lib;
+
+      # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
+      pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
+        (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
     in rec {
       devShells.default =
         pkgsAllowUnfree.mkShell { buildInputs = with pkgsAllowUnfree; [
             bashInteractive
+            coreutils
             # hello-unfree
+
+            pleaseKeepMyInputs
           ];
+
+          shellHook = ''
+            echo -e 'X' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
+
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop .# --profile .profiles/dev --command id
+
+            test -L .profiles/dev-shell-default \
+            || nix build $(nix eval --impure --raw .#devShells."$system".default.drvPath) --out-link .profiles/dev-shell-"$system"-default
+          '';
         };
     } // {
 
