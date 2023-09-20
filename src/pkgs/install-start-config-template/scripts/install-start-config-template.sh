@@ -94,9 +94,9 @@ build \
 --print-out-paths \
 $FLAKE_ATTR
 
-AUX=$(nix build --impure --print-out-paths $FLAKE_ATTR)/activate
+AUX=$(nix build --impure --print-out-paths $FLAKE_ATTR)
 nix profile remove '.*'
-"$AUX"
+"$AUX"/activate
 
 home-manager generations
 
