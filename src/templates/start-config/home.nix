@@ -143,7 +143,7 @@
     # lineicons
     # montserrat
     # mplus-outline-fonts
-    nerdfonts # Really big, but only with this font some issues with starship were fixed.
+    # nerdfonts # Really big, but only with this font some issues with starship were fixed.
     # noto-fonts
     # noto-fonts-emoji
     # noto-fonts-extra
