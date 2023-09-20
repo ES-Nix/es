@@ -70,7 +70,7 @@ sed -i 's/username = ".*";/username = "'$DUMMY_USER'";/g' flake.nix \
 && git init \
 && git status \
 && git add . \
-&& nix flake update --override-input nixpkgs github:NixOS/nixpkgs/f5ffd5787786dde3a8bf648c7a1b5f78c4e01abb \
+&& nix flake update --override-input nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b \
 && git status \
 && git add .
 
