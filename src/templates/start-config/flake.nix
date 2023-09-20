@@ -77,7 +77,7 @@
     in
       flake-utils.lib.eachSystem suportedSystems (suportedSystem:
     let
-      pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
+      pkgsAllowUnfree = import nixpkgs { system = suportedSystem; config = { allowUnfree = true; }; };
       lib = nixpkgs-linux-stable.lib;
 
       # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
