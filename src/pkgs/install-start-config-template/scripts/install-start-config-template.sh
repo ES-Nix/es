@@ -80,11 +80,11 @@ echo $FLAKE_ATTR
 
 export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
 
+#--option eval-cache false \
+#--option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
+#--option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
 time \
 nix \
---option eval-cache false \
---option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
---option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
 build \
 --impure \
 --keep-failed \
