@@ -2,17 +2,13 @@
   inputs = {
 
     nixpkgs-darwin-stable.url = "github:nixos/nixpkgs/nixpkgs-22.11-darwin";
-    nixpkgs-linux-stable.url = "github:nixos/nixpkgs/nixos-22.11";
-
-    nixpkgs-linux-unstable.url = "nixpkgs/nixos-unstable";
+    nixpkgs-linux-stable.url = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs-linux-stable";
 
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs-linux-stable";
-    };
+    nixos-generators.url= "github:nix-community/nixos-generators";
+    nixos-generators.inputs.nixpkgs.follows = "nixpkgs-linux-stable";
 
     flake-utils.url = "github:numtide/flake-utils";
     flake-utils.inputs.nixpkgs.follows = "nixpkgs-linux-stable";
@@ -22,7 +18,6 @@
   outputs =
     allAttrs@{ self
     , nixpkgs-linux-stable
-    , nixpkgs-linux-unstable
     , nixpkgs-darwin-stable
     , flake-utils
     , nixos-generators
