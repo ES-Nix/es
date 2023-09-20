@@ -25,14 +25,16 @@ export NIX_CONFIG='extra-experimental-features = nix-command flakes'
 
 nix -vv registry pin nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b
 
-command -v ssh-keygen || nix profile install nixpkgs#openssh
-command -v git || nix profile install nixpkgs#git
+#command -v ssh-keygen || nix profile install nixpkgs#openssh
+#command -v git || nix profile install nixpkgs#git
 
 time \
 nix \
 --refresh \
 run \
 github:ES-nix/es#installStartConfigTemplate
+
+/home/abcuser/.nix-profile/bin/zsh
 ```
 
 

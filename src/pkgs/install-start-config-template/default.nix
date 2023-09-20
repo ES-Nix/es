@@ -8,6 +8,7 @@ pkgs.stdenv.mkDerivation rec {
     coreutils
     gnused
     git
+    openssh
     home-manager
   ];
 
