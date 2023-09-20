@@ -32,7 +32,7 @@
       ];
 
       mkSystem = extraModules:
-        nixpkgs-linux-stable.lib.nixosSystem rec {
+        nixpkgs.lib.nixosSystem rec {
           system = "x86_64-linux";
           modules = [
             # bake the git revision of the repo into the system
