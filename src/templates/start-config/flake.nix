@@ -124,12 +124,12 @@
 #        program = self.packages."${suportedSystem}".hello;
 #      };
 
-      apps."${suportedSystem}" = {
-          hello = flake-utils.lib.mkApp {
-            name = "hello";
-            drv = self.packages."${suportedSystem}".hello;
-          };
-      };
+#      apps."${suportedSystem}" = {
+#          hello = flake-utils.lib.mkApp {
+#            name = "hello";
+#            drv = self.packages."${suportedSystem}".hello;
+#          };
+#      };
 
       homeConfigurations = {
         "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "vagrant"; };
