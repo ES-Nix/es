@@ -78,7 +78,7 @@
       flake-utils.lib.eachSystem suportedSystems (suportedSystem:
     let
       pkgsAllowUnfree = import nixpkgs { system = suportedSystem; config = { allowUnfree = true; }; };
-      lib = nixpkgs-linux-stable.lib;
+      lib = nixpkgs.lib;
 
       # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
       pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
