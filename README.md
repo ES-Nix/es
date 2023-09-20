@@ -23,6 +23,8 @@ NIX_RELEASE_VERSION=2.10.2 \
 
 export NIX_CONFIG='extra-experimental-features = nix-command flakes'
 
+nix -vv registry pin nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b
+
 time \
 nix \
 --refresh \
