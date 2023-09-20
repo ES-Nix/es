@@ -17,7 +17,7 @@
 
   outputs =
     allAttrs@{ self
-    , nixpkgs-linux-stable
+    , nixpkgs
     , flake-utils
     , nixos-generators
     , home-manager
