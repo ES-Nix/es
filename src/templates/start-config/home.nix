@@ -198,17 +198,17 @@
     python3
     # julia-bin
 
-    graphviz # dot command comes from here
+    # graphviz # dot command comes from here
     jq
     unixtools.xxd
 
-    gzip
+    # gzip
     # unrar
-    unzip
+    # unzip
     gnutar
 
     btop
-    htop
+    # htop
     asciinema
     git
     openssh

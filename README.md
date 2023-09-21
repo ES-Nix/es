@@ -34,7 +34,7 @@ nix \
 run \
 github:ES-nix/es#installStartConfigTemplate
 
-/home/abcuser/.nix-profile/bin/zsh
+zsh
 ```
 
 
