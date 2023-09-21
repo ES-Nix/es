@@ -373,7 +373,20 @@
 
         export NIXPKGS_ALLOW_UNFREE=1;
 
-        home-manager switch --impure --flake "$HOME/.config/nixpkgs"#"$(id -un)"-"$(hostname)"
+        $(
+            nix \
+            build \
+            --impure \
+            --keep-failed \
+            --no-link \
+            --print-build-logs \
+            --print-out-paths \
+            "$HOME/.config/nixpkgs"#homeConfigurations.$(nix eval --impure --raw --expr 'builtins.currentSystem')."$(id -un)"-"$(hostname)".activationPackage
+        )/activate
+
+
+        # https://discourse.nixos.org/t/how-can-i-set-up-flake-based-home-manager-config-for-both-intel-and-m1-macs/19402/2
+        # home-manager switch --impure --flake "$HOME/.config/nixpkgs"#"$(id -un)"-"$(hostname)"
       ''
     )
 

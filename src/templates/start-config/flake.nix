@@ -93,7 +93,7 @@
           ];
 
           shellHook = ''
-            echo -e 'X' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
+            # echo -e 'X' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
 
             test -d .profiles || mkdir -v .profiles
 
