@@ -10,19 +10,19 @@ with lib;
     binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg=
   '';
 
-#  # https://github.com/NixOS/nix/issues/3023#issuecomment-781131502
-#  systemd.services.generate-nix-cache-key = {
-#    wantedBy = [ "multi-user.target" ];
-#    serviceConfig.Type = "oneshot";
-#    path = [ pkgs.nix ];
-#    script = ''
-#      [[ -f /etc/nix/private-key ]] && exit
-#      nix-store --generate-binary-cache-key ${config.networking.hostName}-1 \
-#      /etc/nix/private-key /etc/nix/public-key
-#
-#      chmod -v 0600 /etc/nix/private-key
-#    '';
-#  };
+  #  # https://github.com/NixOS/nix/issues/3023#issuecomment-781131502
+  #  systemd.services.generate-nix-cache-key = {
+  #    wantedBy = [ "multi-user.target" ];
+  #    serviceConfig.Type = "oneshot";
+  #    path = [ pkgs.nix ];
+  #    script = ''
+  #      [[ -f /etc/nix/private-key ]] && exit
+  #      nix-store --generate-binary-cache-key ${config.networking.hostName}-1 \
+  #      /etc/nix/private-key /etc/nix/public-key
+  #
+  #      chmod -v 0600 /etc/nix/private-key
+  #    '';
+  #  };
 
   nix = {
     settings = {
@@ -53,26 +53,26 @@ with lib;
 
       # TODO: hardning
       allowed-users = [
-                          "root"
-                          "nixuser"
-                          "@wheel"
-                      ];
+        "root"
+        "nixuser"
+        "@wheel"
+      ];
 
-#      # By default, only the key for cache.nixos.org is included.
-#      trusted-public-keys = [
-#        "binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg="
-#      ];
-#
-#      # Se eu entendi: apenas o root pode usar
-#      trusted-substituters = [
-#        "https://playing-bucket-nix-cache-test.s3.amazonaws.com"
-#      ];
-#
-#      # By default https://cache.nixos.org/ is added.
-#      # Se eu entendi: apenas o root pode usar
-#      substituters = [
-#        "https://playing-bucket-nix-cache-test.s3.amazonaws.com"
-#      ];
+      #      # By default, only the key for cache.nixos.org is included.
+      #      trusted-public-keys = [
+      #        "binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg="
+      #      ];
+      #
+      #      # Se eu entendi: apenas o root pode usar
+      #      trusted-substituters = [
+      #        "https://playing-bucket-nix-cache-test.s3.amazonaws.com"
+      #      ];
+      #
+      #      # By default https://cache.nixos.org/ is added.
+      #      # Se eu entendi: apenas o root pode usar
+      #      substituters = [
+      #        "https://playing-bucket-nix-cache-test.s3.amazonaws.com"
+      #      ];
 
     };
     # keep-outputs = true
@@ -93,7 +93,7 @@ with lib;
     # TODO: How to combine this with overlays?
     # registry.nixpkgs.flake = pkgs.nixpkgs; # https://bou.ke/blog/nix-tips/
 
-    nixPath = ["nixpkgs=${pkgs.path}"]; # TODO: test it
+    nixPath = [ "nixpkgs=${pkgs.path}" ]; # TODO: test it
 
     # TODO: document it, test it with nixosTests
     # From:
@@ -139,18 +139,18 @@ with lib;
   # errada e ainda porque funciona fazer o chown desse arquivo
   # na /nix/store se readOnlyStore = true;
 
-#  systemd.services.fix-sudo-permision = {
-#    script = ''
-#      set -x
-#
-#      echo "Fixing sudo"
-#      #
-#      chown root:root -v ${pkgs.sudo}/libexec/sudo/sudoers.so
-#
-#    '';
-#    # wantedBy = [ "multi-user.target" ];
-#    after = [ "nix-store.mount" ];
-#  };
+  #  systemd.services.fix-sudo-permision = {
+  #    script = ''
+  #      set -x
+  #
+  #      echo "Fixing sudo"
+  #      #
+  #      chown root:root -v ${pkgs.sudo}/libexec/sudo/sudoers.so
+  #
+  #    '';
+  #    # wantedBy = [ "multi-user.target" ];
+  #    after = [ "nix-store.mount" ];
+  #  };
 
 
 }

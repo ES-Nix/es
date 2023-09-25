@@ -7,7 +7,7 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    nixos-generators.url= "github:nix-community/nixos-generators";
+    nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
 
     flake-utils.url = "github:numtide/flake-utils";
@@ -74,7 +74,7 @@
         };
 
     in
-      flake-utils.lib.eachSystem suportedSystems (suportedSystem:
+    flake-utils.lib.eachSystem suportedSystems (suportedSystem:
     let
       pkgsAllowUnfree = import nixpkgs { system = suportedSystem; config = { allowUnfree = true; }; };
       lib = nixpkgs.lib;
@@ -82,9 +82,11 @@
       # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
       pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
         (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
-    in rec {
+    in
+    rec {
       devShells.default =
-        pkgsAllowUnfree.mkShell { buildInputs = with pkgsAllowUnfree; [
+        pkgsAllowUnfree.mkShell {
+          buildInputs = with pkgsAllowUnfree; [
             bashInteractive
             coreutils
             # hello-unfree
@@ -117,17 +119,17 @@
       packages.hello = pkgsAllowUnfree.hello;
       packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
-#      apps.hello = {
-#        type = "app";
-#        program = self.packages."${suportedSystem}".hello;
-#      };
+      #      apps.hello = {
+      #        type = "app";
+      #        program = self.packages."${suportedSystem}".hello;
+      #      };
 
-#      apps."${suportedSystem}" = {
-#          hello = flake-utils.lib.mkApp {
-#            name = "hello";
-#            drv = self.packages."${suportedSystem}".hello;
-#          };
-#      };
+      #      apps."${suportedSystem}" = {
+      #          hello = flake-utils.lib.mkApp {
+      #            name = "hello";
+      #            drv = self.packages."${suportedSystem}".hello;
+      #          };
+      #      };
 
       homeConfigurations = {
         "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "vagrant"; };

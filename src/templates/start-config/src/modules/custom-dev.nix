@@ -72,35 +72,35 @@ with lib;
     # pkgsStatic.python3
     # pkgsStatic.hello
     hello
-#    (python3.withPackages (ps: with ps; [
-#      pottery
-#      django
-#      django-six
-#      # django-ip
-#      pycpfcnpj
-#      python-decouple
-#      # django-admin-shell
-#
-#      # django-simple-history
-#      # django-extended-choices
-#      # django-celery-results
-#      # django-user-agents
-#      # django-dry-rest-permissions
-#      # django-ufilter
-#      # django-ses
-#    ]))
+    #    (python3.withPackages (ps: with ps; [
+    #      pottery
+    #      django
+    #      django-six
+    #      # django-ip
+    #      pycpfcnpj
+    #      python-decouple
+    #      # django-admin-shell
+    #
+    #      # django-simple-history
+    #      # django-extended-choices
+    #      # django-celery-results
+    #      # django-user-agents
+    #      # django-dry-rest-permissions
+    #      # django-ufilter
+    #      # django-ses
+    #    ]))
 
     # darwin.builder
 
-#    (
-#      writeScriptBin "darwin-builder" ''
-#        mkdir -pv ~/sandbox/sandbox \
-#        cd ~/sandbox/sandbox
-#
-#        export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
-#        nix run --impure -L github:NixOS/nixpkgs/nixpkgs-unstable#darwin.builder
-#      ''
-#    )
+    #    (
+    #      writeScriptBin "darwin-builder" ''
+    #        mkdir -pv ~/sandbox/sandbox \
+    #        cd ~/sandbox/sandbox
+    #
+    #        export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
+    #        nix run --impure -L github:NixOS/nixpkgs/nixpkgs-unstable#darwin.builder
+    #      ''
+    #    )
 
 
     asciinema
@@ -129,14 +129,14 @@ with lib;
       };
   };
 
-#  security.wrappers = {
-#    sudo =
-#      {
-#        setuid = true;
-#        owner = "root";
-#        group = "root";
-#        source = "${pkgs.sudo}/libexec/sudo/sudoers.so";
-#      };
-#  };
+  #  security.wrappers = {
+  #    sudo =
+  #      {
+  #        setuid = true;
+  #        owner = "root";
+  #        group = "root";
+  #        source = "${pkgs.sudo}/libexec/sudo/sudoers.so";
+  #      };
+  #  };
 }
 

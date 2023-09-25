@@ -1,22 +1,22 @@
 { config, pkgs, lib, modulesPath, ... }:
 let
-    python = pkgs.python3.withPackages (ps: [ ps.flask ]);
+  python = pkgs.python3.withPackages (ps: [ ps.flask ]);
 
-    pythonScript = pkgs.writeScriptBin "test-push-to-s3" ''
-      #!${python}/bin/python3
+  pythonScript = pkgs.writeScriptBin "test-push-to-s3" ''
+    #!${python}/bin/python3
 
-      import argparse
+    import argparse
 
 
-      def main():
-          parser = argparse.ArgumentParser()
-          parser.add_argument('stuff', nargs='+')
-          args = parser.parse_args()
-          print args.stuff
+    def main():
+        parser = argparse.ArgumentParser()
+        parser.add_argument('stuff', nargs='+')
+        args = parser.parse_args()
+        print args.stuff
 
-        if __name__ == '__main__':
-            main()
-    '';
+      if __name__ == '__main__':
+          main()
+  '';
 in
 with lib;
 {
@@ -24,13 +24,13 @@ with lib;
 
   environment.systemPackages = with pkgs; [
 
-     figlet
-     sqlite
+    figlet
+    sqlite
 
-     awscli
-     # aws-iam-authenticator
+    awscli
+    # aws-iam-authenticator
 
-     gcc
+    gcc
 
     (
       writeScriptBin "generating-a-private-public-keypair" ''
@@ -91,40 +91,40 @@ with lib;
 
 
 
- networking.hostName = mkForce "binarycache";
- networking.domain = "example.com";
+  networking.hostName = mkForce "binarycache";
+  networking.domain = "example.com";
 
-services.nginx = {
-  enable = true;
-  virtualHosts = {
-    # ... existing hosts config etc. ...
-    "binarycache.example.com" = {
-      serverAliases = [ "binarycache" ];
-      locations."/".extraConfig = ''
-        proxy_pass http://localhost:${toString config.services.nix-serve.port};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      '';
+  services.nginx = {
+    enable = true;
+    virtualHosts = {
+      # ... existing hosts config etc. ...
+      "binarycache.example.com" = {
+        serverAliases = [ "binarycache" ];
+        locations."/".extraConfig = ''
+          proxy_pass http://localhost:${toString config.services.nix-serve.port};
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        '';
+      };
     };
   };
-};
 
 
-# journalctl -f -u nix-serve.service
-# journalctl -xefu nix-serve
-services.nix-serve = {
-  enable = true;
+  # journalctl -f -u nix-serve.service
+  # journalctl -xefu nix-serve
+  services.nix-serve = {
+    enable = true;
 
-  # :lf .#
-  # :p nixosConfigurations.build-vm-nix-server.options.services.nix-serve.secretKeyFile.value
-  secretKeyFile = "/etc/nix/private-key";
-};
+    # :lf .#
+    # :p nixosConfigurations.build-vm-nix-server.options.services.nix-serve.secretKeyFile.value
+    secretKeyFile = "/etc/nix/private-key";
+  };
 
-#  services.nix-serve.enable = true;
-#  services.nix-serve.openFirewall = true;
-#  # services.nix-serve.port = 5000; # This is the default port.
-#  services.nix-serve.secretKeyFile = "/home/nixuser/.ssh";
+  #  services.nix-serve.enable = true;
+  #  services.nix-serve.openFirewall = true;
+  #  # services.nix-serve.port = 5000; # This is the default port.
+  #  services.nix-serve.secretKeyFile = "/home/nixuser/.ssh";
 
   # nix.trustedUsers -> nix.settings.trusted-users
   # https://github.com/NixOS/nix/issues/2330#issuecomment-451650296

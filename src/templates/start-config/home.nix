@@ -56,11 +56,11 @@
     xorg.xclock
     hello
     sl
-#    asciiquarium
-#    figlet
-#    cowsay
-#    ponysay
-#    cmatrix
+    #    asciiquarium
+    #    figlet
+    #    cowsay
+    #    ponysay
+    #    cmatrix
 
     # Just enabling it is ok, and might be better
     # nix
@@ -221,151 +221,151 @@
     # slirp4netns
     # shadow
 
-      (
-        writeScriptBin "ix" ''
-         #! ${pkgs.runtimeShell} -e
-           "$@" | "curl" -F 'f:1=<-' ix.io
-        ''
-      )
+    (
+      writeScriptBin "ix" ''
+        #! ${pkgs.runtimeShell} -e
+          "$@" | "curl" -F 'f:1=<-' ix.io
+      ''
+    )
 
-      (
-        writeScriptBin "fix-kvm" ''
-         #! ${pkgs.runtimeShell} -e
+    (
+      writeScriptBin "fix-kvm" ''
+        #! ${pkgs.runtimeShell} -e
 
-            echo "Start kvm stuff..." \
-            && getent group kvm || sudo groupadd kvm \
-            && sudo usermod --append --groups kvm "$USER" \
-            && echo "End kvm stuff!"
-        ''
-      )
+           echo "Start kvm stuff..." \
+           && getent group kvm || sudo groupadd kvm \
+           && sudo usermod --append --groups kvm "$USER" \
+           && echo "End kvm stuff!"
+      ''
+    )
 
-      (
-        writeScriptBin "erw" ''
-         #! ${pkgs.runtimeShell} -e
-         echo "$(readlink -f "$(which $1)")"
-       ''
-       )
+    (
+      writeScriptBin "erw" ''
+        #! ${pkgs.runtimeShell} -e
+        echo "$(readlink -f "$(which $1)")"
+      ''
+    )
 
-      (
-        writeScriptBin "frw" ''
-         #! ${pkgs.runtimeShell} -e
-         file "$(readlink -f "$(which $1)")"
-       ''
-       )
+    (
+      writeScriptBin "frw" ''
+        #! ${pkgs.runtimeShell} -e
+        file "$(readlink -f "$(which $1)")"
+      ''
+    )
 
-      (
-        writeScriptBin "crw" ''
-         #! ${pkgs.runtimeShell} -e
-         cat "$(readlink -f "$(which $1)")"
-       ''
-      )
+    (
+      writeScriptBin "crw" ''
+        #! ${pkgs.runtimeShell} -e
+        cat "$(readlink -f "$(which $1)")"
+      ''
+    )
 
-      (
-        writeScriptBin "myexternalip" ''
-         #! ${pkgs.runtimeShell} -e
-         # https://askubuntu.com/questions/95910/command-for-determining-my-public-ip#comment1985064_712144
+    (
+      writeScriptBin "myexternalip" ''
+        #! ${pkgs.runtimeShell} -e
+        # https://askubuntu.com/questions/95910/command-for-determining-my-public-ip#comment1985064_712144
 
-         curl https://checkip.amazonaws.com
-       ''
-      )
+        curl https://checkip.amazonaws.com
+      ''
+    )
 
-      (
-        writeScriptBin "mynatip" ''
-         #! ${pkgs.runtimeShell} -e
-            # https://unix.stackexchange.com/a/569306
-            # https://serverfault.com/a/256506
+    (
+      writeScriptBin "mynatip" ''
+        #! ${pkgs.runtimeShell} -e
+           # https://unix.stackexchange.com/a/569306
+           # https://serverfault.com/a/256506
 
-            NETWORK_INTERFACE_NAME=$(route | awk '
-                    BEGIN           { min = -1 }
-                    $1 == "default" {
-                                        if (min < 0  ||  $5 < min) {
-                                            min   = $5
-                                            iface = $8
-                                        }
-                                    }
-                    END             {
-                                        if (iface == "") {
-                                            print "No \"default\" route found!" > "/dev/stderr"
-                                            exit 1
-                                        } else {
-                                            print iface
-                                            exit 0
-                                        }
-                                    }
-                    '
-            )
+           NETWORK_INTERFACE_NAME=$(route | awk '
+                   BEGIN           { min = -1 }
+                   $1 == "default" {
+                                       if (min < 0  ||  $5 < min) {
+                                           min   = $5
+                                           iface = $8
+                                       }
+                                   }
+                   END             {
+                                       if (iface == "") {
+                                           print "No \"default\" route found!" > "/dev/stderr"
+                                           exit 1
+                                       } else {
+                                           print iface
+                                           exit 0
+                                       }
+                                   }
+                   '
+           )
 
-            ip addr show dev $NETWORK_INTERFACE_NAME | grep "inet " | awk '{ print $2 }' | cut -d'/' -f1
-       ''
-      )
+           ip addr show dev $NETWORK_INTERFACE_NAME | grep "inet " | awk '{ print $2 }' | cut -d'/' -f1
+      ''
+    )
 
-      (
-        writeScriptBin "generate-new-ed25519-key-pair" ''
-         #! ${pkgs.runtimeShell} -e
+    (
+      writeScriptBin "generate-new-ed25519-key-pair" ''
+        #! ${pkgs.runtimeShell} -e
 
-         ssh-keygen \
-         -t ed25519 \
-         -C "$(git config user.email)" \
-         -f "$HOME"/.ssh/id_ed25519 \
-         -N "" \
-         && echo \
-         && cat "$HOME"/.ssh/id_ed25519.pub \
-         && echo
-        ''
-      )
+        ssh-keygen \
+        -t ed25519 \
+        -C "$(git config user.email)" \
+        -f "$HOME"/.ssh/id_ed25519 \
+        -N "" \
+        && echo \
+        && cat "$HOME"/.ssh/id_ed25519.pub \
+        && echo
+      ''
+    )
 
-      (
-        writeScriptBin "nfm" ''
-          #! ${pkgs.runtimeShell} -e
-          nix flake metadata $1 --json | jq -r '.url'
-        ''
-      )
+    (
+      writeScriptBin "nfm" ''
+        #! ${pkgs.runtimeShell} -e
+        nix flake metadata $1 --json | jq -r '.url'
+      ''
+    )
 
-      (
-        writeScriptBin "build-pulling-all-from-cache" ''
-         #! ${pkgs.runtimeShell} -e
+    (
+      writeScriptBin "build-pulling-all-from-cache" ''
+        #! ${pkgs.runtimeShell} -e
 
-            set -x
+           set -x
 
-            export NIXPKGS_ALLOW_UNFREE=1
+           export NIXPKGS_ALLOW_UNFREE=1
 
-            nix \
-            --option eval-cache false \
-            --option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
-            --option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
-            build \
-            --impure \
-            --keep-failed \
-            --max-jobs 0 \
-            --no-link \
-            --print-build-logs \
-            --print-out-paths \
-            ~/.config/nixpkgs#homeConfigurations."$(id -un)"-"$(hostname)".activationPackage
-        ''
-      )
+           nix \
+           --option eval-cache false \
+           --option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
+           --option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
+           build \
+           --impure \
+           --keep-failed \
+           --max-jobs 0 \
+           --no-link \
+           --print-build-logs \
+           --print-out-paths \
+           ~/.config/nixpkgs#homeConfigurations."$(id -un)"-"$(hostname)".activationPackage
+      ''
+    )
 
-      (
-        writeScriptBin "build-in-local-remote-builder" ''
-         #! ${pkgs.runtimeShell} -e
+    (
+      writeScriptBin "build-in-local-remote-builder" ''
+        #! ${pkgs.runtimeShell} -e
 
-            set -x
+           set -x
 
-            export NIXPKGS_ALLOW_UNFREE=1
+           export NIXPKGS_ALLOW_UNFREE=1
 
-            nix \
-            build \
-            --impure \
-            --eval-store auto \
-            --keep-failed \
-            --max-jobs 0 \
-            --no-link \
-            --print-build-logs \
-            --print-out-paths \
-            --store ssh-ng://builder \
-            --substituters "" \
-            ~/.config/nixpkgs#homeConfigurations."$(id -un)"-"$(hostname)".activationPackage
-        ''
-      )
+           nix \
+           build \
+           --impure \
+           --eval-store auto \
+           --keep-failed \
+           --max-jobs 0 \
+           --no-link \
+           --print-build-logs \
+           --print-out-paths \
+           --store ssh-ng://builder \
+           --substituters "" \
+           ~/.config/nixpkgs#homeConfigurations."$(id -un)"-"$(hostname)".activationPackage
+      ''
+    )
 
     (
       writeScriptBin "hms" ''
