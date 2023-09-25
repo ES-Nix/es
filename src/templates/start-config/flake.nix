@@ -137,6 +137,7 @@
         "alvaro-Maquina-Virtual-de-Alvaro.local" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "ubuntu"; };
         "nixuser-nixos" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "ubuntu"; };
         "abcuser-container-nix-hm" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "abcuser"; };
+        "podman-container-nix" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "podman"; };
       };
 
     });
