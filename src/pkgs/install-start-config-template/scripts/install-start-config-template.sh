@@ -99,6 +99,11 @@ $FLAKE_ATTR
 
 AUX=$(nix build --impure --print-out-paths $FLAKE_ATTR)
 nix -vvvvv profile remove '.*'
+
+# It looks like the symbolic link
+ls -ahl "$HOME"/.local/state/nix/profiles/profile
+rm -fv "$HOME"/.local/state/nix/profiles
+
 "$AUX"/activate
 
 home-manager generations
