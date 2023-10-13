@@ -1,4 +1,6 @@
 {
+  description = "Base configuration home-manager";
+
   inputs = {
 
     # nixpkgs-darwin-stable.url = "github:nixos/nixpkgs/nixpkgs-22.11-darwin";
@@ -131,11 +133,16 @@
       #          };
       #      };
 
+      /*
+      > Unfortunately, homeConfigurations doesn’t really support multi-arch outputs like the other flake attrs do.
+      > https://discourse.nixos.org/t/how-can-i-set-up-flake-based-home-manager-config-for-both-intel-and-m1-macs/19402/2
+      */
       homeConfigurations = {
         "vagrant-alpine316.localdomain" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "vagrant"; };
         "ubuntu-ubuntu2204-ec2" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "ubuntu"; };
         "alvaro-Maquina-Virtual-de-Alvaro.local" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "ubuntu"; };
         "nixuser-nixos" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "ubuntu"; };
+        "nixuser-container-nix-hm" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "nixuser"; };
         "abcuser-container-nix-hm" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "abcuser"; };
         "podman-container-nix" = f { system = "${suportedSystem}"; arg-pkgs = pkgsAllowUnfree; home = ./home.nix; username = "podman"; };
       };

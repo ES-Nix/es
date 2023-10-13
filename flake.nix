@@ -33,7 +33,7 @@
       suportedSystems = [
         "x86_64-linux"
         # "aarch64-linux"
-        "aarch64-darwin"
+        # "aarch64-darwin"
       ];
     in
     flake-utils.lib.eachSystem suportedSystems (suportedSystem:
@@ -79,7 +79,6 @@
 
       checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
-
       # packages_ = (import ./src/pkgs { pkgs = pkgsAllowUnfree; nixos-lib = nixos-lib; });
       packages.default = self.packages."${suportedSystem}".hello;
 
@@ -97,17 +96,13 @@
       #            });
       #          };
 
-      #          templates."${suportedSystem}".startConfig = ({
-      #              description = "Base configuration";
-      #              path = ./src/templates/start-config;
-      #            });
-
-      #          templates."${suportedSystem}".startConfig = {
-      #              description = "Base configuration";
-      #              path = ./src/templates/start-config;
-      #            };
-
-      templates = import ./src/templates;
+#      templates.startConfig = {
+#          description = "Base configuration";
+#          path = ./src/templates/start-config;
+#      };
+       # Is broken
+       # nix flake check .#
+       templates = import ./src/templates;
 
       # formatter.x86_64-linux = pkgsAllowUnfree.legacyPackages.x86_64-linux.nixpkgs-fmt;
 
