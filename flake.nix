@@ -89,22 +89,22 @@
       packages.installStartConfigTemplate = (import ./src/pkgs/install-start-config-template { pkgs = pkgsAllowUnfree; });
       packages.sendToCacheInstallStartConfigTemplate = (import ./src/pkgs/send-to-cache-install-start-config-template { pkgs = pkgsAllowUnfree; });
 
-      #          templates."${suportedSystem}" = {
-      #            startConfig = ({
-      #              description = "Base configuration";
-      #              path = ./src/templates/start-config;
-      #            });
-      #          };
+      #  templates."${suportedSystem}" = {
+      #    startConfig = ({
+      #      description = "Base configuration";
+      #      path = ./src/templates/start-config;
+      #    });
+      #  };
 
-#      templates.startConfig = {
-#          description = "Base configuration";
-#          path = ./src/templates/start-config;
-#      };
-       # Is broken
-       # nix flake check .#
-       templates = import ./src/templates;
+      #       templates.startConfig = {
+      #           description = "Base configuration";
+      #           path = ./src/templates/start-config;
+      #       };
+      # Is broken
+      # nix flake check .#
+      # templates = import ./src/templates;
 
-      # formatter.x86_64-linux = pkgsAllowUnfree.legacyPackages.x86_64-linux.nixpkgs-fmt;
+      formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
       apps = {
         # Após longa briga pra fazer
