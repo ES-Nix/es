@@ -35,6 +35,14 @@
         # "aarch64-linux"
         # "aarch64-darwin"
       ];
+
+      # https://discourse.nixos.org/t/how-to-add-templates-to-a-flake-that-uses-flake-utils-lib-eachsystem/31895
+      _templates = {
+        startConfig = {
+          description = "Base configuration";
+          path = ./src/templates/start-config;
+        };
+      };
     in
     flake-utils.lib.eachSystem suportedSystems (suportedSystem:
     let
@@ -89,17 +97,14 @@
       packages.installStartConfigTemplate = (import ./src/pkgs/install-start-config-template { pkgs = pkgsAllowUnfree; });
       packages.sendToCacheInstallStartConfigTemplate = (import ./src/pkgs/send-to-cache-install-start-config-template { pkgs = pkgsAllowUnfree; });
 
-      #  templates."${suportedSystem}" = {
-      #    startConfig = ({
+      templates.startConfig = _templates.startConfig;
+
+      # defaultTemplate = self.templates.startConfig;
+
+      #  templates.startConfig = {
       #      description = "Base configuration";
       #      path = ./src/templates/start-config;
-      #    });
       #  };
-
-      #       templates.startConfig = {
-      #           description = "Base configuration";
-      #           path = ./src/templates/start-config;
-      #       };
       # Is broken
       # nix flake check .#
       # templates = import ./src/templates;
