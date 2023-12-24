@@ -109,9 +109,10 @@
               services.xserver.enable = true;
               services.xserver.layout = "br";
 
-              services.xserver.displayManager.autoLogin.user = "nixuser";
+              # services.xserver.displayManager.autoLogin.user = "nixuser";
 
               # Enable ssh
+              # journalctl -u sshd -o json-pretty
               services.sshd.enable = true;
 
               # Included packages here
