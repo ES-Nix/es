@@ -98,7 +98,7 @@
           };
 
           installQEMUVirtualMachineDockerTemplate = flake-utils.lib.mkApp {
-            name = "install-qemu-virtual-machine-docker";
+            name = self.packages."${suportedSystem}".installQEMUVirtualMachineDockerTemplate.name;
             drv = self.packages."${suportedSystem}".installQEMUVirtualMachineDockerTemplate;
           };
 
