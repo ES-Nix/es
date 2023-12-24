@@ -2,3 +2,4 @@
 result*
 .profiles/*
 .direnv/*
+.profiles
