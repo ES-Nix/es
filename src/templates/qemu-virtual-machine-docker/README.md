@@ -21,12 +21,12 @@ ssh-add -l 1> /dev/null 2> /dev/null || eval $(ssh-agent -s)
 # There could be an race condition in here?
 (ssh-add -l | grep -q "$(cat id_ed25519.pub)") || ssh-add id_ed25519
 
-```
 
-```bash
 ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null;
 ssh -oStrictHostKeyChecking=accept-new -p 10022 nixuser@localhost -- sh -c 'true'
 
-ssh-keyscan -H -p 10022 -t ecdsa localhost >> ~/.ssh/known_hosts
+docker images
+
+# ssh-keyscan -H -p 10022 -t ecdsa localhost >> ~/.ssh/known_hosts
 ```
 

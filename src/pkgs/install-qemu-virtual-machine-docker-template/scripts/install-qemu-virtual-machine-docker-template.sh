@@ -12,6 +12,8 @@ init \
 --template \
 github:ES-nix/es#QEMUVirtualMachineDocker
 
+direnv allow
+
 git init \
 && git status \
 && git add . \
