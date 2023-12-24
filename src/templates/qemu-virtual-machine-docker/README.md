@@ -6,8 +6,10 @@ nix \
 run \
 --refresh \
 github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
-&& cd QEMUVirtualMachineDocker \
-rm -fv nixos.qcow2; nix run --impure --refresh --verbose .#vm
+&& cd QEMUVirtualMachineDocker
+
+rm -fv nixos.qcow2
+nix run --impure --refresh --verbose .#vm
 ```
 
 
