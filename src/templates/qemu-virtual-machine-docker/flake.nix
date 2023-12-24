@@ -40,6 +40,17 @@
                 virtualisation.cores = 8; # Number of cores.
                 virtualisation.graphics = false;
 
+                # https://discourse.nixos.org/t/nixpkgs-support-for-linux-builders-running-on-macos/24313/2
+                virtualisation.forwardPorts = [
+                  {
+                    from = "host";
+                    # host.address = "127.0.0.1";
+                    host.port = 10022;
+                    # guest.address = "34.74.203.201";
+                    guest.port = 10022;
+                  }
+                ];
+
               };
 
               users.users.root = {
