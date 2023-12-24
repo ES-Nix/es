@@ -63,7 +63,6 @@
                 description = "The VM tester user";
                 group = "nixgroup";
                 extraGroups = [
-                  "podman"
                   "kvm"
                   "libvirtd"
                   "qemu-libvirtd"
@@ -71,12 +70,12 @@
                   "docker"
                 ];
                 packages = with pkgs; [
+                  coreutils
                   direnv
                   file
                   gnumake
-                  which
-                  coreutils
                   openssh
+                  which
                 ];
                 shell = pkgs.bashInteractive;
                 uid = 1234;
