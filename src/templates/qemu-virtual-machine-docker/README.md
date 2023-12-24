@@ -1,8 +1,6 @@
 
 
-mkdir -pv qemuVirtualMachineDocker \
-&& cd qemuVirtualMachineDocker \
-&& nix \
+nix \
 --refresh \
 flake \
 init \
