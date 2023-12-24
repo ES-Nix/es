@@ -198,8 +198,10 @@
         shellHook = ''
           export TMPDIR=/tmp
 
+
+
           # Too much hardcoded?
-          export DOCKER_HOST=ssh://nixuser@localhost:2200
+          export DOCKER_HOST=ssh://nixuser@localhost:10022
         '';
       };
     };
