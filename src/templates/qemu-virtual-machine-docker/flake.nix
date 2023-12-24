@@ -56,20 +56,21 @@
               security.sudo.wheelNeedsPassword = false;
               users.users.nixuser = {
                 isSystemUser = true;
-                password = "";
+                password = "121";
                 createHome = true;
                 home = "/home/nixuser";
                 homeMode = "0700";
                 description = "The VM tester user";
                 group = "nixgroup";
                 extraGroups = [
+                  "docker"
                   "kvm"
                   "libvirtd"
                   "qemu-libvirtd"
                   "wheel"
-                  "docker"
                 ];
                 packages = with pkgs; [
+                  bashInteractive
                   coreutils
                   direnv
                   file
@@ -108,16 +109,51 @@
               services.xserver.enable = true;
               services.xserver.layout = "br";
 
+              services.xserver.displayManager.autoLogin.user = "nixuser";
+
               # Enable ssh
               services.sshd.enable = true;
 
               # Included packages here
               nixpkgs.config.allowUnfree = true;
+
               nix = {
-                # package = nixpkgs.pkgs.nix;
                 extraOptions = "experimental-features = nix-command flakes";
+                package = pkgs.nixVersions.nix_2_10;
                 readOnlyStore = true;
+                registry.nixpkgs.flake = nixpkgs; # https://bou.ke/blog/nix-tips/
+                /*
+                  echo $NIX_PATH
+                  nixpkgs=/nix/store/mzdg05xhylnw743qapcd80c10f0vfbnl-059pc9vdgzwgd0xsm2i8hsysxlxs2al7-source
+
+                  nix eval --raw nixpkgs#pkgs.path
+                  /nix/store/375da3gc24ijmjz622h0wdsqnzvkajbh-b1l1kkp1g07gy67wglfpwlwaxs1rqkpx-source
+
+                  nix-info -m | grep store | cut -d'`' -f2
+
+                  nix eval --impure --expr '<nixpkgs>'
+                  nix eval --impure --raw --expr '(builtins.getFlake "nixpkgs").outPath'
+                  nix-instantiate --eval --attr 'path' '<nixpkgs>'
+                  nix-instantiate --eval --attr 'pkgs.path' '<nixpkgs>'
+                  nix-instantiate --eval --expr 'builtins.findFile builtins.nixPath "nixpkgs"'
+
+                  nix eval nixpkgs#path
+                  nix eval nixpkgs#pkgs.path
+                */
+                nixPath = ["nixpkgs=${pkgs.path}"]; # TODO: test it
+                /*
+                nixPath = [
+                  "nixpkgs=/etc/channels/nixpkgs"
+                  "nixos-config=/etc/nixos/configuration.nix"
+                  # "/nix/var/nix/profiles/per-user/root/channels"
+                ];
+                */
               };
+
+              # environment.etc."channels/nixpkgs".source = nixpkgs.outPath;
+              # environment.etc."channels/nixpkgs".source = "${pkgs.path}";
+              environment.etc."channels/nixpkgs".source = "${pkgs.path}";
+
               environment.systemPackages = with pkgs; [
               ];
 

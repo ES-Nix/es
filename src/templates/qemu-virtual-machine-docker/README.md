@@ -19,3 +19,4 @@ ssh-add -l 1> /dev/null 2> /dev/null || eval $(ssh-agent -s)
 ```
 
 (ssh-add -l | grep -q "$(cat id_ed25519.pub)") || ssh-add id_ed25519
+

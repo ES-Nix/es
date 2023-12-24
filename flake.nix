@@ -117,6 +117,12 @@
             name = "install-start-config-template";
             drv = self.packages."${suportedSystem}".installStartConfigTemplate;
           };
+
+          nstallStartConfigTemplate = flake-utils.lib.mkApp {
+            name = "install-start-config-template";
+            drv = self.packages."${suportedSystem}".installStartConfigTemplate;
+          };
+
         };
       }
       )
