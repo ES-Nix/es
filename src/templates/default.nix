@@ -6,7 +6,7 @@
     path = ./start-config;
   };
 
-  qemuVirtualMachineDocker = {
+  QEMUVirtualMachineDocker = {
     description = "QEMU Virtual Machine with docker";
     path = ./qemu-virtual-machine-docker;
     welcomeText = ''

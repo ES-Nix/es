@@ -3,14 +3,14 @@
 
 # $(nix eval --impure --raw --expr 'builtins.currentSystem').
 
-mkdir -pv qemuVirtualMachineDocker \
-&& cd qemuVirtualMachineDocker \
+mkdir -pv QEMUVirtualMachineDocker \
+&& cd QEMUVirtualMachineDocker \
 && nix \
 --refresh \
 flake \
 init \
 --template \
-github:ES-nix/es#qemuVirtualMachineDocker
+github:ES-nix/es#QEMUVirtualMachineDocker
 
 git init \
 && git status \

@@ -14,7 +14,6 @@
     };
 
     flake-utils.url = "github:numtide/flake-utils";
-    # flake-utils.inputs.nixpkgs.follows = "nixpkgs-linux-stable";
 
   };
 
@@ -84,11 +83,9 @@
             || nix build $(nix eval --impure --raw .#devShells."$system".default.drvPath) --out-link .profiles/dev-shell-"$system"-default
           '';
         };
-        # TODO: put nixosConfigurations here later
 
         checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
-        # packages_ = (import ./src/pkgs { pkgs = pkgsAllowUnfree; nixos-lib = nixos-lib; });
         packages.default = self.packages."${suportedSystem}".hello;
 
         packages.hello = pkgsAllowUnfree.hello;
@@ -96,19 +93,10 @@
         packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
         packages.installStartConfigTemplate = (import ./src/pkgs/install-start-config-template { pkgs = pkgsAllowUnfree; });
+        packages.installQEMUVirtualMachineDockerTemplate = (import ./src/pkgs/install-qemu-virtual-machine-docker { pkgs = pkgsAllowUnfree; });
         packages.sendToCacheInstallStartConfigTemplate = (import ./src/pkgs/send-to-cache-install-start-config-template { pkgs = pkgsAllowUnfree; });
 
         templates.startConfig = _templates.startConfig;
-
-        # defaultTemplate = self.templates.startConfig;
-
-        #  templates.startConfig = {
-        #      description = "Base configuration";
-        #      path = ./src/templates/start-config;
-        #  };
-        # Is broken
-        # nix flake check .#
-        # templates = import ./src/templates;
 
         formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
@@ -118,9 +106,9 @@
             drv = self.packages."${suportedSystem}".installStartConfigTemplate;
           };
 
-          nstallStartConfigTemplate = flake-utils.lib.mkApp {
-            name = "install-start-config-template";
-            drv = self.packages."${suportedSystem}".installStartConfigTemplate;
+          installQEMUVirtualMachineDockerTemplate = flake-utils.lib.mkApp {
+            name = "install-qemu-virtual-machine-docker";
+            drv = self.packages."${suportedSystem}".installQEMUVirtualMachineDocker;
           };
 
         };

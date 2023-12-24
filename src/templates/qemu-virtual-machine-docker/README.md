@@ -1,5 +1,13 @@
 
 
+
+
+nix \
+run \
+--refresh \
+github:ES-nix/es#installQEMUVirtualMachineDocker
+
+
 nix \
 --refresh \
 flake \
