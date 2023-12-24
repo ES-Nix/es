@@ -2,6 +2,7 @@
 { pkgs, nixos-lib }: {
 
   install-start-config-template = pkgs.callPackage ./install-start-config-template { };
+  install-qemu-virtual-machine-docker-template = pkgs.callPackage ./install-qemu-virtual-machine-docker-template { };
   send-to-cache-install-start-config-template = pkgs.callPackage ./send-to-cache-install-start-config-template { };
 
   #  test-nixos = nixos-lib.runTest {

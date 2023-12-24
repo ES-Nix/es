@@ -35,13 +35,6 @@
         # "aarch64-darwin"
       ];
 
-      # https://discourse.nixos.org/t/how-to-add-templates-to-a-flake-that-uses-flake-utils-lib-eachsystem/31895
-      _templates = {
-        startConfig = {
-          description = "Base configuration";
-          path = ./src/templates/start-config;
-        };
-      };
     in
     flake-utils.lib.eachSystem suportedSystems
       (suportedSystem:
@@ -93,10 +86,8 @@
         packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
         packages.installStartConfigTemplate = (import ./src/pkgs/install-start-config-template { pkgs = pkgsAllowUnfree; });
-        packages.installQEMUVirtualMachineDockerTemplate = (import ./src/pkgs/install-qemu-virtual-machine-docker { pkgs = pkgsAllowUnfree; });
+        packages.installQEMUVirtualMachineDockerTemplate = (import ./src/pkgs/install-qemu-virtual-machine-docker-template { pkgs = pkgsAllowUnfree; });
         packages.sendToCacheInstallStartConfigTemplate = (import ./src/pkgs/send-to-cache-install-start-config-template { pkgs = pkgsAllowUnfree; });
-
-        templates.startConfig = _templates.startConfig;
 
         formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
