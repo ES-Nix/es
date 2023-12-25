@@ -201,16 +201,6 @@
             # Too much hardcoded?
             export DOCKER_HOST=ssh://nixuser@localhost:10022
 
-            chmod -v 0600 id_ed25519
-
-            ssh-add -l 1> /dev/null 2> /dev/null || eval $(ssh-agent -s)
-            # There could be an race condition in here?
-            (ssh-add -l | grep -q "$(cat id_ed25519.pub)") || ssh-add id_ed25519
-
-            ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null;
-            ssh -oStrictHostKeyChecking=accept-new -p 10022 nixuser@localhost -- sh -c 'true'
-
-            docker images
         '';
       };
     };
