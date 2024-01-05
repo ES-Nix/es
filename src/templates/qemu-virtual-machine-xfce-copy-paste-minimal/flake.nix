@@ -92,7 +92,7 @@
                   virtualisation.useNixStoreImage = false; # TODO: hardening
                   virtualisation.writableStore = true; # TODO: hardening
 
-                  programs.dconf.enable = true;
+                  # programs.dconf.enable = true; # Not a Must!
 
                   virtualisation.memorySize = 1024 * 3; # Use MiB memory.
                   virtualisation.diskSize = 1024 * 15; # Use MiB memory.
@@ -149,9 +149,9 @@
                 uid = 1234;
               };
 
-              boot.extraModprobeConfig = "options kvm_intel nested=1";
-
-              # services.qemuGuest.enable = true;
+              # boot.extraModprobeConfig = "options kvm_intel nested=1"; # Not a Must!
+              # services.qemuGuest.enable = true; # Not a Must!
+              # services.xserver.videoDrivers = [ "qxl" ]; # Not a Must!
 
               services.xserver.enable = true;
               services.xserver.layout = "br";
@@ -166,8 +166,6 @@
 
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
-
-              # services.xserver.videoDrivers = [ "qxl" ]; # Not a Must!
 
               # For copy/paste to work
               services.spice-vdagentd.enable = true;
