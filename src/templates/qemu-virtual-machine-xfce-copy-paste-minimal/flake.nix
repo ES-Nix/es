@@ -95,16 +95,8 @@
                   virtualisation.cores = 2; # Number of cores.
                   virtualisation.graphics = true;
 
-                  # virtualisation.resolution = lib.mkForce { x = 1024; y = 768; }; # Not a Must!
-
                   virtualisation.qemu.options = [
-                    # Better display option
-                    # TODO: -display sdl,gl=on
-                    # https://gitlab.com/qemu-project/qemu/-/issues/761
                     "-vga virtio"
-                    # "-display gtk,zoom-to-fit=false" # Not a Must!
-                    # Enable copy/paste
-                    # https://www.kraxel.org/blog/2021/05/qemu-cut-paste/
                     "-chardev qemu-vdagent,id=ch1,name=vdagent,clipboard=on"
                     "-device virtio-serial-pci"
                     "-device virtserialport,chardev=ch1,id=ch1,name=com.redhat.spice.0"
@@ -112,7 +104,6 @@
                 };
 
               users.extraGroups.nixgroup.gid = 999;
-
               security.sudo.wheelNeedsPassword = false; # TODO: hardening
               users.users.nixuser = {
                 isSystemUser = true;
@@ -122,25 +113,8 @@
                 homeMode = "0700";
                 description = "The VM tester user";
                 group = "nixgroup";
-                extraGroups = [
-                  "docker"
-                  "kubernetes"
-                  "kvm"
-                  "libvirtd"
-                  "nixgroup"
-                  "podman"
-                  "qemu-libvirtd"
-                  "root"
-                  "wheel"
-                ];
-                packages = with pkgs; [
-                  bashInteractive
-                  btop
-                  file
-                  git
-                  which
-                  foo-bar
-                ];
+                extraGroups = [ "wheel" ];
+                packages = with pkgs; [ foo-bar ];
                 shell = pkgs.bashInteractive;
                 uid = 1234;
               };
@@ -150,10 +124,15 @@
               # services.qemuGuest.enable = true; # Not a Must!
               # services.xserver.videoDrivers = [ "qxl" ]; # Not a Must!
               # virtualisation.useNixStoreImage = false; # TODO: hardening # Not a Must!
+              # virtualisation.resolution = lib.mkForce { x = 1024; y = 768; }; # Not a Must!
+
+              # For copy/paste to work
+              services.spice-vdagentd.enable = true;
 
               services.xserver.enable = true;
               services.xserver.layout = "br";
-
+              services.xserver.desktopManager.xfce.enable = true;
+              services.xserver.desktopManager.xfce.enableScreensaver = false;
               services.xserver.displayManager.autoLogin.user = "nixuser";
               services.xserver.displayManager.sessionCommands = ''
                 exo-open \
@@ -162,21 +141,11 @@
                   --geometry 154x40
               '';
 
-              services.xserver.desktopManager.xfce.enable = true;
-              services.xserver.desktopManager.xfce.enableScreensaver = false;
-
-              # For copy/paste to work
-              services.spice-vdagentd.enable = true;
-
               system.stateVersion = "22.11";
             })
-
           { nixpkgs.overlays = [ self.overlays.default ]; }
-
         ];
-
         specialArgs = { inherit nixpkgs allAttrs; };
-
       };
     };
 }
