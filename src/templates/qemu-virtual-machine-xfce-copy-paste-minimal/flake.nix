@@ -100,18 +100,7 @@
               nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExR+PSB/jBwJYKfpLN+MMXs3miRn70oELTV3sXdgzpr";
             in
             {
-              # Internationalisation options
-              i18n.defaultLocale = "en_US.UTF-8";
 
-              console.keyMap = "br-abnt2";
-
-              # Set your time zone.
-              time.timeZone = "America/Recife";
-
-              # Why
-              # nix flake show --impure .#
-              # break if it does not exists?
-              # Use systemd boot (EFI only)
               boot.loader.systemd-boot.enable = true;
               fileSystems."/" = { device = "/dev/hda1"; };
 
