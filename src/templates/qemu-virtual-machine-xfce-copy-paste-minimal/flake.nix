@@ -82,11 +82,7 @@
 
         modules = [
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
-            let
-              nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExR+PSB/jBwJYKfpLN+MMXs3miRn70oELTV3sXdgzpr";
-            in
             {
-
               boot.loader.systemd-boot.enable = true;
               fileSystems."/" = { device = "/dev/hda1"; };
 
@@ -119,7 +115,6 @@
                   ];
                 };
 
-              # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
               users.extraGroups.nixgroup.gid = 999;
 
               security.sudo.wheelNeedsPassword = false; # TODO: hardening
@@ -150,46 +145,11 @@
                   file
                   firefox
                   git
-                  starship
                   which
                   foo-bar
                 ];
                 shell = pkgs.zsh;
                 uid = 1234;
-              };
-
-              programs.zsh = {
-                enable = true;
-                enableCompletion = true;
-                autosuggestions.enable = true;
-                syntaxHighlighting.enable = true;
-                interactiveShellInit = ''
-                  export ZSH=${pkgs.oh-my-zsh}/share/oh-my-zsh
-                  export ZSH_THEME="agnoster"
-                  export ZSH_CUSTOM=${pkgs.zsh-autosuggestions}/share/zsh-autosuggestions
-                  plugins=(
-                            colored-man-pages
-                            docker
-                            git
-                            #zsh-autosuggestions # Why this causes an warn?
-                            #zsh-syntax-highlighting
-                          )
-
-                  # https://nixos.wiki/wiki/Fzf
-                  source $ZSH/oh-my-zsh.sh
-
-                  export DIRENV_LOG_FORMAT=""
-                  eval "$(direnv hook zsh)"
-
-                  eval "$(starship init zsh)"
-
-                  export FZF_BASE=$(fzf-share)
-                  source "$(fzf-share)/completion.zsh"
-                  source "$(fzf-share)/key-bindings.zsh"
-                '';
-
-                ohMyZsh.custom = "${pkgs.zsh-autosuggestions}/share/zsh-autosuggestions";
-                promptInit = "";
               };
 
               boot.extraModprobeConfig = "options kvm_intel nested=1";
@@ -214,12 +174,6 @@
 
               # For copy/paste to work
               services.spice-vdagentd.enable = true;
-
-              environment.systemPackages = with pkgs; [
-                oh-my-zsh
-                zsh-autosuggestions
-                zsh-completions
-              ];
 
               system.stateVersion = "22.11";
             })
