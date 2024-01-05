@@ -103,21 +103,7 @@
                   ];
                 };
 
-              users.extraGroups.nixgroup.gid = 999;
               security.sudo.wheelNeedsPassword = false; # TODO: hardening
-              users.users.nixuser = {
-                isSystemUser = true;
-                password = "101"; # TODO: hardening
-                createHome = true;
-                home = "/home/nixuser";
-                homeMode = "0700";
-                description = "The VM tester user";
-                group = "nixgroup";
-                extraGroups = [ "wheel" ];
-                packages = with pkgs; [ foo-bar ];
-                shell = pkgs.bashInteractive;
-                uid = 1234;
-              };
 
               # programs.dconf.enable = true; # Not a Must!
               # boot.extraModprobeConfig = "options kvm_intel nested=1"; # Not a Must!
@@ -133,7 +119,7 @@
               services.xserver.layout = "br";
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
-              services.xserver.displayManager.autoLogin.user = "nixuser";
+              services.xserver.displayManager.autoLogin.user = "nixos";
               services.xserver.displayManager.sessionCommands = ''
                 exo-open \
                   --launch TerminalEmulator \
