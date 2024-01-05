@@ -140,10 +140,7 @@
                 packages = with pkgs; [
                   bashInteractive
                   btop
-                  coreutils
-                  direnv
                   file
-                  firefox
                   git
                   which
                   foo-bar
@@ -154,7 +151,7 @@
 
               boot.extraModprobeConfig = "options kvm_intel nested=1";
 
-              services.qemuGuest.enable = true;
+              # services.qemuGuest.enable = true;
 
               services.xserver.enable = true;
               services.xserver.layout = "br";
