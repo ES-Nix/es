@@ -90,9 +90,10 @@
                 {
                   virtualisation.writableStore = true; # TODO: hardening
 
-                  virtualisation.memorySize = 1024 * 3; # Use MiB memory.
-                  virtualisation.diskSize = 1024 * 10; # Use MiB memory.
-                  virtualisation.cores = 2; # Number of cores.
+                  virtualisation.memorySize = 1024 * 3; # Use MiB of RAM memory. free -h
+                  virtualisation.diskSize = 1024 * 10; # Use MiB of HD/disk memory. df -h
+                  virtualisation.cores = 2; # Number of cores. nproc
+
                   virtualisation.graphics = true;
 
                   virtualisation.qemu.options = [
@@ -112,18 +113,11 @@
                 homeMode = "0700";
                 description = "The VM tester user";
                 group = "nixgroup";
-                extraGroups = [ "wheel" ];
+                extraGroups = [ "wheel" ]; # TODO: hardening
                 packages = with pkgs; [ foo-bar ];
                 shell = pkgs.bashInteractive;
                 uid = 1234;
               };
-
-              # programs.dconf.enable = true; # Not a Must!
-              # boot.extraModprobeConfig = "options kvm_intel nested=1"; # Not a Must!
-              # services.qemuGuest.enable = true; # Not a Must!
-              # services.xserver.videoDrivers = [ "qxl" ]; # Not a Must!
-              # virtualisation.useNixStoreImage = false; # TODO: hardening # Not a Must!
-              # virtualisation.resolution = lib.mkForce { x = 1024; y = 768; }; # Not a Must!
 
               # For copy/paste to work
               services.spice-vdagentd.enable = true;
