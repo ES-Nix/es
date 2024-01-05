@@ -89,6 +89,7 @@
 
         packages.installQEMUVirtualMachineDockerTemplate = (import ./src/pkgs/install-qemu-virtual-machine-docker-template { pkgs = pkgsAllowUnfree; });
         packages.installQEMUVirtualMachineXfceCopyPasteTemplate = (import ./src/pkgs/install-qemu-virtual-machine-xfce-copy-paste-template { pkgs = pkgsAllowUnfree; });
+        packages.installQEMUVirtualMachineXfceCopyPasteMinimalTemplate = (import ./src/pkgs/install-qemu-virtual-machine-xfce-copy-paste-minimal-template { pkgs = pkgsAllowUnfree; });
 
         packages.sendToCacheInstallStartConfigTemplate = (import ./src/pkgs/send-to-cache-install-start-config-template { pkgs = pkgsAllowUnfree; });
 
@@ -108,6 +109,15 @@
           installQEMUVirtualMachineXfceCopyPasteTemplate =
             let
               p = self.packages."${suportedSystem}".installQEMUVirtualMachineXfceCopyPasteTemplate;
+            in
+            flake-utils.lib.mkApp {
+              name = p.name;
+              drv = p;
+            };
+
+          installQEMUVirtualMachineXfceCopyPasteMinimalTemplate =
+            let
+              p = self.packages."${suportedSystem}".installQEMUVirtualMachineXfceCopyPasteMinimalTemplate;
             in
             flake-utils.lib.mkApp {
               name = p.name;
