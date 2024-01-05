@@ -86,7 +86,10 @@
         packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
         packages.installStartConfigTemplate = (import ./src/pkgs/install-start-config-template { pkgs = pkgsAllowUnfree; });
+
         packages.installQEMUVirtualMachineDockerTemplate = (import ./src/pkgs/install-qemu-virtual-machine-docker-template { pkgs = pkgsAllowUnfree; });
+        packages.installQEMUVirtualMachineXfceCopyPasteTemplate = (import ./src/pkgs/install-qemu-virtual-machine-docker-template { pkgs = pkgsAllowUnfree; });
+
         packages.sendToCacheInstallStartConfigTemplate = (import ./src/pkgs/send-to-cache-install-start-config-template { pkgs = pkgsAllowUnfree; });
 
         formatter = pkgsAllowUnfree.nixpkgs-fmt;
@@ -101,6 +104,15 @@
             name = self.packages."${suportedSystem}".installQEMUVirtualMachineDockerTemplate.name;
             drv = self.packages."${suportedSystem}".installQEMUVirtualMachineDockerTemplate;
           };
+
+          installQEMUVirtualMachineXfceCopyPaste =
+            let
+              p = self.packages."${suportedSystem}".installQEMUVirtualMachineXfceCopyPasteTemplate;
+            in
+            flake-utils.lib.mkApp {
+              name = p.name;
+              drv = p;
+            };
 
         };
       }

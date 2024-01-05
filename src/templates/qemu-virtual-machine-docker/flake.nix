@@ -152,7 +152,7 @@
                   nix eval nixpkgs#path
                   nix eval nixpkgs#pkgs.path
                 */
-                nixPath = ["nixpkgs=${pkgs.path}"]; # TODO: test it
+                nixPath = [ "nixpkgs=${pkgs.path}" ]; # TODO: test it
                 /*
                 nixPath = [
                   "nixpkgs=/etc/channels/nixpkgs"
@@ -196,10 +196,10 @@
         ];
 
         shellHook = ''
-            export TMPDIR=/tmp
+          export TMPDIR=/tmp
 
-            # Too much hardcoded?
-            export DOCKER_HOST=ssh://nixuser@localhost:10022
+          # Too much hardcoded?
+          export DOCKER_HOST=ssh://nixuser@localhost:10022
 
         '';
       };
