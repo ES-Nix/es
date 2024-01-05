@@ -105,7 +105,7 @@
             drv = self.packages."${suportedSystem}".installQEMUVirtualMachineDockerTemplate;
           };
 
-          installQEMUVirtualMachineXfceCopyPaste =
+          installQEMUVirtualMachineXfceCopyPasteTemplate =
             let
               p = self.packages."${suportedSystem}".installQEMUVirtualMachineXfceCopyPasteTemplate;
             in
