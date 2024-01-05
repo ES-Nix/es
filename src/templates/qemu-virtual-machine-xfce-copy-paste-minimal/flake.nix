@@ -89,14 +89,12 @@
               virtualisation.vmVariant =
                 {
 
-                  virtualisation.useNixStoreImage = false; # TODO: hardening
+                  # virtualisation.useNixStoreImage = false; # TODO: hardening
                   virtualisation.writableStore = true; # TODO: hardening
 
-                  # programs.dconf.enable = true; # Not a Must!
-
                   virtualisation.memorySize = 1024 * 3; # Use MiB memory.
-                  virtualisation.diskSize = 1024 * 15; # Use MiB memory.
-                  virtualisation.cores = 6; # Number of cores.
+                  virtualisation.diskSize = 1024 * 10; # Use MiB memory.
+                  virtualisation.cores = 2; # Number of cores.
                   virtualisation.graphics = true;
 
                   virtualisation.resolution = lib.mkForce { x = 1024; y = 768; };
@@ -149,6 +147,7 @@
                 uid = 1234;
               };
 
+              # programs.dconf.enable = true; # Not a Must!
               # boot.extraModprobeConfig = "options kvm_intel nested=1"; # Not a Must!
               # services.qemuGuest.enable = true; # Not a Must!
               # services.xserver.videoDrivers = [ "qxl" ]; # Not a Must!
