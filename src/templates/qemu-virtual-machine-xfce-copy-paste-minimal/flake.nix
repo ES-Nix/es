@@ -106,7 +106,7 @@
                     # TODO: -display sdl,gl=on
                     # https://gitlab.com/qemu-project/qemu/-/issues/761
                     "-vga virtio"
-                    "-display gtk,zoom-to-fit=true"
+                    "-display gtk,zoom-to-fit=false"
                     # Enable copy/paste
                     # https://www.kraxel.org/blog/2021/05/qemu-cut-paste/
                     "-chardev qemu-vdagent,id=ch1,name=vdagent,clipboard=on"
@@ -170,7 +170,7 @@
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
 
-              services.xserver.videoDrivers = [ "qxl" ];
+              # services.xserver.videoDrivers = [ "qxl" ];
 
               # For copy/paste to work
               services.spice-vdagentd.enable = true;
