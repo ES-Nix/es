@@ -78,7 +78,7 @@
       })
     // {
       nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
-        system = builtins.currentSystem;
+        system = builtins.currentSystem; # It forces the usage of --impure flag with nix
 
         modules = [
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
@@ -123,10 +123,11 @@
               services.spice-vdagentd.enable = true;
 
               services.xserver.enable = true;
-              # services.xserver.layout = "br";
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
               services.xserver.displayManager.autoLogin.user = "nixuser";
+
+              # Not a Must! Just really usefull
               services.xserver.displayManager.sessionCommands = ''
                 exo-open \
                   --launch TerminalEmulator \
@@ -134,7 +135,7 @@
                   --geometry 154x40
               '';
 
-              system.stateVersion = "22.11"; # Not a Must! Just avoid the warning.
+              system.stateVersion = "22.11"; # Not a Must! Just avoid an warning.
             })
           { nixpkgs.overlays = [ self.overlays.default ]; } # Not a Must!
         ];
