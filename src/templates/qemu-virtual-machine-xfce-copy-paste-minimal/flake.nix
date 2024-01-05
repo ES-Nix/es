@@ -106,7 +106,7 @@
                     # TODO: -display sdl,gl=on
                     # https://gitlab.com/qemu-project/qemu/-/issues/761
                     "-vga virtio"
-                    "-display gtk,zoom-to-fit=false"
+                    "-display gtk,zoom-to-fit=true"
                     # Enable copy/paste
                     # https://www.kraxel.org/blog/2021/05/qemu-cut-paste/
                     "-chardev qemu-vdagent,id=ch1,name=vdagent,clipboard=on"
