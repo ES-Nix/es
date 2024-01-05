@@ -104,7 +104,6 @@
                 };
 
               users.extraGroups.nixgroup.gid = 999;
-              security.sudo.wheelNeedsPassword = false; # TODO: hardening
               users.users.nixuser = {
                 isSystemUser = true;
                 password = "101"; # TODO: hardening
@@ -141,11 +140,11 @@
                   --geometry 154x40
               '';
 
-              system.stateVersion = "22.11";
+              system.stateVersion = "22.11"; # Not a Must! Just avoid the warning.
             })
-          { nixpkgs.overlays = [ self.overlays.default ]; }
+          { nixpkgs.overlays = [ self.overlays.default ]; } # Not a Must!
         ];
-        specialArgs = { inherit nixpkgs allAttrs; };
+        specialArgs = { inherit nixpkgs allAttrs; }; # Not a Must!
       };
     };
 }
