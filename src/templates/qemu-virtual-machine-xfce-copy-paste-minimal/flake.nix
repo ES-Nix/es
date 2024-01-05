@@ -42,15 +42,6 @@
 
         packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
-        /*
-        # Utilized by `nix run .#<name>`
-
-        rm -fv nixos.qcow2
-        nix run --impure --refresh --verbose .#vm
-
-        # Open the QMEU VM terminal and:
-        start-github-runner-with-pat "$PAT"
-        */
         apps.vm = {
           type = "app";
           program = "${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm";
@@ -87,14 +78,9 @@
       })
     // {
       nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
-        # About system and maybe --impure
-        # https://www.youtube.com/watch?v=90aB_usqatE&t=3483s
         system = builtins.currentSystem;
 
         modules = [
-          # export QEMU_NET_OPTS="hostfwd=tcp::2200-:10022" && nix run .#vm
-          # Then connect with ssh -p 2200 nixuser@localhost
-          # ps -p $(pgrep -f qemu-kvm) -o args | tr ' ' '\n'
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
             let
               nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExR+PSB/jBwJYKfpLN+MMXs3miRn70oELTV3sXdgzpr";
@@ -112,9 +98,9 @@
 
                   programs.dconf.enable = true;
 
-                  virtualisation.memorySize = 1024 * 5; # Use MiB memory.
-                  virtualisation.diskSize = 1024 * 25; # Use MiB memory.
-                  virtualisation.cores = 8; # Number of cores.
+                  virtualisation.memorySize = 1024 * 3; # Use MiB memory.
+                  virtualisation.diskSize = 1024 * 15; # Use MiB memory.
+                  virtualisation.cores = 6; # Number of cores.
                   virtualisation.graphics = true;
 
                   virtualisation.resolution = lib.mkForce { x = 1024; y = 768; };
@@ -164,37 +150,16 @@
                   file
                   firefox
                   git
-                  nix-info
-                  openssh
-                  openssl
                   starship
                   which
                   foo-bar
-
                 ];
                 shell = pkgs.zsh;
                 uid = 1234;
-                autoSubUidGidRange = true;
-
-                openssh.authorizedKeys.keyFiles = [
-                  "${ pkgs.writeText "nixuser-keys.pub" "${toString nixuserKeys}" }"
-                ];
-
-                openssh.authorizedKeys.keys = [
-                  "${toString nixuserKeys}"
-                ];
               };
 
-              # https://github.com/NixOS/nixpkgs/blob/3a44e0112836b777b176870bb44155a2c1dbc226/nixos/modules/programs/zsh/oh-my-zsh.nix#L119
-              # https://discourse.nixos.org/t/nix-completions-for-zsh/5532
-              # https://github.com/NixOS/nixpkgs/blob/09aa1b23bb5f04dfc0ac306a379a464584fc8de7/nixos/modules/programs/zsh/zsh.nix#L230-L231
               programs.zsh = {
                 enable = true;
-                shellAliases = {
-                  vim = "nvim";
-                  k = "kubectl";
-                  kaf = "kubectl apply -f";
-                };
                 enableCompletion = true;
                 autosuggestions.enable = true;
                 syntaxHighlighting.enable = true;
@@ -227,33 +192,10 @@
                 promptInit = "";
               };
 
-              fonts = {
-                fontDir.enable = true;
-                fonts = with pkgs; [
-                  powerline
-                  powerline-fonts
-                ];
-                enableDefaultFonts = true;
-                enableGhostscriptFonts = true;
-              };
-
-              # Hack to fix annoying zsh warning, too overkill probably
-              # https://www.reddit.com/r/NixOS/comments/cg102t/how_to_run_a_shell_command_upon_startup/eudvtz1/?utm_source=reddit&utm_medium=web2x&context=3
-              # https://stackoverflow.com/questions/638975/how-wdo-i-tell-if-a-regular-file-does-not-exist-in-bash#comment25226870_638985
-              systemd.user.services.fix-zsh-warning = {
-                script = ''
-                  test -f /home/nixuser/.zshrc || touch /home/nixuser/.zshrc && chown nixuser: -Rv /home/nixuser
-                '';
-                wantedBy = [ "default.target" ];
-              };
-
-              # https://nixos.wiki/wiki/Libvirt
-              # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653
               boot.extraModprobeConfig = "options kvm_intel nested=1";
 
               services.qemuGuest.enable = true;
 
-              # X configuration
               services.xserver.enable = true;
               services.xserver.layout = "br";
 
@@ -265,7 +207,6 @@
                   --geometry 154x40
               '';
 
-              # https://nixos.org/manual/nixos/stable/#sec-xfce
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
 
@@ -275,10 +216,7 @@
               services.spice-vdagentd.enable = true;
 
               environment.systemPackages = with pkgs; [
-                bashInteractive
                 oh-my-zsh
-                xclip
-                zsh
                 zsh-autosuggestions
                 zsh-completions
               ];
