@@ -123,7 +123,7 @@
               services.spice-vdagentd.enable = true;
 
               services.xserver.enable = true;
-              services.xserver.layout = "br";
+              # services.xserver.layout = "br";
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
               services.xserver.displayManager.autoLogin.user = "nixuser";
