@@ -146,7 +146,8 @@
                   writeScriptBin "copy-paste-debug" ''
                     #! ${pkgs.runtimeShell} -e
 
-                    set -x
+                    # set -x
+
                     # cat /var/log/X.0.log
                     grep QXL /var/log/X.0.log || true
                     grep virtio /var/log/X.0.log
