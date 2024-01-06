@@ -148,7 +148,7 @@
 
                     set -x
                     # cat /var/log/X.0.log
-                    grep QXL /var/log/X.0.log
+                    grep QXL /var/log/X.0.log || true
                     grep virtio /var/log/X.0.lo
 
                     ls -alh /dev/virtio-ports/com.redhat.spice.0
