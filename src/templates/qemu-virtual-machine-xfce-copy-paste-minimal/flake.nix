@@ -57,6 +57,7 @@
             curl
             jq
             patchelf
+            xsel
           ];
 
           shellHook = ''
@@ -130,7 +131,7 @@
 
               documentation.nixos.enable = false;
               documentation.man.enable = false;
-              documentation.dev.enable =false;
+              documentation.dev.enable = false;
 
               systemd.user.services.populate-history-vagrant = {
                 script = ''
@@ -141,7 +142,8 @@
               };
 
               environment.systemPackages = with pkgs; [
-              pciutils
+                pciutils
+                xsel
                 (
                   writeScriptBin "copy-paste-debug" ''
                     #! ${pkgs.runtimeShell} -e

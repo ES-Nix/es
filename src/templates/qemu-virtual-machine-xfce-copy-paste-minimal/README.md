@@ -59,10 +59,12 @@ https://community.clearlinux.org/t/share-clipboard-and-file-transfer-between-hos
 WIP:
 ```bash
 nix flake update \
---override-input nixpkgs github:NixOS/nixpkgs/2c9c58e98243930f8cb70387934daa4bc8b00373 \
+--override-input nixpkgs github:NixOS/nixpkgs/6eef602bdb2a316e7cf5f95aeb10b2ff0a97e4a5 \
 --override-input flake-utils github:numtide/flake-utils/5aed5285a952e0b949eb3ba02c12fa4fcfef535f
 ```
 
+
+6eef602bdb2a316e7cf5f95aeb10b2ff0a97e4a5
 
 
 ```bash
@@ -113,4 +115,8 @@ ls \
 --long \
 --recursive \
 "$(nix eval --raw nixpkgs/9c8bff77b5d51380f5da349d0a6fc515da6244b0#qemu)"/bin
+```
+
+```bash
+echo foo-xpto-bar | DISPLAY=:0 xsel -ib
 ```
