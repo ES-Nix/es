@@ -127,6 +127,10 @@
               services.xserver.desktopManager.xfce.enableScreensaver = false;
               services.xserver.displayManager.autoLogin.user = "nixuser";
 
+              documentation.nixos.enable = false;
+              documentation.man.enable = false;
+              documentation.dev.enable =false;
+
               # Not a Must! Just really usefull
               services.xserver.displayManager.sessionCommands = ''
                 exo-open \
