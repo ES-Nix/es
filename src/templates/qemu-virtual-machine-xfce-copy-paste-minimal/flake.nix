@@ -152,7 +152,7 @@
                     grep virtio /var/log/X.0.lo
 
                     ls -alh /dev/virtio-ports/com.redhat.spice.0
-                    lspci | grep -F 'Red Hat, Inc.'
+                    # lspci | grep -F 'Red Hat, Inc.'
 
                     ps -lef | grep spice-vdagentd
                     pgrep spice-vdagent | xargs -I{} echo /proc/{}/cmdline
