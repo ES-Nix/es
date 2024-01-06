@@ -146,7 +146,9 @@
                   writeScriptBin "copy-paste-debug" ''
                     #! ${pkgs.runtimeShell} -e
 
-                    set -x
+                    # cat /var/log/X.0.log
+                    grep QXL /var/log/X.0.log
+                    grep virtio /var/log/X.0.lo
 
                     ls -alh /dev/virtio-ports/com.redhat.spice.0
                     lspci | grep -F 'Red Hat, Inc.'
