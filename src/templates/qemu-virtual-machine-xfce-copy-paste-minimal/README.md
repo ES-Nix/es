@@ -118,5 +118,9 @@ ls \
 ```
 
 ```bash
-echo foo-xpto-bar | DISPLAY=:0 xsel -ib
+echo foo-guest-bar | DISPLAY=:0 xsel -ib
+```
+
+```bash
+echo foo-host-bar | DISPLAY=:0 xsel -ib
 ```

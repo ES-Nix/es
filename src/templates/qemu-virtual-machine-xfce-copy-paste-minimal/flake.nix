@@ -57,6 +57,7 @@
             curl
             jq
             patchelf
+            xclip
             xsel
           ];
 
@@ -136,6 +137,9 @@
               systemd.user.services.populate-history-vagrant = {
                 script = ''
                   DESTINATION=/home/nixuser/.bash_history
+                  echo "echo foo-guest-bar | DISPLAY=:0 xsel -ib" >> "$DESTINATION"
+                  echo "echo foo-guest-bar | DISPLAY=:0 xsel -i" >> "$DESTINATION"
+                  echo "xclip -o -rmlastnl -selection clipboard" >> "$DESTINATION"
                   echo "copy-paste-debug" >> "$DESTINATION"
                 '';
                 wantedBy = [ "default.target" ];
@@ -143,6 +147,7 @@
 
               environment.systemPackages = with pkgs; [
                 pciutils
+                xclip
                 xsel
                 (
                   writeScriptBin "copy-paste-debug" ''
