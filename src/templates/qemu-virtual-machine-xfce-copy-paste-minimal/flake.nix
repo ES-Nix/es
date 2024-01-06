@@ -134,7 +134,7 @@
 
               systemd.user.services.populate-history-vagrant = {
                 script = ''
-                  DESTINATION=/home/nixuser/.zsh_history
+                  DESTINATION=/home/nixuser/.bash_history
                   echo "copy-paste-debug" >> "$DESTINATION"
                 '';
                 wantedBy = [ "default.target" ];
