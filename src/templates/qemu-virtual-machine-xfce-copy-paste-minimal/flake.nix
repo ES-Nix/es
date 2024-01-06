@@ -149,7 +149,7 @@
                     set -x
                     # cat /var/log/X.0.log
                     grep QXL /var/log/X.0.log || true
-                    grep virtio /var/log/X.0.lo
+                    grep virtio /var/log/X.0.log
 
                     ls -alh /dev/virtio-ports/com.redhat.spice.0
                     lspci | grep -F 'Red Hat, Inc.'
