@@ -132,6 +132,37 @@
               documentation.man.enable = false;
               documentation.dev.enable =false;
 
+              systemd.user.services.populate-history-vagrant = {
+                script = ''
+                  DESTINATION=/home/nixuser/.zsh_history
+                  echo "copy-paste-debug" >> "$DESTINATION"
+                '';
+                wantedBy = [ "default.target" ];
+              };
+
+              environment.systemPackages = with pkgs; [
+              pciutils
+                (
+                  writeScriptBin "copy-paste-debug" ''
+                    #! ${pkgs.runtimeShell} -e
+
+                    cat /var/log/X.0.log
+
+                    grep QXL /var/log/X.0.log
+                    grep virtio /var/log/X.0.lo
+
+                    ls -alh /dev/virtio-ports/com.redhat.spice.0
+                    lspci | grep -F 'Red Hat, Inc.'
+
+                    ps -lef | grep spice-vdagentd
+                    pgrep spice-vdagent | xargs -I{} echo /proc/{}/cmdline
+
+                    systemctl is-active spice-vdagentd.service
+
+                  ''
+                )
+              ];
+
               # Not a Must! Just really usefull
               services.xserver.displayManager.sessionCommands = ''
                 exo-open \
@@ -140,7 +171,7 @@
                   --geometry 154x40
               '';
 
-              system.stateVersion = "22.11"; # Not a Must! Just avoid an warning.
+              system.stateVersion = "${lib.versions.majorMinor lib.version}"; # Not a Must! Just avoid an warning.
             })
           { nixpkgs.overlays = [ self.overlays.default ]; } # Not a Must!
         ];
