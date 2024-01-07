@@ -83,6 +83,10 @@
         system = builtins.currentSystem; # It forces the usage of --impure flag with nix
 
         modules = [
+
+            (nixpkgs + "/nixos/modules/virtualisation/qemu-vm.nix")
+            (nixpkgs + "/nixos/modules/profiles/qemu-guest.nix")
+
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
             {
               boot.loader.systemd-boot.enable = true;
