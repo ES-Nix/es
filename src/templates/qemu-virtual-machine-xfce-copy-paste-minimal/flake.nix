@@ -84,9 +84,11 @@
 
         modules = [
 
-          # (nixpkgs + "/nixos/modules/virtualisation/qemu-vm.nix")
-          # (nixpkgs + "/nixos/modules/profiles/qemu-guest.nix")
-          (nixpkgs + "/nixos/modules//installer/cd-dvd/installation-cd-graphical-plasma5-new-kernel.nix")
+          (nixpkgs + "/nixos/modules/virtualisation/qemu-vm.nix")
+          (nixpkgs + "/nixos/modules/profiles/qemu-guest.nix")
+
+          (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-graphical-plasma5-new-kernel.nix")
+          # (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-graphical-gnome.nix")
 
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
             {
@@ -133,9 +135,9 @@
 
               services.xserver.enable = true;
               services.xserver.layout = "br";
-              services.xserver.desktopManager.xfce.enable = true;
-              services.xserver.desktopManager.xfce.enableScreensaver = false;
-              services.xserver.displayManager.autoLogin.user = "nixuser";
+              # services.xserver.desktopManager.xfce.enable = true;
+              # services.xserver.desktopManager.xfce.enableScreensaver = false;
+              # services.xserver.displayManager.autoLogin.user = "nixuser";
 
               documentation.nixos.enable = false;
               documentation.man.enable = false;
