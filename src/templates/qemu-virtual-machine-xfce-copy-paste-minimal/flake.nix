@@ -34,6 +34,14 @@
           };
         };
 
+        pkgsAllowUnfree2305 = import nixpkgs2305 {
+          inherit system;
+          overlays = [ self.overlays.default ];
+          config = {
+            allowUnfree = true;
+          };
+        };
+
         # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
         pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
           (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
@@ -84,10 +92,10 @@
 
         modules = [
 
-          # (nixpkgs + "/nixos/modules/virtualisation/qemu-vm.nix")
-          # (nixpkgs + "/nixos/modules/profiles/qemu-guest.nix")
+          (nixpkgs + "/nixos/modules/virtualisation/qemu-vm.nix")
+          (nixpkgs + "/nixos/modules/profiles/qemu-guest.nix")
 
-          # (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-graphical-plasma5-new-kernel.nix")
+          (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-graphical-plasma5-new-kernel.nix")
           # (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-graphical-gnome.nix")
 
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
@@ -138,7 +146,10 @@
               services.xserver.layout = "br";
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
-              services.xserver.displayManager.autoLogin.user = "nixuser";
+              # services.xserver.displayManager.autoLogin.user = "nixuser";
+
+              services.xserver.displayManager.sddm.enable = true;
+              services.xserver.desktopManager.plasma5.enable = true;
 
               documentation.nixos.enable = false; # Not a Must!
               documentation.man.enable = false; # Not a Must!
