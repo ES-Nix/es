@@ -155,7 +155,7 @@
                   echo "udevadm info --query=all --name=/dev/input/mice" >> "$DESTINATION"
                   echo "udevadm info --query=all --name=/dev/input/mouse0" >> "$DESTINATION"
                   echo "lspci | grep -F 'Red Hat, Inc.'" >> "$DESTINATION"
-                  echo "ps -lef | grep spice-vdagentd" >> "$DESTINATION"
+                  echo "ps -lef | grep spice-vdagent" >> "$DESTINATION"
                   echo "find /sys/class/input/ -name mouse* -exec udevadm info -a {} \; | grep 'ATTRS{name}'" >> "$DESTINATION"
                 '';
                 wantedBy = [ "default.target" ];
@@ -165,6 +165,7 @@
                 evemu
                 pciutils
                 python310Packages.evdev
+                xdotool
                 xclip
                 xsel
                 (
@@ -180,7 +181,7 @@
                     ls -alh /dev/virtio-ports/com.redhat.spice.0
                     lspci | grep -F 'Red Hat, Inc.'
 
-                    ps -lef | grep spice-vdagentd
+                    ps -lef | grep spice-vdagent
                     pgrep spice-vdagent | xargs -I{} echo /proc/{}/cmdline
 
                     systemctl is-active spice-vdagentd.service

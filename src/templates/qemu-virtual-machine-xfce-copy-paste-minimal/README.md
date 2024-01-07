@@ -43,7 +43,7 @@ lspci | grep -F 'Red Hat, Inc.'
 ```
 
 ```bash
-ps -lef | grep spice-vdagentd
+ps -lef | grep spice-vdagent
 ```
 https://community.clearlinux.org/t/share-clipboard-and-file-transfer-between-host-and-kvm-qemu-guest/4689/4
 
@@ -209,6 +209,10 @@ udevadm monitor --environment --udev
 ```bash
 udevadm info --query=all --name=/dev/input/mice
 ```
+Refs.:
+- https://unix.stackexchange.com/a/650433 only place that documents it!
+- https://unix.stackexchange.com/a/638265 read it!
+- https://unix.stackexchange.com/a/502850 read it!
 
 ```bash
 udevadm info --query=all --name=/dev/input/mouse0
@@ -218,5 +222,43 @@ udevadm info --query=all --name=/dev/input/mouse0
 ```bash
 notify-send "Bip Bop Bup" \
 "$(lsblk --nodeps --output NAME,MODEL,SERIAL /dev/sd?)"
+```
+
+```bash
+udevadm control --log-priority=debug
+journalctl -f
+```
+https://unix.stackexchange.com/a/470963
+
+
+```bash
+udevadm hwdb --update
+udevadm trigger /dev/input/eventX
+udevadm info /dev/input/eventX
+```
+Refs:
+- https://ubuntu-mate.community/t/mouse-settings-are-misleading/26328/3
+
+
+
+```bash
+sudo dd if=/dev/input/mice bs=1 count=100 | hexdump -C
+```
+Refs.:
+https://askubuntu.com/q/913192
+
+```bash
+qemu-system-x86_64 -enable-kvm -m 8192 -boot d -cdrom nixos-gnome-23.11.2596.c1be43e8e837-x86_64-linux.iso -device virtio-rng-pci \
+-net nic,netdev=user.0,model=virtio \
+-netdev user,id=user.0, \
+-vga virtio \
+-display gtk \
+-device qemu-xhci,id=xhci \
+-chardev qemu-vdagent,id=ch1,name=vdagent,clipboard=on \
+-device virtio-serial-pci \
+-device virtserialport,chardev=ch1,id=ch1,name=com.redhat.spice.0 \
+-device virtio-keyboard \
+-usb \
+-device usb-tablet,bus=usb-bus.0 -hda nixos.img
 ```
 
