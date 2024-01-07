@@ -34,14 +34,6 @@
           };
         };
 
-        pkgsAllowUnfree2305 = import nixpkgs2305 {
-          inherit system;
-          overlays = [ self.overlays.default ];
-          config = {
-            allowUnfree = true;
-          };
-        };
-
         # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
         pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
           (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
