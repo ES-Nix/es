@@ -97,7 +97,8 @@
 
               virtualisation.vmVariant =
                 {
-                  virtualisation.writableStore = false; # TODO: hardening
+                  virtualisation.writableStore = true; # TODO: hardening
+                  virtualisation.useNixStoreImage = true; # sudo needs this
 
                   virtualisation.memorySize = 1024 * 3; # Use MiB of RAM memory. free -h
                   virtualisation.diskSize = 1024 * 10; # Use MiB of HD/disk memory. df -h
