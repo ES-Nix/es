@@ -107,7 +107,7 @@
 
                   virtualisation.qemu.options = [
                     "-vga virtio"
-                    "-display sdl,gl=on"
+                    "-display sdl,gl=off"
                     "-device qemu-xhci,id=xhci"
                     "-chardev qemu-vdagent,id=ch1,name=vdagent,clipboard=on"
                     "-device virtio-serial-pci"
@@ -135,9 +135,9 @@
 
               services.xserver.enable = true;
               services.xserver.layout = "br";
-              # services.xserver.desktopManager.xfce.enable = true;
-              # services.xserver.desktopManager.xfce.enableScreensaver = false;
-              # services.xserver.displayManager.autoLogin.user = "nixuser";
+              services.xserver.desktopManager.xfce.enable = true;
+              services.xserver.desktopManager.xfce.enableScreensaver = false;
+              services.xserver.displayManager.autoLogin.user = "nixuser";
 
               documentation.nixos.enable = false;
               documentation.man.enable = false;
