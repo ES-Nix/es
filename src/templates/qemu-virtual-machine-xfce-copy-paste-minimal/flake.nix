@@ -108,7 +108,6 @@
                   virtualisation.qemu.options = [
                     "-vga virtio"
                     "-display none"
-                    "-device virtio-vga-gl"
                     "-device qemu-xhci,id=xhci"
                     "-chardev qemu-vdagent,id=ch1,name=vdagent,clipboard=on"
                     "-device virtio-serial-pci"
