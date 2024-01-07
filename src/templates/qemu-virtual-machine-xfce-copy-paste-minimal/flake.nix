@@ -177,6 +177,8 @@
                   --launch TerminalEmulator \
                   --zoom=-3 \
                   --geometry 154x40
+
+                echo foo-guest-bar | DISPLAY=:0 xsel -ib
               '';
 
               system.stateVersion = "${lib.versions.majorMinor lib.version}"; # Not a Must! Just avoid an warning.
