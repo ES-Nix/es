@@ -84,8 +84,9 @@
 
         modules = [
 
-            (nixpkgs + "/nixos/modules/virtualisation/qemu-vm.nix")
-            (nixpkgs + "/nixos/modules/profiles/qemu-guest.nix")
+          # (nixpkgs + "/nixos/modules/virtualisation/qemu-vm.nix")
+          # (nixpkgs + "/nixos/modules/profiles/qemu-guest.nix")
+          (nixpkgs + "/nixos/modules//installer/cd-dvd/installation-cd-graphical-plasma5-new-kernel.nix")
 
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
             {
