@@ -140,17 +140,23 @@
               services.xserver.desktopManager.xfce.enableScreensaver = false;
               services.xserver.displayManager.autoLogin.user = "nixuser";
 
-              documentation.nixos.enable = false;
-              documentation.man.enable = false;
-              documentation.dev.enable = false;
+              documentation.nixos.enable = false; # Not a Must!
+              documentation.man.enable = false; # Not a Must!
+              documentation.dev.enable = false; # Not a Must!
 
-              systemd.user.services.populate-history-vagrant = {
+              systemd.user.services.populate-history = {
                 script = ''
                   DESTINATION=/home/nixuser/.bash_history
                   echo "echo foo-guest-bar | DISPLAY=:0 xsel -ib" >> "$DESTINATION"
                   echo "echo foo-guest-bar | DISPLAY=:0 xsel -i" >> "$DESTINATION"
                   echo "xclip -o -rmlastnl -selection clipboard" >> "$DESTINATION"
                   echo "copy-paste-debug" >> "$DESTINATION"
+                  echo "udevadm info /dev/virtio-ports/com.redhat.spice.0" >> "$DESTINATION"
+                  echo "udevadm info --query=all --name=/dev/input/mice" >> "$DESTINATION"
+                  echo "udevadm info --query=all --name=/dev/input/mouse0" >> "$DESTINATION"
+                  echo "lspci | grep -F 'Red Hat, Inc.'" >> "$DESTINATION"
+                  echo "ps -lef | grep spice-vdagentd" >> "$DESTINATION"
+                  echo "find /sys/class/input/ -name mouse* -exec udevadm info -a {} \; | grep 'ATTRS{name}'" >> "$DESTINATION"
                 '';
                 wantedBy = [ "default.target" ];
               };

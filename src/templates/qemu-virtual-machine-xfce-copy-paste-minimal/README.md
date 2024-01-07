@@ -124,3 +124,99 @@ echo foo-guest-bar | DISPLAY=:0 xsel -ib
 ```bash
 echo foo-host-bar | DISPLAY=:0 xsel -ib
 ```
+
+
+nixosConfigurations.vm.config.virtualisation.vmVariant.virtualisation.qemu.options
+
+```bash
+udevadm info -e ???
+```
+
+
+```bash
+udevadm info /dev/virtio-ports/com.redhat.spice.0
+```
+
+
+```bash
+P: /devices/pci0000:00/0000:00:0a.0/virtio7/virtio-ports/vport7p1
+M: vport7p1
+R: 1
+U: virtio-ports
+D: c 249:1
+N: vport7p1
+L: 0
+S: virtio-ports/com.redhat.spice.0
+E: DEVPATH=/devices/pci0000:00/0000:00:0a.0/virtio7/virtio-ports/vport7p1
+E: DEVNAME=/dev/vport7p1
+E: MAJOR=249
+E: MINOR=1
+E: SUBSYSTEM=virtio-ports
+E: USEC_INITIALIZED=2563668
+E: PATH=/nix/store/h44q3jiancpswzr21cqrb4d32r18k4ka-udev-path/bin:/nix/store/h44q3jiancpswzr21cqrb4d32r18k4ka-udev-path/sbin
+E: DEVLINKS=/dev/virtio-ports/com.redhat.spice.0
+E: TAGS=:systemd:
+E: CURRENT_TAGS=:systemd:
+```
+
+
+
+```bash
+find /sys/class/input/ -name mouse* -exec udevadm info -a {} \; | grep 'ATTRS{name}'
+```
+Refs.:
+- https://wiki.archlinux.org/title/Touchpad_Synaptics#System_with_multiple_X_sessions
+
+
+```bash
+lsblk --nodeps --output NAME,MODEL,SERIAL
+```
+
+
+```bash
+ls -l /dev/disk/by-id/ \
+| grep sd \
+| grep -v "part\|wwn" \
+| awk '{print $9}' \
+| uniq 
+```
+Refs.:
+- https://groups.google.com/g/comp.os.linux.misc/c/s5JxbXx83ro/m/kBmaThyqDAAJ 
+
+
+```bash
+grep -h 'ID_SERIAL' /run/udev/data/b* | sort -uV
+```
+
+
+```bash
+lsblk --output NAME,KNAME,RA,RM,RO,SIZE,TYPE,FSTYPE,LABEL,PARTLABEL,MOUNTPOINT,UUID,PARTUUID,WWN,MODEL,ALIGNMENT
+```
+
+```bash
+blkid -s device -s LABEL -s TYPE -s LABEL -s UUID | sort -V
+```
+Refs.:
+- https://groups.google.com/g/comp.os.linux.misc/c/s5JxbXx83ro/m/X4gl9_WRAQAJ
+
+
+
+```bash
+udevadm monitor --environment --udev
+```
+
+
+```bash
+udevadm info --query=all --name=/dev/input/mice
+```
+
+```bash
+udevadm info --query=all --name=/dev/input/mouse0
+```
+
+
+```bash
+notify-send "Bip Bop Bup" \
+"$(lsblk --nodeps --output NAME,MODEL,SERIAL /dev/sd?)"
+```
+
