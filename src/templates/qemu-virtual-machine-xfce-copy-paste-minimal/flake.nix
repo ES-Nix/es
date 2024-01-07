@@ -97,7 +97,7 @@
 
               virtualisation.vmVariant =
                 {
-                  virtualisation.writableStore = true; # TODO: hardening
+                  virtualisation.writableStore = false; # TODO: hardening
 
                   virtualisation.memorySize = 1024 * 3; # Use MiB of RAM memory. free -h
                   virtualisation.diskSize = 1024 * 10; # Use MiB of HD/disk memory. df -h
