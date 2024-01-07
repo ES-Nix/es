@@ -107,7 +107,7 @@
 
                   virtualisation.qemu.options = [
                     "-vga virtio"
-                    "-display none"
+                    "-display sdl,gl=on"
                     "-device qemu-xhci,id=xhci"
                     "-chardev qemu-vdagent,id=ch1,name=vdagent,clipboard=on"
                     "-device virtio-serial-pci"
