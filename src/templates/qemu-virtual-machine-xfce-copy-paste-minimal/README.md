@@ -243,7 +243,17 @@ Refs:
 sudo dd if=/dev/input/mice bs=1 count=100 | hexdump -C
 ```
 Refs.:
-https://askubuntu.com/q/913192
+- https://askubuntu.com/q/913192
+
+```bash
+sudo dd if=/dev/vport7p1 bs=1 count=100 | hexdump -C
+```
+
+
+```bash
+lsof +D /dev/vport7p1
+```
+
 
 ```bash
 qemu-system-x86_64 -enable-kvm -m 8192 -boot d -cdrom nixos-gnome-23.11.2596.c1be43e8e837-x86_64-linux.iso -device virtio-rng-pci \

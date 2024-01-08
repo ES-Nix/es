@@ -175,6 +175,7 @@
 
               environment.systemPackages = with pkgs; [
                 evemu
+                lsof
                 pciutils
                 python310Packages.evdev
                 xdotool
