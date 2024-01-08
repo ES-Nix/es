@@ -59,6 +59,7 @@
             patchelf
             xclip
             xsel
+            virt-viewer
           ];
 
           shellHook = ''
