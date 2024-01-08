@@ -48,7 +48,7 @@ ps -lef | grep spice-vdagent
 https://community.clearlinux.org/t/share-clipboard-and-file-transfer-between-host-and-kvm-qemu-guest/4689/4
 
 
-
+9c8bff77b5d51380f5da349d0a6fc515da6244b0
 
 ```bash
 #nix flake update \

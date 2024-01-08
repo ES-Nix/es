@@ -21,7 +21,7 @@ git init \
 && nix \
    flake \
    lock \
-   --override-input nixpkgs github:NixOS/nixpkgs/9c8bff77b5d51380f5da349d0a6fc515da6244b0 \
+   --override-input nixpkgs github:NixOS/nixpkgs/c1be43e8e837b8dbee2b3665a007e761680f0c3d \
    --override-input flake-utils github:numtide/flake-utils/5aed5285a952e0b949eb3ba02c12fa4fcfef535f
 
 rm -fv nixos.qcow2
