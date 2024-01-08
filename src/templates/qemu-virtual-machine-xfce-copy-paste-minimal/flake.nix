@@ -138,7 +138,7 @@
               services.xserver.layout = "br";
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
-              # services.xserver.displayManager.autoLogin.user = "nixuser";
+              services.xserver.displayManager.autoLogin.user = "nixuser";
 
               # services.xserver.displayManager.sddm.enable = true;
               # services.xserver.desktopManager.plasma5.enable = true;
