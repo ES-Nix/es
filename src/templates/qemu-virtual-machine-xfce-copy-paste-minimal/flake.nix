@@ -169,6 +169,7 @@
                   echo "lspci | grep -F 'Red Hat, Inc.'" >> "$DESTINATION"
                   echo "ps -lef | grep spice-vdagent" >> "$DESTINATION"
                   echo "find /sys/class/input/ -name mouse* -exec udevadm info -a {} \; | grep 'ATTRS{name}'" >> "$DESTINATION"
+                  echo "sudo lsof /dev/vport7p1" >> "$DESTINATION"
                 '';
                 wantedBy = [ "default.target" ];
               };
@@ -176,6 +177,7 @@
               environment.systemPackages = with pkgs; [
                 evemu
                 lsof
+                file
                 pciutils
                 python310Packages.evdev
                 xdotool
