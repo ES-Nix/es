@@ -64,6 +64,14 @@ nix flake update \
 ```
 
 
+nix \
+   flake \
+   lock \
+   --override-input nixpkgs github:NixOS/nixpkgs/9c8bff77b5d51380f5da349d0a6fc515da6244b0 \
+   --override-input flake-utils github:numtide/flake-utils/5aed5285a952e0b949eb3ba02c12fa4fcfef535f
+
+
+
 
 ```bash
 systemctl is-active spice-vdagentd.service
