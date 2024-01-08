@@ -107,12 +107,21 @@
                   virtualisation.graphics = true;
 
                   virtualisation.qemu.options = [
-                    "-vga virtio"
+                    # "-device qemu-xhci,id=xhci"
                     # "-display sdl,gl=off"
-                    "-device qemu-xhci,id=xhci"
+
+                    "-vga virtio"
                     "-chardev qemu-vdagent,id=ch1,name=vdagent,clipboard=on"
                     "-device virtio-serial-pci"
                     "-device virtserialport,chardev=ch1,id=ch1,name=com.redhat.spice.0"
+
+                    # https://www.spice-space.org/spice-user-manual.html#Running_qemu_manually
+                    # "-machine vmport=off"
+                    # "-vga qxl"
+                    # "-spice port=3001,disable-ticketing=on"
+                    # "-device virtio-serial"
+                    # "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
+                    # "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
                   ];
                 };
 

@@ -64,8 +64,6 @@ nix flake update \
 ```
 
 
-6eef602bdb2a316e7cf5f95aeb10b2ff0a97e4a5
-
 
 ```bash
 systemctl is-active spice-vdagentd.service
@@ -262,3 +260,14 @@ qemu-system-x86_64 -enable-kvm -m 8192 -boot d -cdrom nixos-gnome-23.11.2596.c1b
 -device usb-tablet,bus=usb-bus.0 -hda nixos.img
 ```
 
+
+qemu-kvm \
+-machine vmport=off \
+-boot order=dc \
+-vga qxl \
+-spice port=3001,disable-ticketing \
+-soundhw hda \
+-device virtio-serial \
+-chardev spicevmc,id=vdagent,debug=0,name=vdagent \
+-device virtserialport,chardev=vdagent,name=com.redhat.spice.0 \
+-cdrom /path/to/your.iso /path/to/your.img
