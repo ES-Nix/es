@@ -26,3 +26,13 @@ git init \
 
 rm -fv nixos.qcow2
 nix run --impure --refresh --verbose .#vm
+
+for i in web{0..100};do
+  if remote-viewer spice://localhost:3001
+  then
+    break
+  fi
+
+  date +'%d/%m/%Y %H:%M:%S:%3N'
+  sleep 1
+done;

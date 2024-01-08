@@ -147,12 +147,16 @@
 
               services.xserver.enable = true;
               services.xserver.layout = "br";
+
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
               services.xserver.displayManager.autoLogin.user = "nixuser";
 
               # services.xserver.displayManager.sddm.enable = true;
               # services.xserver.desktopManager.plasma5.enable = true;
+
+              # services.xserver.displayManager.gdm.enable = true;
+              # services.xserver.desktopManager.gnome.enable = true;
 
               documentation.nixos.enable = false; # Not a Must!
               documentation.man.enable = false; # Not a Must!

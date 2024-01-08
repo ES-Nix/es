@@ -9,6 +9,7 @@ pkgs.stdenv.mkDerivation rec {
     gnused
     git
     openssh
+    virt-viewer
   ];
 
   src = builtins.path { path = ./.; inherit name; };
