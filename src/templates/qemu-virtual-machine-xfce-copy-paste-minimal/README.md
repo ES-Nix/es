@@ -1,5 +1,29 @@
 
 
+Read this section https://wiki.debian.org/QEMU#Operation
+
+
+> With spice qemu is not anymore in charge of displaying the screen but it is delegated
+> to a client on the host. Qemu is just a gateway between vdagent in the host and the spice client.
+> Note that qemu will open a socket (and will appear frozen since it is
+> just a server) and the client will connect to it.
+> To start it automatically see the dirty trick below
+> You can use different clients (see arch linux page).
+Refs.:
+- https://discourse.nixos.org/t/get-qemu-guest-integration-when-running-nixos-rebuild-build-vm/22621/2
+- https://wiki.archlinux.org/title/QEMU#SPICE
+
+
+So, it loohs like what is here:
+https://www.kraxel.org/blog/2021/05/qemu-cut-paste/
++
+https://jeancharles.quillet.org/posts/2023-01-16-Basic-nix-vm-for-just-anything.html
+was deprecated/remove from QEMU. Where exactly?
+
+Are any of those the related to this `-chardev qemu-vdagent`?
+- https://gitlab.com/Remmina/Remmina/-/issues/1268
+- https://gitlab.xfce.org/xfce/xfce4-settings/-/issues/142
+
 
 ```bash
 nix \
@@ -47,8 +71,10 @@ ps -lef | grep spice-vdagent
 ```
 https://community.clearlinux.org/t/share-clipboard-and-file-transfer-between-host-and-kvm-qemu-guest/4689/4
 
-
+```bash
 9c8bff77b5d51380f5da349d0a6fc515da6244b0
+```
+
 
 ```bash
 #nix flake update \
@@ -63,13 +89,13 @@ nix flake update \
 --override-input flake-utils github:numtide/flake-utils/5aed5285a952e0b949eb3ba02c12fa4fcfef535f
 ```
 
-
+```bash
 nix \
    flake \
    lock \
    --override-input nixpkgs github:NixOS/nixpkgs/9c8bff77b5d51380f5da349d0a6fc515da6244b0 \
    --override-input flake-utils github:numtide/flake-utils/5aed5285a952e0b949eb3ba02c12fa4fcfef535f
-
+```
 
 
 
@@ -234,7 +260,8 @@ notify-send "Bip Bop Bup" \
 udevadm control --log-priority=debug
 journalctl -f
 ```
-https://unix.stackexchange.com/a/470963
+Refs.:
+- https://unix.stackexchange.com/a/470963
 
 
 ```bash
@@ -262,9 +289,46 @@ sudo dd if=/dev/vport7p1 bs=1 count=100 | hexdump -C
 lsof +D /dev/vport7p1
 ```
 
+```bash
+xinput test-xi2 --root
+```
+Refs.:
+- https://unix.stackexchange.com/a/146288
 
 ```bash
-qemu-system-x86_64 -enable-kvm -m 8192 -boot d -cdrom nixos-gnome-23.11.2596.c1be43e8e837-x86_64-linux.iso -device virtio-rng-pci \
+dmesg | grep -i -e DMAR -e IOMMU
+```
+
+TODO: lscpu -e write nixosTests for this!
+https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF
+
+TODO: how to debug/write nixosTests for this?
+https://unix.stackexchange.com/a/464049
+https://superuser.com/a/1823733
+
+https://unix.stackexchange.com/questions/745514/why-does-xrandrs-state-of-output-is-different-in-qemu-kvm-guest#comment1417954_745514 
+that is the resolution provided by the virtual gpu 
+
+
+https://maxrohde.com/2013/12/30/logging-mouse-events-in-linux
+
+```bash
+xdotool keyup Control_L Control_R Shift_L Shift_R Meta_L Meta_R
+```
+Refs.:
+- https://gist.github.com/ethack/110f7f46272447828352768e6cd1c4cb?permalink_comment_id=4116291#gistcomment-4116291
+
+Extra references:
+- https://discourse.nixos.org/t/help-with-setting-up-a-different-desktop-environment-window-manager/15025/2
+- https://linux-blog.anracom.com/2021/05/01/kvm-qemu-vms-with-a-multi-screen-spice-console-vii-remote-viewer-qemu-and-sasl-authentication/
+
+```bash
+qemu-system-x86_64 \
+-enable-kvm \
+-m 8192 \
+-boot d \
+-cdrom nixos-gnome-23.11.2596.c1be43e8e837-x86_64-linux.iso \
+-device virtio-rng-pci \
 -net nic,netdev=user.0,model=virtio \
 -netdev user,id=user.0, \
 -vga virtio \
@@ -278,14 +342,3 @@ qemu-system-x86_64 -enable-kvm -m 8192 -boot d -cdrom nixos-gnome-23.11.2596.c1b
 -device usb-tablet,bus=usb-bus.0 -hda nixos.img
 ```
 
-
-qemu-kvm \
--machine vmport=off \
--boot order=dc \
--vga qxl \
--spice port=3001,disable-ticketing \
--soundhw hda \
--device virtio-serial \
--chardev spicevmc,id=vdagent,debug=0,name=vdagent \
--device virtserialport,chardev=vdagent,name=com.redhat.spice.0 \
--cdrom /path/to/your.iso /path/to/your.img
