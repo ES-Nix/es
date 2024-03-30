@@ -61,7 +61,7 @@ nix \
 flake \
 init \
 --template \
-github:ES-nix/es#$(nix eval --impure --raw --expr 'builtins.currentSystem').startConfig
+github:ES-nix/es#startConfig
 
 
 
