@@ -102,7 +102,7 @@ nix -vvvvv profile remove '.*'
 
 # It looks like the symbolic link
 ls -ahl "$HOME"/.local/state/nix/profiles/profile
-rm -fv "$HOME"/.local/state/nix/profiles
+rm -frv "$HOME"/.local/state/nix/profiles
 
 "$AUX"/activate
 
