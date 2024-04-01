@@ -50,7 +50,7 @@ FLAKE_ATTR="$DIRECTORY_TO_CLONE"'#homeConfigurations.'$FLAKE_ARCHITECTURE'"'"$DU
 
 
 echo "$DIRECTORY_TO_CLONE" \
-&& rm -frv "$DIRECTORY_TO_CLONE" \
+&& rm -fv "$DIRECTORY_TO_CLONE" \
 && mkdir -pv "$DIRECTORY_TO_CLONE" \
 && cd "$DIRECTORY_TO_CLONE"
 
