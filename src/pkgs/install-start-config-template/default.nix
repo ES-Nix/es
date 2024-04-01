@@ -6,6 +6,7 @@ pkgs.stdenv.mkDerivation rec {
   propagatedNativeBuildInputs = with pkgs; [
     bashInteractive
     coreutils
+    file
     gnused
     git
     openssh

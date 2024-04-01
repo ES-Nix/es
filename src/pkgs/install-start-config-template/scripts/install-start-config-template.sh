@@ -50,7 +50,7 @@ FLAKE_ATTR="$DIRECTORY_TO_CLONE"'#homeConfigurations.'$FLAKE_ARCHITECTURE'"'"$DU
 
 
 echo "$DIRECTORY_TO_CLONE" \
-&& rm -fv "$DIRECTORY_TO_CLONE" \
+&& rm -frv "$DIRECTORY_TO_CLONE" \
 && mkdir -pv "$DIRECTORY_TO_CLONE" \
 && cd "$DIRECTORY_TO_CLONE"
 
@@ -102,7 +102,8 @@ nix -vvvvv profile remove '.*'
 
 # It looks like the symbolic link
 ls -ahl "$HOME"/.local/state/nix/profiles/profile
-rm -frv "$HOME"/.local/state/nix/profiles
+file "$HOME"/.local/state/nix/profiles
+rm -fv "$HOME"/.local/state/nix/profiles
 
 "$AUX"/activate
 
