@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 
+export PATH=.:$PATH
 
 # TODO:
 # nix eval --impure --expr '((builtins.getFlake "github:NixOS/nixpkgs/8ba90bbc63e58c8c436f16500c526e9afcb6b00a").legacyPackages.${builtins.currentSystem}.stdenv.isDarwin)'
