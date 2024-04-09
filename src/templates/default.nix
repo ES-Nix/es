@@ -6,6 +6,11 @@
     path = ./start-config;
   };
 
+nixFlakesHomeManagerZsh = {
+    description = "Base: nix + flakes + home-manager + zsh + vscodium + neovim";
+    path = ./nix-flakes-home-manager-zsh;
+  };
+
   QEMUVirtualMachineXfceCopyPaste = {
     description = "QEMU Virtual Machine with xfce and copy/paste working";
     path = ./qemu-virtual-machine-xfce-copy-paste;

@@ -1,29 +1,28 @@
 {
   description = "This is an 'nix flake' :)";
 
+  /*
+  nix \
+  flake \
+  lock \
+  --override-input nixpkgs github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+  --override-input flake-utils github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a
+  */
   inputs = {
-
-    nixpkgs-darwin-stable.url = "github:nixos/nixpkgs/nixpkgs-22.11-darwin";
-    nixpkgs-linux-stable.url = "github:nixos/nixpkgs/nixos-22.11";
-
-    nixpkgs-linux-unstable.url = "nixpkgs/nixos-unstable";
-
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs-linux-stable";
-    };
-
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
     flake-utils.url = "github:numtide/flake-utils";
-
+    # nixpkgs-darwin-stable.url = "github:nixos/nixpkgs/nixpkgs-22.11-darwin";
+    # nixpkgs-linux-unstable.url = "nixpkgs/nixos-unstable";
+    # nixos-generators = {
+    #   url = "github:nix-community/nixos-generators";
+    #   inputs.nixpkgs.follows = "nixpkgs-linux-stable";
+    # };
   };
 
   outputs =
     allAttrs@{ self
-    , nixpkgs-linux-stable
-    , nixpkgs-linux-unstable
-    , nixpkgs-darwin-stable
+    , nixpkgs
     , flake-utils
-    , nixos-generators
     ,
     }:
     let
@@ -39,7 +38,7 @@
     flake-utils.lib.eachSystem suportedSystems
       (suportedSystem:
       let
-        pkgsAllowUnfree = import nixpkgs-linux-stable { system = suportedSystem; config = { allowUnfree = true; }; };
+        pkgsAllowUnfree = import nixpkgs { system = suportedSystem; config = { allowUnfree = true; }; };
 
         # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
         pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
@@ -86,6 +85,7 @@
         packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
         packages.installStartConfigTemplate = (import ./src/pkgs/install-start-config-template { pkgs = pkgsAllowUnfree; });
+        packages.installNixFlakesHomeManagerZshTemplate = (import ./src/pkgs/install-nix-flakes-home-manager-zsh-template { pkgs = pkgsAllowUnfree; });
 
         packages.installQEMUVirtualMachineDockerTemplate = (import ./src/pkgs/install-qemu-virtual-machine-docker-template { pkgs = pkgsAllowUnfree; });
         packages.installQEMUVirtualMachineXfceCopyPasteTemplate = (import ./src/pkgs/install-qemu-virtual-machine-xfce-copy-paste-template { pkgs = pkgsAllowUnfree; });
@@ -99,6 +99,11 @@
           installStartConfigTemplate = flake-utils.lib.mkApp {
             name = "install-start-config-template";
             drv = self.packages."${suportedSystem}".installStartConfigTemplate;
+          };
+
+          installTemplateNixFlakesHomeManagerZsh = flake-utils.lib.mkApp {
+            name = "install-nix-flakes-home-manager-zsh-template";
+            drv = self.packages."${suportedSystem}".installNixFlakesHomeManagerZshTemplate;
           };
 
           installQEMUVirtualMachineDockerTemplate = flake-utils.lib.mkApp {

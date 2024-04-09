@@ -11,8 +11,9 @@ nix flake clone 'git+ssh://git@github.com/ES-Nix/es.git' --dest es \
 
 ## Using 
 
-1)
+
 ```bash
+# https://xkcd.com/1654/
 command -v curl || (command -v apt && sudo apt-get update && sudo apt-get install -y curl)
 command -v curl || (command -v apk && sudo apk add --no-cache curl)
 
@@ -36,6 +37,12 @@ github:ES-nix/es#installStartConfigTemplate
 
 zsh
 ```
+
+
+```bash
+nix flake show --json .# | jq '."templates"'
+```
+
 
 
 ```bash
