@@ -43,6 +43,9 @@ zsh
 nix flake show --json .# | jq '."templates"'
 ```
 
+```bash
+nix flake show --impure --allow-import-from-derivation github:ES-Nix/ve
+```
 
 
 ```bash

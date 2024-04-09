@@ -28,9 +28,6 @@ run \
 --extra-experimental-features auto-allocate-uids \
 --option auto-allocate-uids false \
 --refresh \
---override-input \
-nixpkgs \
-github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
 github:ES-Nix/es#installTemplateNixFlakesHomeManagerZsh
 ```
 Refs.:
@@ -38,6 +35,31 @@ Refs.:
 - https://nixos.wiki/wiki/VSCodium
 - https://discourse.nixos.org/t/bootstrapping-stand-alone-home-manager-config-with-flakes/17087/3
 - [Manage Your Dotfiles with Home Manager!](https://www.youtube.com/embed/IiyBeR-Guqw?start=422&end=452&version=3), start=422&end=452
+
+Did not need it:
+```bash
+--override-input \
+nixpkgs \
+github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+--no-update-lock-file \
+--no-write-lock-file \
+```
+
+
+TODO: is it broken?
+https://github.com/NixOS/nix/issues/8911#issuecomment-1902054692
+```bash
+nix \
+run \
+--override-input \
+nixpkgs \
+github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+--no-update-lock-file \
+--no-write-lock-file \
+home-manager \
+-- \
+--version
+```
 
 
 
