@@ -42,30 +42,17 @@
 
         packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
-        /*
-        # Utilized by `nix run .#<name>`
-
-        rm -fv nixos.qcow2
-        nix run --impure --refresh --verbose .#vm
-
-        # Open the QMEU VM terminal and:
-        start-github-runner-with-pat "$PAT"
-        */
-        apps.vm = {
+        apps.default = {
           type = "app";
           program = "${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm";
         };
 
-        # nix fmt
-        formatter = pkgsAllowUnfree.nixpkgs-fmt;
+        formatter = pkgsAllowUnfree.nixpkgs-fmt; # nix fmt
 
         devShells.default = pkgsAllowUnfree.mkShell {
           buildInputs = with pkgsAllowUnfree; [
             bashInteractive
             coreutils
-            curl
-            jq
-            patchelf
           ];
 
           shellHook = ''
@@ -92,13 +79,7 @@
         system = builtins.currentSystem;
 
         modules = [
-          # export QEMU_NET_OPTS="hostfwd=tcp::2200-:10022" && nix run .#vm
-          # Then connect with ssh -p 2200 nixuser@localhost
-          # ps -p $(pgrep -f qemu-kvm) -o args | tr ' ' '\n'
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
-            let
-              nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExR+PSB/jBwJYKfpLN+MMXs3miRn70oELTV3sXdgzpr";
-            in
             {
               # Internationalisation options
               i18n.defaultLocale = "en_US.UTF-8";
@@ -149,7 +130,7 @@
 
               security.sudo.wheelNeedsPassword = false; # TODO: hardening
               users.users.nixuser = {
-                isSystemUser = true;
+                isSystemUser = true; # TODO: hardening
                 password = "101"; # TODO: hardening
                 createHome = true;
                 home = "/home/nixuser";
@@ -158,7 +139,6 @@
                 group = "nixgroup";
                 extraGroups = [
                   "docker"
-                  "kubernetes"
                   "kvm"
                   "libvirtd"
                   "nixgroup"
@@ -168,57 +148,19 @@
                   "wheel"
                 ];
                 packages = with pkgs; [
-                  bashInteractive
                   btop
-                  coreutils
-                  direnv
-                  file
-                  firefox
-                  git
-                  nix-info
-                  openssh
-                  openssl
                   starship
-                  which
                   foo-bar
-
                 ];
                 shell = pkgs.zsh;
                 uid = 1234;
                 autoSubUidGidRange = true;
-
-                openssh.authorizedKeys.keyFiles = [
-                  "${ pkgs.writeText "nixuser-keys.pub" "${toString nixuserKeys}" }"
-                ];
-
-                openssh.authorizedKeys.keys = [
-                  "${toString nixuserKeys}"
-                ];
               };
 
-              systemd.user.services.populate-history-vagrant = {
-                script = ''
-                  echo "Started"
-
-                  DESTINATION=/home/nixuser/.zsh_history
-
-                  # TODO: https://stackoverflow.com/a/67169387
-                  echo "??" >> "$DESTINATION"
-
-                  echo "Ended"
-                '';
-                wantedBy = [ "default.target" ];
-              };
-
-              # https://github.com/NixOS/nixpkgs/blob/3a44e0112836b777b176870bb44155a2c1dbc226/nixos/modules/programs/zsh/oh-my-zsh.nix#L119
-              # https://discourse.nixos.org/t/nix-completions-for-zsh/5532
-              # https://github.com/NixOS/nixpkgs/blob/09aa1b23bb5f04dfc0ac306a379a464584fc8de7/nixos/modules/programs/zsh/zsh.nix#L230-L231
               programs.zsh = {
                 enable = true;
                 shellAliases = {
                   vim = "nvim";
-                  k = "kubectl";
-                  kaf = "kubectl apply -f";
                 };
                 enableCompletion = true;
                 autosuggestions.enable = true;
@@ -231,8 +173,6 @@
                             colored-man-pages
                             docker
                             git
-                            #zsh-autosuggestions # Why this causes an warn?
-                            #zsh-syntax-highlighting
                           )
 
                   # https://nixos.wiki/wiki/Fzf
@@ -272,7 +212,6 @@
                 wantedBy = [ "default.target" ];
               };
 
-              # Enable ssh
               services.sshd.enable = true;
 
               # https://github.com/NixOS/nixpkgs/issues/21332#issuecomment-268730694
@@ -284,9 +223,6 @@
                 passwordAuthentication = false;
                 permitRootLogin = "yes";
                 ports = [ 10022 ];
-                authorizedKeysFiles = [
-                  "${ pkgs.writeText "nixuser-keys.pub" "${toString nixuserKeys}" }"
-                ];
               };
 
               # https://nixos.wiki/wiki/Libvirt
@@ -295,7 +231,6 @@
 
               services.qemuGuest.enable = true;
 
-              # X configuration
               services.xserver.enable = true;
               services.xserver.layout = "br";
 
@@ -313,8 +248,7 @@
 
               services.xserver.videoDrivers = [ "qxl" ];
 
-              # For copy/paste to work
-              services.spice-vdagentd.enable = true;
+              services.spice-vdagentd.enable = true; # TODO: For copy/paste to work
 
               nix = {
                 extraOptions = "experimental-features = nix-command flakes";
@@ -328,49 +262,17 @@
 
               environment.systemPackages = with pkgs; [
                 bashInteractive
-                openssh
-
                 direnv
                 fzf
                 jq
                 neovim
                 nix-direnv
-                nixos-option
                 oh-my-zsh
-                xclip
+                openssh
                 zsh
                 zsh-autosuggestions
                 zsh-completions
-                firefox
-                which
               ];
-
-              # journalctl --user --unit create-custom-desktop-icons.service -b -f
-              systemd.user.services.create-custom-desktop-icons = {
-                script = ''
-                  #! ${pkgs.runtimeShell} -e
-
-                  echo "Started"
-
-                  ln \
-                    -sfv \
-                    "${pkgs.xfce.xfce4-settings}"/share/applications/xfce4-terminal-emulator.desktop \
-                    /home/nixuser/Desktop/xfce4-terminal-emulator.desktop
-
-                  ln \
-                    -sfv \
-                    "${pkgs.firefox}"/share/applications/firefox.desktop \
-                    /home/nixuser/Desktop/firefox.desktop
-
-                  echo "Ended"
-                '';
-                wantedBy = [ "xfce4-notifyd.service" ];
-              };
-
-              # https://discourse.nixos.org/t/nixos-firewall-with-kubernetes/23673/2
-              # networking.firewall.trustedInterfaces ??
-              # networking.firewall.allowedTCPPorts = [ 80 8000 8080 8443 9000 9443 ];
-              networking.firewall.enable = true; # TODO: hardening
 
               system.stateVersion = "22.11";
             })

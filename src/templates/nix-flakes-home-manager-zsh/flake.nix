@@ -1,6 +1,13 @@
 {
   description = "Home Manager configuration of nixuser";
+  /*
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs github:NixOS/nixpkgs/d12251ef6e8e6a46e05689eeccd595bdbd3c9e60 \
+    --override-input home-manager github:nix-community/home-manager/a631666f5ec18271e86a5cde998cba68c33d9ac6
 
+  */
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager = {
@@ -16,13 +23,14 @@
 
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-    in {
+    in
+    {
       homeConfigurations."${userName}" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = [
           ({ pkgs, ... }:
             {
-              home.stateVersion = "23.11";
+              home.stateVersion = "24.05";
               home.username = "${userName}";
               home.homeDirectory = "${homeDirectory}";
 
@@ -38,7 +46,7 @@
 
               nix = {
                 enable = true;
-                package = pkgs.nix;
+                package = pkgs.nix; # nixVersions.latest
                 extraOptions = ''
                   experimental-features = nix-command flakes
                 '';
@@ -49,7 +57,7 @@
                 enable = true;
                 enableCompletion = true;
                 dotDir = ".config/zsh";
-                enableAutosuggestions = true;
+                autosuggestions.enable = true;
                 syntaxHighlighting.enable = true;
                 envExtra = ''
                   if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then

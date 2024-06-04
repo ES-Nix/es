@@ -2,7 +2,7 @@
   description = "VM";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
+    nixpkgs.url = "github:nixos/nixpkgs";
   };
 
   outputs = all@{ self, nixpkgs, ... }:
@@ -36,8 +36,7 @@
 
                 virtualisation.memorySize = 1024 * 3; # Use maximum of RAM MiB memory.
                 virtualisation.diskSize = 1024 * 16; # Use maximum of hard disk MiB memory.
-                virtualisation.cores = 8; # Number of cores.
-                virtualisation.graphics = false;
+                virtualisation.cores = 4; # Number of cores.
 
                 # https://discourse.nixos.org/t/nixpkgs-support-for-linux-builders-running-on-macos/24313/2
                 virtualisation.forwardPorts = [
@@ -48,6 +47,12 @@
                     # guest.address = "34.74.203.201";
                     guest.port = 10022;
                   }
+                ];
+                # https://lists.gnu.org/archive/html/qemu-discuss/2020-05/msg00060.html
+                virtualisation.qemu.options = [
+                  "-display none "
+                  "-daemonize"
+                  "-pidfile pidfile.txt"
                 ];
 
               };
@@ -125,12 +130,11 @@
               # journalctl -u sshd -o json-pretty
               services.sshd.enable = true;
 
-              # Included packages here
               nixpkgs.config.allowUnfree = true;
 
               nix = {
                 extraOptions = "experimental-features = nix-command flakes";
-                package = pkgs.nixVersions.nix_2_10;
+                package = pkgs.nix;
                 readOnlyStore = true;
                 registry.nixpkgs.flake = nixpkgs;
                 nixPath = [ "nixpkgs=${pkgs.path}" ];
@@ -140,7 +144,7 @@
               environment.systemPackages = with pkgs; [
               ];
 
-              system.stateVersion = "22.11";
+              system.stateVersion = "23.11";
             }
           )
         ];

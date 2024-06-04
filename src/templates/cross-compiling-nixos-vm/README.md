@@ -3,12 +3,13 @@
 
 https://nixos.wiki/wiki/Nixpkgs/Reviewing_changes#Testing_the_cross-compilation_of_modules
 
-
+```bash
 nix \ 
 build \ 
 .#nixosConfigurations.nixos.config.services.xserver.displayManager.sessionData.desktops
+```
 
-
+```nix
 {
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   inputs.pkgsReview.url = "github:Artturin/nixpkgs/pipewirejackldpath";
@@ -60,8 +61,10 @@ build \
     };
   };
 }
+```
 
 
+```nix
 {
   inputs = {
     nixpkgs.url = "github:ju1m/nixpkgs/display-managers";
@@ -91,4 +94,4 @@ build \
     };
   };
 }
-
+```

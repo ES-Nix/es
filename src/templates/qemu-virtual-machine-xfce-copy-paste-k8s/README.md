@@ -1,54 +1,114 @@
 
 
 
+```bash
+mkdir -v k8s \
+&& cd $_ \
+&& nix \
+--refresh \
+flake \
+init \
+--template \
+github:ES-nix/es#QEMUVirtualMachineXfceCopyPasteK8s
+(direnv allow &> /dev/null ) || true
 
-              # TODO: refatorar, talvez usar self?
-              environment.etc."kubernets/kubernetes-examples/minimal-pod-with-busybox-example/minimal-pod-with-busybox-example.yaml" = {
-                mode = "0644";
-                text = "${builtins.readFile ./kubernetes-examples/minimal-pod-with-busybox-example/minimal-pod-with-busybox-example.yaml}";
-              };
+nix profile install nixpkgs#git
 
-              environment.etc."kubernets/kubernetes-examples/minimal-pod-with-busybox-example/notes.md" = {
-                mode = "0644";
-                text = "${builtins.readFile ./kubernetes-examples/minimal-pod-with-busybox-example/notes.md}";
-              };
+git init && git add .
 
-              environment.etc."kubernets/kubernetes-examples/appvia/deployment.yaml" = {
-                mode = "0644";
-                text = "${builtins.readFile ./kubernetes-examples/appvia/deployment.yaml}";
-              };
+rm -fv nixos.qcow2; 
+nix \
+run \
+--impure \
+--verbose \
+'.#'
+```
+Refs.:
+- 
 
-              environment.etc."kubernets/kubernetes-examples/appvia/service.yaml" = {
-                mode = "0644";
-                text = "${builtins.readFile ./kubernetes-examples/appvia/service.yaml}";
-              };
 
-              environment.etc."kubernets/kubernetes-examples/appvia/ingress.yaml" = {
-                mode = "0644";
-                text = "${builtins.readFile ./kubernetes-examples/appvia/ingress.yaml}";
-              };
+22.05
+```bash
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/380be19fbd2d9079f677978361792cb25e8a3635 \
+--override-input flake-utils github:numtide/flake-utils/4022d587cbbfd70fe950c1e2083a02621806a725
+````
 
-              environment.etc."kubernets/kubernetes-examples/appvia/notes.md" = {
-                mode = "0644";
-                text = "${builtins.readFile ./kubernetes-examples/appvia/notes.md}";
-              };
+22.11
+```bash
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b \
+--override-input flake-utils github:numtide/flake-utils/4022d587cbbfd70fe950c1e2083a02621806a725
+````
 
-              # journalctl -u move-kubernetes-examples.service -b
-              systemd.services.move-kubernetes-examples = {
-                script = ''
-                  echo "Started move-kubernets-examples"
+23.05
+```bash
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/70bdadeb94ffc8806c0570eb5c2695ad29f0e421 \
+--override-input flake-utils github:numtide/flake-utils/4022d587cbbfd70fe950c1e2083a02621806a725
+````
 
-                  # cp -rv ''\${./kubernetes-examples} /home/nixuser/
-                  cp -Rv /etc/kubernets/kubernetes-examples/ /home/nixuser/
+23.11
+```bash
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/a5e4bbcb4780c63c79c87d29ea409abf097de3f7 \
+--override-input flake-utils github:numtide/flake-utils/4022d587cbbfd70fe950c1e2083a02621806a725
+```
 
-                  chown -Rv nixuser:nixgroup /home/nixuser/kubernetes-examples
+24.05
+805a384895c696f802a9bf5bf4720f37385df547
+```bash
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8 \
+--override-input flake-utils github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a
+```
 
-                  kubectl \
-                    apply \
-                    --file /home/nixuser/kubernetes-examples/deployment.yaml \
-                    --file /home/nixuser/kubernetes-examples/service.yaml \
-                    --file /home/nixuser/kubernetes-examples/ingress.yaml
-                '';
-                wantedBy = [ "multi-user.target" ];
-              };
+```bash
+rm -fv nixos.qcow2
+nix run --impure --refresh --verbose .#
+```
 
+
+### 
+
+
+```nix
+  nix = {
+    extraOptions = "experimental-features = nix-command flakes";
+    registry.nixpkgs.flake = nixpkgs; # https://bou.ke/blog/nix-tips/
+    nixPath = [ "nixpkgs=${pkgs.path}" ];
+  };
+  environment.etc."channels/nixpkgs".source = "${pkgs.path}";
+```
+
+
+
+TODO:
+```nix
+   environment.etc."containers/registries.conf" = {
+     mode = "0644";
+     text = ''
+       [registries.search]
+       registries = ['docker.io', 'localhost', 'us-docker.pkg.dev', 'gcr.io']
+     '';
+   };
+   # nix eval --impure --json \
+   # '.#nixosConfigurations.vm.config.services.kubernetes.kubelet.seedDockerImages'
+   services.kubernetes.kubelet.seedDockerImages = (with pkgs; [
+     cachedOCIImage1
+     cachedOCIImage2
+     cachedOCIImage3
+     cachedOCIImage4
+     cachedOCIImage5
+   ]);
+```

@@ -1,0 +1,6 @@
+.DS_Store
+.idea*
+result*
+.profiles/*
+.direnv/*
+.venv/*

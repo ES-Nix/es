@@ -4,7 +4,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
   buildInputs = with pkgs; [ stdenv ];
   nativeBuildInputs = with pkgs; [ makeWrapper ];
   propagatedNativeBuildInputs = with pkgs; [
-    # bashInteractive
+    bashInteractive
     # coreutils
     # file
     # gnused

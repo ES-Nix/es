@@ -28,8 +28,7 @@
         "type": "github"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "nixos-22.11",
+        "owner": "NixOS",
         "repo": "nixpkgs",
         "type": "github"
       }

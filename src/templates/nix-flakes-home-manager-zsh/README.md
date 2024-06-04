@@ -1,8 +1,8 @@
-# This is an nix (with flakes) template
+# This is a nix (with flakes) template
 
 
 You need:
-- the `/nix` and its subfolders with these permissios;
+- the `/nix` and its subfolders with custom permissions;
 - a way to download the nix statically compiled;
 - sudo
 - sh
@@ -14,9 +14,8 @@ You need:
 ```bash
 sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix'
 
-
 CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 || $(wget -q &> /dev/null; test $? -eq 1) && echo 'wget -O-' && exit 0 || echo no-curl-or-wget) \
-&& $CURL_OR_WGET_OR_ERROR https://hydra.nixos.org/build/237228729/download/2/nix > nix \
+&& $CURL_OR_WGET_OR_ERROR https://hydra.nixos.org/build/237228729/download-by-type/file/binary-dist > nix \
 && chmod -v +x nix
 
 export NIX_CONFIG="extra-experimental-features = auto-allocate-uids"
@@ -28,6 +27,11 @@ run \
 --extra-experimental-features auto-allocate-uids \
 --option auto-allocate-uids false \
 --refresh \
+--override-input \
+nixpkgs \
+github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+--no-update-lock-file \
+--no-write-lock-file \
 github:ES-Nix/es#installTemplateNixFlakesHomeManagerZsh
 ```
 Refs.:
@@ -36,17 +40,12 @@ Refs.:
 - https://discourse.nixos.org/t/bootstrapping-stand-alone-home-manager-config-with-flakes/17087/3
 - [Manage Your Dotfiles with Home Manager!](https://www.youtube.com/embed/IiyBeR-Guqw?start=422&end=452&version=3), start=422&end=452
 
-Did not need it:
-```bash
---override-input \
-nixpkgs \
-github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
---no-update-lock-file \
---no-write-lock-file \
-```
 
 
-TODO: is it broken?
+
+
+TODO: 
+Why the warning still printed? Is it broken/ignoring the flag?
 https://github.com/NixOS/nix/issues/8911#issuecomment-1902054692
 ```bash
 nix \
@@ -61,7 +60,13 @@ home-manager \
 --version
 ```
 
+TODO: it is broken! 
+https://github.com/nix-community/nixd/blob/main/nixd/docs/editors/editors.md#vscodium
 
+```bash
+error: Trying to retrieve system-dependent attributes for input nixpkgs, but this input is not a flake. Perhaps flake = false was added to the input declarations by mistake, or you meant to use a different input, or you meant to use plain old inputs, not inputs'.
+(use '--show-trace' to show detailed location information)
+```
 
 ```bash
 rm -frv \
@@ -74,12 +79,20 @@ rm -frv \
 sudo rm -frv /nix
 ```
 
-```bash
+```nix
 config = {
-allowUnfree = true;
-allowUnfreePredicate = (_: true);
+  allowUnfree = true;
+  allowUnfreePredicate = (_: true);
 };
 ```
+
+TODO:
+https://github.com/nix-community/nix-index-database?tab=readme-ov-file#usage-in-home-manager
+https://ipetkov.dev/blog/tips-and-tricks-for-nix-flakes/
+https://github.com/nix-community/NUR/issues/485#issuecomment-1858815728
+
+It is an joke, April 1. [Top 6 Best NixOS Tips & Tricks](https://www.youtube.com/embed/cH9HGs2AxuA?start=120&end=164&version=3), start=120&end=164
+
 
       homeDirectory = "${if pkgsConfigured.stdenvNoCC.isLinux then
                            "/home/"
@@ -134,9 +147,10 @@ allowUnfreePredicate = (_: true);
             #    vimdiffAlias = true;
             #  };
 
-
+```bash
 nix eval "$HOME"/.config/home-manager#homeConfigurations.vagrant.config.nixpkgs.config.allowUnfree
 export NIXPKGS_ALLOW_UNFREE=1; nix run --impure nixpkgs#unrar
+```
 
 ```bash
 {
@@ -228,7 +242,6 @@ export NIXPKGS_ALLOW_UNFREE=1; nix run --impure nixpkgs#unrar
 
               shellAliases = {
                 l = "ls -alh";
-                code = "codium";
               };
 
               sessionVariables = {
@@ -241,14 +254,7 @@ export NIXPKGS_ALLOW_UNFREE=1; nix run --impure nixpkgs#unrar
                 plugins = [
                   "colored-man-pages"
                   "colorize"
-                  "command-not-found"
-                  "common-aliases"
                   "direnv"
-                  "docker"
-                  "docker-compose"
-                  "git"
-                  "git-extras"
-                  "ssh-agent"
                   "zsh-navigation-tools"
                 ];
                 theme = "robbyrussell";
@@ -265,14 +271,11 @@ export NIXPKGS_ALLOW_UNFREE=1; nix run --impure nixpkgs#unrar
 }
 
 
-
-
 nix \
 flake \
 lock \
 --override-input nixpkgs github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
 --override-input home-manager github:nix-community/home-manager/f33900124c23c4eca5831b9b5eb32ea5894375ce
-
 
 ```
 

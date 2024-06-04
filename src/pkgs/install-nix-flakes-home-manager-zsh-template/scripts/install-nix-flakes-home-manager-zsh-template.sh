@@ -43,7 +43,7 @@ init \
 github:ES-nix/es#nixFlakesHomeManagerZsh \
 --verbose
 
-test -f /home/"$USER"/.config/home-manager/flake.nix || echo not fount flake.nix
+test -f /home/"$USER"/.config/home-manager/flake.nix || echo not found flake.nix
 
 sed -i 's/.*userName = ".*";/userName = "'"$USER"'";/' /home/"$USER"/.config/home-manager/flake.nix
 
@@ -52,18 +52,18 @@ git config init.defaultBranch \
 
 git init && git add .
 
-"$OLD_PWD"/nix \
---extra-experimental-features nix-command \
---extra-experimental-features flakes \
---extra-experimental-features auto-allocate-uids \
---option auto-allocate-uids false \
---option warn-dirty false \
-flake \
-lock \
---override-input nixpkgs github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
---override-input home-manager github:nix-community/home-manager/f33900124c23c4eca5831b9b5eb32ea5894375ce
-
-git add .
+#"$OLD_PWD"/nix \
+#--extra-experimental-features nix-command \
+#--extra-experimental-features flakes \
+#--extra-experimental-features auto-allocate-uids \
+#--option auto-allocate-uids false \
+#--option warn-dirty false \
+#flake \
+#lock \
+#--override-input nixpkgs github:NixOS/nixpkgs/d12251ef6e8e6a46e05689eeccd595bdbd3c9e60 \
+#--override-input home-manager github:nix-community/home-manager/a631666f5ec18271e86a5cde998cba68c33d9ac6
+#
+#git add .
 
 export NIX_CONFIG="extra-experimental-features = nix-command flakes"
 
@@ -96,13 +96,16 @@ optimise
 test -L /home/"$USER"/.nix-profile/bin/zsh \
 && test -f "$OLD_PWD"/nix && rm -v "$OLD_PWD"/nix
 
-# For some reason in the fisrt executions it fails
-# needing re loging, but this worksaround allows a
+# For some reason in the first execution it fails
+# needing re loging, but this workaround allows a
 # way better first developer experience.
 /home/"$USER"/.nix-profile/bin/zsh \
 -lc 'home-manager switch 1> /dev/null 2> /dev/null' 2> /dev/null || true
 COMMANDS
 
+# Useful to copy/paste
+echo '/home/"$USER"/.nix-profile/bin/zsh --login'
+
 test -z "$NO_EXEC" || exit 0
 
-exec /home/"$USER"/.nix-profile/bin/zsh -l
+exec /home/"$USER"/.nix-profile/bin/zsh --login

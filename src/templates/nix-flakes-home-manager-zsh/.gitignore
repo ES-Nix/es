@@ -2,4 +2,4 @@
 result*
 .profiles/*
 .direnv/*
-
+.venv/*

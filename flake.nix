@@ -2,14 +2,14 @@
   description = "This is an 'nix flake' :)";
 
   /*
-  nix \
-  flake \
-  lock \
-  --override-input nixpkgs github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
-  --override-input flake-utils github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b \
+    --override-input flake-utils github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a
   */
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
+    nixpkgs.url = "github:NixOS/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
     # nixpkgs-darwin-stable.url = "github:nixos/nixpkgs/nixpkgs-22.11-darwin";
     # nixpkgs-linux-unstable.url = "nixpkgs/nixos-unstable";
@@ -51,6 +51,7 @@
             bashInteractive
             coreutils
             curl
+            gh
             gnumake
             nixpkgs-fmt # find . -type f -iname '*.nix' -exec nixpkgs-fmt {} \;
             patchelf
