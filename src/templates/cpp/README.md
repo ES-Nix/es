@@ -9,13 +9,16 @@ int main() {
 EOF
 
 
-nix shell -i nixpkgs#bashInteractive nixpkgs#llvmPackages_17.libstdcxxClang -c clang++ main.cpp
+# nix shell -i nixpkgs#bashInteractive nixpkgs#llvmPackages_17.libstdcxxClang -c clang++ main.cpp
+# nix shell -i nixpkgs#coreutils nixpkgs#bashInteractive nixpkgs#llvmPackages_17.libstdcxxClang -c clang++ main.cpp
 nix shell nixpkgs#bashInteractive nixpkgs#llvmPackages_17.libstdcxxClang -c clang++ main.cpp
 
 ./a.out
 ```
 Refs.:
 - https://discourse.nixos.org/t/c-and-libstdc-not-available/39126/9
+
+nixpkgs#llvmPackages.libclang.lib
 
 ```bash
 # mktemp: command not found

@@ -46,7 +46,7 @@
 
               nix = {
                 enable = true;
-                package = pkgs.nix; # nixVersions.latest
+                package = pkgs.nix; # pkgs.nixVersions.latest
                 extraOptions = ''
                   experimental-features = nix-command flakes
                 '';

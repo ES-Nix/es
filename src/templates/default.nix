@@ -17,6 +17,11 @@
     path = ./start-config;
   };
 
+  devShellHello = {
+    description = "";
+    path = ./nix-flakes-flake-utils-devShell;
+  };
+
   poetry2nixBasic = {
     description = "Basic poetry2nix pure python3 script example";
     path = ./poetry2nix-basic;
