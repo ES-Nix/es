@@ -9,6 +9,10 @@ flake \
 init \
 --template \
 github:ES-nix/es#devShellHello
+
+nix profile install nixpkgs#git
+
+git init &&  git add .
 ```
 Refs.:
-- https://godot-rust.github.io/gdnative-book/recipes/nix-build-system.html
+- 

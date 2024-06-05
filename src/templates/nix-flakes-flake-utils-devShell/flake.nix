@@ -6,12 +6,9 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
-    nixgl.url = "github:guibou/nixGL";
-    nixgl.inputs.nixpkgs.follows = "nixpkgs";
-    nixgl.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = allAttrs@{ self, nixpkgs, flake-utils, nixgl, ... }:
+  outputs = allAttrs@{ self, nixpkgs, flake-utils, ... }:
     let
       suportedSystems = [
         "x86_64-linux"
@@ -54,9 +51,18 @@
             buildInputs = with pkgsAllowUnfree; [
               foo-bar
               # python312
+              pleaseKeepMyInputs
             ];
 
             shellHook = ''
+              test -d .profiles || mkdir -v .profiles
+
+              test -L .profiles/dev \
+              || nix develop .# --impure --profile .profiles/dev --command true
+
+              test -L .profiles/dev-shell-default \
+              || nix build --impure $(nix eval --impure --raw .#devShells."$system".default.drvPath) --out-link .profiles/dev-shell-"$system"-default
+
               hello
             '';
           };
