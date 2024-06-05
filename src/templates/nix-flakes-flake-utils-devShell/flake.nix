@@ -53,6 +53,7 @@
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
               foo-bar
+              # python312
             ];
 
             shellHook = ''
