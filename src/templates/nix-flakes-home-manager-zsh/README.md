@@ -58,6 +58,9 @@ man nix.conf
 man home-manager
 ```
 
+```bash
+man nix3
+```
 
 For the developer it may set it like:
 ```bash
@@ -77,16 +80,24 @@ In a builder keep too much may add up really fast, so
 probably delete as much as possible is a good thing.
 
 
-                settings = {
-                  nix-path = "nixpkgs=flake:nixpkgs";
-                  keep-outputs = true;
-                  keep-derivations = true;
-                  keep-failed = false;
-                  keep-going = true;
-                  keep-env-derivations = true;
-                  bash-prompt-prefix = "(nix:$name)\\040";
-                  tarball-ttl = 2419200; # 60 * 60 * 24 * 7 * 4 = one month
-                };
+```bash
+nix eval --impure '.#homeConfigurations.vagrant.activationPackage'
+nix eval --impure '.#homeConfigurations.vagrant.activation-script'
+```
+
+
+
+
+```bash
+nix \
+--option keep-failed false \
+develop nixpkgs#hello --command \
+sh \
+-c \
+'cd "$TMPDIR" && touch foo-bar.txt && pwd && exit 1'
+```
+
+
 
 TODO: 
 Why the warning still printed? Is it broken/ignoring the flag?

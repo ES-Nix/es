@@ -16,3 +16,8 @@ git init &&  git add .
 ```
 Refs.:
 - 
+
+
+```bash
+nix develop '.#'
+```

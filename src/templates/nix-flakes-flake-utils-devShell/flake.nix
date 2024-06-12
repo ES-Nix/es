@@ -61,7 +61,7 @@
               || nix develop .# --impure --profile .profiles/dev --command true
 
               test -L .profiles/dev-shell-default \
-              || nix build --impure $(nix eval --impure --raw .#devShells."$system".default.drvPath) --out-link .profiles/dev-shell-"$system"-default
+              || nix build --impure .#devShells."$system".default --out-link .profiles/dev-shell-"$system"-default
 
               hello
             '';

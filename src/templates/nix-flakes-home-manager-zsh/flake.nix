@@ -51,13 +51,23 @@
                   experimental-features = nix-command flakes
                 '';
                 registry.nixpkgs.flake = nixpkgs;
+                settings = {
+                  bash-prompt-prefix = "(nix:$name)\\040";
+                  keep-derivations = true;
+                  keep-env-derivations = true;
+                  keep-failed = false;
+                  keep-going = true;
+                  keep-outputs = true;
+                  nix-path = "nixpkgs=flake:nixpkgs";
+                  tarball-ttl = 2419200; # 60 * 60 * 24 * 7 * 4 = one month
+                };
               };
 
               programs.zsh = {
                 enable = true;
                 enableCompletion = true;
                 dotDir = ".config/zsh";
-                enableAutosuggestions = true;
+                autosuggestion.enable = true;
                 syntaxHighlighting.enable = true;
                 envExtra = ''
                   if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
@@ -69,7 +79,7 @@
                 };
                 sessionVariables = {
                   # https://discourse.nixos.org/t/what-is-the-correct-way-to-set-nix-path-with-home-manager-on-ubuntu/29736
-                  NIX_PATH = "nixpkgs=${pkgs.path}";
+                  # NIX_PATH = "nixpkgs=${pkgs.path}";
                   LANG = "en_US.utf8";
                 };
                 oh-my-zsh = {
