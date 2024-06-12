@@ -15,7 +15,7 @@ shell \
 --keep USER \
 --override-flake \
 nixpkgs \
-github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+github:NixOS/nixpkgs/a631666f5ec18271e86a5cde998cba68c33d9ac6 \
 nixpkgs#bashInteractive \
 nixpkgs#coreutils \
 nixpkgs#gnused \
