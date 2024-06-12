@@ -29,7 +29,7 @@ run \
 --refresh \
 --override-input \
 nixpkgs \
-github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+github:NixOS/nixpkgs/d12251ef6e8e6a46e05689eeccd595bdbd3c9e60 \
 --no-update-lock-file \
 --no-write-lock-file \
 github:ES-Nix/es#installTemplateNixFlakesHomeManagerZsh
@@ -54,6 +54,10 @@ nix show-config | grep keep
 man nix.conf
 ```
 
+```bash
+man home-manager
+```
+
 
 For the developer it may set it like:
 ```bash
@@ -73,7 +77,16 @@ In a builder keep too much may add up really fast, so
 probably delete as much as possible is a good thing.
 
 
-
+                settings = {
+                  nix-path = "nixpkgs=flake:nixpkgs";
+                  keep-outputs = true;
+                  keep-derivations = true;
+                  keep-failed = false;
+                  keep-going = true;
+                  keep-env-derivations = true;
+                  bash-prompt-prefix = "(nix:$name)\\040";
+                  tarball-ttl = 2419200; # 60 * 60 * 24 * 7 * 4 = one month
+                };
 
 TODO: 
 Why the warning still printed? Is it broken/ignoring the flag?
