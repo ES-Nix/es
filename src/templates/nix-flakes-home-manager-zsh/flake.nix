@@ -51,6 +51,16 @@
                   experimental-features = nix-command flakes
                 '';
                 registry.nixpkgs.flake = nixpkgs;
+                settings = {
+                  nix-path = "nixpkgs=flake:nixpkgs";
+                  keep-outputs = true;
+                  keep-derivations = true;
+                  keep-failed = false;
+                  keep-going = true;
+                  keep-env-derivations = true;
+                  bash-prompt-prefix = "(nix:$name)\\040";
+                  tarball-ttl = 2419200; # 60 * 60 * 24 * 7 * 4 = one month
+                };
               };
 
               programs.zsh = {

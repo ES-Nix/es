@@ -41,6 +41,37 @@ Refs.:
 - [Manage Your Dotfiles with Home Manager!](https://www.youtube.com/embed/IiyBeR-Guqw?start=422&end=452&version=3), start=422&end=452
 
 
+Reflection: even nix is a program so, it have many 
+flavored ways to be configured and ofcourse tunned for 
+ probably multiple different and probably conflicting goals. Two cases/examples/flavors:
+a remote builder, a developer machine.
+
+```bash
+nix show-config | grep keep
+```
+
+```bash
+man nix.conf
+```
+
+
+For the developer it may set it like:
+```bash
+keep-env-derivations = true
+```
+
+This way, unless overriden in the CLI call it would not 
+garbage colect store files that would be necessary to develop 
+
+
+For the remote builder it may set it like:
+```bash
+keep-env-derivations = false
+```
+
+In a builder keep too much may add up really fast, so 
+probably delete as much as possible is a good thing.
+
 
 
 
