@@ -1,10 +1,14 @@
 {
   description = " ";
   /*
-
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs github:NixOS/nixpkgs/d12251ef6e8e6a46e05689eeccd595bdbd3c9e60 \
+    --override-input flake-utils github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a
   */
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -51,6 +55,8 @@
             buildInputs = with pkgsAllowUnfree; [
               foo-bar
               # python312
+
+              bashInteractive
               pleaseKeepMyInputs
             ];
 
