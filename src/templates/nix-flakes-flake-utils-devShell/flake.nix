@@ -56,7 +56,7 @@
               foo-bar
               # python312
 
-              bashInteractive
+              # bashInteractive
               pleaseKeepMyInputs
             ];
 
