@@ -10,6 +10,10 @@ You need:
 - the `$USER` environment variable set
 
 
+Goal: bootstrap a development environment and configuring 
+a nix instalation declarativelly using home-manager with only 
+nix statically compilled. 
+
 
 ```bash
 sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix'
@@ -41,9 +45,10 @@ Refs.:
 - [Manage Your Dotfiles with Home Manager!](https://www.youtube.com/embed/IiyBeR-Guqw?start=422&end=452&version=3), start=422&end=452
 
 
-Reflection: even nix is a program so, it have many 
+Reflection: even nix is a program so, it has many 
 flavored ways to be configured and ofcourse tunned for 
- probably multiple different and probably conflicting goals. Two cases/examples/flavors:
+probably multiple different and probably conflicting goals. 
+Two cases/examples/flavors:
 a remote builder, a developer machine.
 
 ```bash
@@ -67,8 +72,8 @@ For the developer it may set it like:
 keep-env-derivations = true
 ```
 
-This way, unless overriden in the CLI call it would not 
-garbage colect store files that would be necessary to develop 
+This way, unless overriden in the CLI, calling it would not
+garbage colect store files that are necessary to `nix develop`. 
 
 
 For the remote builder it may set it like:
@@ -79,7 +84,15 @@ keep-env-derivations = false
 In a builder keep too much may add up really fast, so 
 probably delete as much as possible is a good thing.
 
+Related:
+- https://discourse.nixos.org/t/collect-garbage-but-keep-build-inputs/11713/3
+- https://github.com/NixOS/nix/issues/2208#issuecomment-1173751469
+- https://github.com/NixOS/nix/issues/2208#issuecomment-1357969473
+- https://discourse.nixos.org/t/nix-collect-garbage-during-builds/33863/3
+- https://github.com/NixOS/nix/issues/3995#issuecomment-1376342823
+- https://www.reddit.com/r/NixOS/comments/17c0r68/how_to_keep_develop_shell_from_gc_nonnixos/
 
+For investigating:
 ```bash
 nix eval --impure '.#homeConfigurations.vagrant.activationPackage'
 nix eval --impure '.#homeConfigurations.vagrant.activation-script'

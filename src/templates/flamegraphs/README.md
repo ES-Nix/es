@@ -105,3 +105,16 @@ Refs.:
 
 TODO: 
 https://discourse.nixos.org/t/nix-flamegraph-or-profiling-tool/33333/11
+
+
+## 1 Billion Rows of Data
+
+I Parsed 1 Billion Rows Of Text (It Sucked)
+https://www.youtube.com/watch?v=e_9ziFKcEhw
+
+How Fast can Python Parse 1 Billion Rows of Data?
+https://www.youtube.com/watch?v=utTaPW32gKY
+
+1 Billion Rows Challenge
+https://www.youtube.com/watch?v=OO6l1DkYA0k
+
