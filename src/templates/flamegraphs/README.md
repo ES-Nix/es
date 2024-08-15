@@ -118,3 +118,5 @@ https://www.youtube.com/watch?v=utTaPW32gKY
 1 Billion Rows Challenge
 https://www.youtube.com/watch?v=OO6l1DkYA0k
 
+Java, How Fast Can You Parse 1 Billion Rows of Weather Data? • Roy van Rijn • GOTO 2024
+https://www.youtube.com/watch?v=EFXxXFHpS0M

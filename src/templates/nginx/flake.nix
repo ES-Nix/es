@@ -110,7 +110,7 @@
               bashInteractive
               coreutils
               curl
-              gnumake
+              firefox
             ];
 
             shellHook = ''
@@ -176,7 +176,18 @@
 
                   virtualisation.useNixStoreImage = false; # TODO: hardening
                   virtualisation.writableStore = true; # TODO: hardening
+
+                  # https://discourse.nixos.org/t/nixpkgs-support-for-linux-builders-running-on-macos/24313/2
+                  virtualisation.forwardPorts = [
+                    {
+                      from = "host";
+                      host.port = 8080;
+                      guest.port = 8090;
+                    }
+                  ];
                 };
+
+              networking.firewall.allowedTCPPorts = [ (builtins.head config.virtualisation.vmVariant.virtualisation.forwardPorts).guest.port ];
 
               security.sudo.wheelNeedsPassword = false; # TODO: hardening
               # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
@@ -197,6 +208,8 @@
                   file
                   jq
                   foo-bar
+                  python3
+                  lsof
                 ];
                 shell = pkgs.bash;
                 uid = 1234;
@@ -204,8 +217,8 @@
               };
 
               services.xserver.enable = true;
-              services.xserver.layout = "br";
-              services.xserver.displayManager.autoLogin.user = "nixuser";
+              services.xserver.xkb.layout = "br";
+              services.displayManager.autoLogin.user = "nixuser";
               services.xserver.displayManager.sessionCommands = ''
                 # https://askubuntu.com/a/1434433
                 exo-open \
@@ -213,7 +226,7 @@
                   --zoom=-3 \
                   --geometry 154x40 \
                   -H \
-                  -e 'wk8s-sudo'
+                  -e 'show-nginx-html'
               '';
 
               # https://nixos.org/manual/nixos/stable/#sec-xfce
@@ -228,29 +241,55 @@
                 kubectl
                 kubernetes
 
+                firefox
+
                 openssl
                 file
 
-                # path
-                # nixosTests.kubernetes.dns-single-node.driverInteractive
-                # nixosTests.kubernetes.dns-multi-node.driverInteractive
-                # nixosTests.kubernetes.rbac-multi-node.driverInteractive
-
                 (
-                  writeScriptBin "wk8s" ''
-                    #! ${pkgs.runtimeShell} -e
+                  writeScriptBin "show-nginx-html" (
+                    let
+                      joshrossoKubecon = pkgs.writeTextDir "joshrosso-kubecon.yml"
+                        ''
+                          apiVersion: v1
+                          kind: Pod
+                          metadata:
+                            name: a-message
+                            namespace: default
+                          spec:
+                            containers:
+                            - name: message
+                              image: joshrosso/kubecon:1.4
+                              ports:
+                              - containerPort: 80
+                        '';
+                    in
+                    ''
+                      #! ${pkgs.runtimeShell}
+
                         while true; do
-                          kubectl get pod --all-namespaces -o wide \
-                          && echo \
-                          && kubectl get services --all-namespaces -o wide \
-                          && echo \
-                          && kubectl get deployments.apps --all-namespaces -o wide \
-                          && echo \
-                          && kubectl get nodes --all-namespaces -o wide;
-                          sleep 1;
+                          sudo -E kubectl get pods -n kube-system --field-selector status.phase=Running | grep Running && break;
+                          sudo -E kubectl get pod --all-namespaces -o wide;
+                          sleep 0.5;
                           clear;
                         done
-                  ''
+
+                        sudo -E kubectl apply -f ${joshrossoKubecon};
+
+                        while true; do
+                          sudo -E kubectl get pods -n default --field-selector status.phase=Running | grep Running && break;
+                          sudo -E kubectl get pod --all-namespaces -o wide;
+                          sleep 0.5;
+                          clear;
+                        done
+
+                        PORT="${ builtins.toString (builtins.head config.virtualisation.vmVariant.virtualisation.forwardPorts).guest.port}"
+
+                        sudo -E kubectl port-forward --address 0.0.0.0 pods/a-message "$PORT":80 &
+
+                        firefox localhost:"$PORT"
+                    ''
+                  )
                 )
 
                 (
@@ -277,21 +316,75 @@
               environment.variables.KUBECONFIG = "/etc/${config.services.kubernetes.pki.etcClusterAdminKubeconfig}";
               # services.kubernetes.kubelet.extraOpts = "--fail-swap-on=false"; # If you use swap it is an must!
 
-              # journalctl -u fix-k8s.service -b -f
-              # it does not work after some thing around 30min
-              # and/or when the certificates are renewed I guess.
-              systemd.services.fix-k8s = {
-                script = ''
-                  echo "Fixing k8s"
 
-                  CLUSTER_ADMIN_KEY_PATH=/var/lib/kubernetes/secrets/cluster-admin-key.pem
+              systemd.services.kubelet-custom-bootstrap = {
+                description = "Boostrap Custom Kubelet";
+                wantedBy = [ "kubernetes.target" ];
+                after = [ "docker.service" "network.target" ];
+                path = with pkgs; [ docker ];
+                script =
+                  let
+                    myCustomImage =
+                      let
+                        conf = {
+                          nginxWebRoot = pkgs.writeTextDir "index.html"
+                            ''
+                              <html>
+                                <body>
+                                  <center>
+                                  <marquee><h1>all ur PODZ is belong to ME</h1></marquee>
+                                  <img src=\"https://m.media-amazon.com/images/M/MV5BYjBlODg3ZTgtN2ViNS00MDlmLWIyMTctZmQ2NWYwMzE2N2RmXkEyXkFqcGdeQVRoaXJkUGFydHlJbmdlc3Rpb25Xb3JrZmxvdw@@._V1_.jpg\" width=\"100%\">
+                                  </center>
+                                </body>
+                              </html>\n
+                            '';
 
-                  # while ! test -f "$CLUSTER_ADMIN_KEY_PATH"; do echo $(date +'%d/%m/%Y %H:%M:%S:%3N'); sleep 0.1; done
+                          nginxPort = "80";
+                          nginxConf = pkgs.writeText "nginx.conf" ''
+                            user nobody nobody;
+                            daemon off;
+                            error_log /dev/stdout info;
+                            pid /dev/null;
+                            events {}
+                            http {
+                              access_log /dev/stdout;
+                              server {
+                                listen ${conf.nginxPort};
+                                index index.html;
+                                location / {
+                                  root ${conf.nginxWebRoot};
+                                }
+                              }
+                            }
+                          '';
+                        };
+                      in
+                      pkgs.dockerTools.buildLayeredImage {
+                        name = "joshrosso";
+                        tag = "1.4";
+                        contents = [ pkgs.fakeNss pkgs.nginx ];
 
-                  # chmod 0640 -v "$CLUSTER_ADMIN_KEY_PATH"
-                  # chown root:kubernetes -v "$CLUSTER_ADMIN_KEY_PATH"
-                '';
-                wantedBy = [ "multi-user.target" ];
+                        extraCommands = ''
+                          mkdir -p tmp/nginx_client_body
+
+                          # nginx still tries to read this directory even if error_log
+                          # directive is specifying another file :/
+                          mkdir -p var/log/nginx
+                        '';
+                        config = {
+                          Cmd = [ "nginx" "-c" conf.nginxConf ];
+                          ExposedPorts = { "${conf.nginxPort}/tcp" = { }; };
+                        };
+                      };
+                  in
+                  ''
+                    echo "Seeding docker image..."
+                    docker load <"${myCustomImage}"
+                  '';
+                serviceConfig = {
+                  Slice = "kubernetes.slice";
+                  Type = "oneshot";
+                };
               };
 
               system.stateVersion = "24.05";

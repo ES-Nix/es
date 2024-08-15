@@ -361,6 +361,21 @@ okular LifecycleTools.pdf
 ```
 
 
+
+```bash
+pandoc \
+LifecycleTools.ipynb \
+--from=ipynb+citations \
+--bibliography=ipython.bib \
+--standalone \
+--to=revealjs \
+--output=xxx.html
+```
+Refs.:
+- https://github.com/jgm/pandoc/issues/6408#issuecomment-635800092
+
+
+
 ```bash
 git reset --hard
 git clean -dfx
@@ -430,6 +445,9 @@ EOF
 ```
 
 
+
+
+
 ## pandoc citeproc
 
 
@@ -479,3 +497,12 @@ gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=clean.pdf -dBATCH dirty.pdf
 ```
 Refs.:
 - https://tex.stackexchange.com/a/481609
+
+
+
+
+TODOs:
+- https://github.com/jgm/citeproc/issues/57
+- https://github.com/jgm/citeproc/issues/133#issuecomment-1533588728
+- https://github.com/jupyter-book/jupyter-book/issues/274#issuecomment-540672801
+- https://chrisholdgraf.com/blog/2019/2019-11-11-ipynb_pandoc/
