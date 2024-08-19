@@ -7,7 +7,7 @@ Inspired by:
 
 
 ```bash
-nix build -L '.#checks.x86_64-linux.helloNixosTest'
+nix build --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.helloNixosTest'
 ```
 
 
