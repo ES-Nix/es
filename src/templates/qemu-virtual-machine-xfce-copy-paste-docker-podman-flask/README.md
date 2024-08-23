@@ -41,3 +41,30 @@ nix build --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.
 ```bash
 okular $(nix build --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.testMyappOCIImageDockerFirefoxOCR')/screen.png
 ```
+
+
+
+
+```bash
+cat > compose.yaml << 'EOF'
+services:
+   redis: 
+     image: static-redis-server-minimal:latest
+     ports:
+       - "6379:6379" 
+   web:
+     image: python3-flask-redis:0.0.1
+     ports:
+       - "5002:5002"
+EOF
+
+docker compose up -d
+```
+
+```bash
+curl http://localhost:5002/
+```
+
+```bash
+docker compose down
+```

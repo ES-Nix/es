@@ -216,6 +216,12 @@ COMMANDS
 
 
 ```bash
+/home/"$USER"/.nix-profile/bin/zsh -l
+```
+
+
+
+```bash
 ./nix \
 --extra-experimental-features nix-command \
 --extra-experimental-features flakes \
@@ -234,6 +240,18 @@ bash \
 
 TODO: help in there
 https://github.com/nix-community/home-manager/issues/3752#issuecomment-2061051384
+
+### home-manager.lib.hm.dag.entryAfter
+
+
+```nix
+home.activation = {
+  startPythonHttpServer = home-manager.lib.hm.dag.entryAfter ["writeBoundary"] ''
+    "${lib.getExe pkgs.python3}" -m http.server 6789 >&2 &
+  '';
+};
+```
+
 
 
 ### Helper to test
@@ -265,20 +283,28 @@ RUN apk update \
 # If it is uncommented nix profile works!
 RUN mkdir -pv -m 1735 /nix/var/nix && chown -Rv abcuser:abcgroup /nix
 
+ENV PATH=/home/abcuser/.nix-profile/bin:/home/abcuser/.local/bin:"$PATH"
+
 USER abcuser
 WORKDIR /home/abcuser
 ENV USER="abcuser"
-ENV PATH=/home/abcuser/.nix-profile/bin:/home/abcuser/.local/bin:"$PATH"
 ENV NIX_CONFIG="extra-experimental-features = nix-command flakes"
 
-#ENV HYDRA_BUILD_ID=257665509
-#ENV NIXPKGS_COMMIT=58a1abdbae3217ca6b702f03d3b35125d88a2994
-#
-#RUN mkdir -pv "$HOME"/.local/bin \
-# && cd "$HOME"/.local/bin \
-# && curl -L https://hydra.nixos.org/build/"$HYDRA_BUILD_ID"/download-by-type/file/binary-dist > nix \
-# && chmod -v +x nix \
-# && nix flake --version
+ENV HYDRA_BUILD_ID=257665509
+ENV NIXPKGS_COMMIT=58a1abdbae3217ca6b702f03d3b35125d88a2994
+
+RUN mkdir -pv "$HOME"/.local/bin \
+ && cd "$HOME"/.local/bin \
+ && curl -L https://hydra.nixos.org/build/"$HYDRA_BUILD_ID"/download-by-type/file/binary-dist > nix \
+ && chmod -v +x nix \
+ && nix flake --version \
+ && nix \
+      registry \
+      pin \
+      nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8 \
+ && nix flake metadata nixpkgs \
+ && nix profile install github:edolstra/nix-serve \
+ && nix profile install nixpkgs#python3
 EOF
 
 
@@ -290,10 +316,222 @@ build \
 
 podman \
 run \
+--device=/dev/kvm:rw \
 --interactive=true \
 --tty=true \
 --rm=true \
 localhost/alpine-with-static-nix:latest \
 sh \
 -l
+```
+
+
+
+
+```bash
+podman \
+run \
+--interactive=true \
+--name=container-nix-server \
+--publish=4000:5000 \
+--tty=true \
+--rm=true \
+localhost/alpine-with-static-nix:latest \
+sh \
+-c \
+'nix-serve'
+
+podman \
+run \
+--interactive=true \
+--net=host \
+--tty=true \
+--rm=true \
+localhost/alpine-with-static-nix:latest \
+sh \
+-c \
+'nix store info --store http://localhost:4000 && curl http://localhost:4000/nix-cache-info'
+
+podman \
+run \
+--interactive=true \
+--name=container-client \
+--net=host \
+--tty=true \
+--rm=true \
+localhost/alpine-with-static-nix:latest \
+sh \
+-c \
+'
+nix \
+copy \
+--from http://localhost:4000 \
+"$(nix --option flake-registry "" --offline  eval --raw nixpkgs#python311)" \
+--no-check-sigs
+
+nix \
+--option flake-registry "" \
+--offline \
+run \
+nixpkgs#python311 -- -c "import this"
+
+ls -alh "$(nix --option flake-registry "" --offline  eval --raw nixpkgs#python311)"/bin
+'
+```
+
+
+
+```bash
+podman \
+run \
+--device=/dev/kvm:rw \
+--interactive=true \
+--name=container-nix-server \
+--publish=4000:5000 \
+--tty=true \
+--rm=true \
+localhost/alpine-with-static-nix:latest \
+sh \
+-c \
+'nix-serve'
+
+podman \
+run \
+--interactive=true \
+--net=host \
+--tty=true \
+--rm=true \
+localhost/alpine-with-static-nix:latest \
+sh \
+-c \
+'nix store info --store http://localhost:4000 && curl http://localhost:4000/nix-cache-info'
+
+podman \
+run \
+--device=/dev/kvm:rw \
+--interactive=true \
+--name=container-client \
+--net=host \
+--tty=true \
+--rm=true \
+localhost/alpine-with-static-nix:latest \
+sh 
+```
+
+
+
+
+```bash
+nix \
+path-info \
+--offline \
+--eval-store auto \
+--closure-size \
+--human-readable \
+--json \
+--recursive \
+--store http://localhost:5000 \
+github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8#python3
+```
+
+
+TODO: write an NixOS test that reproduces it!
+https://github.com/NixOS/nix/issues/2637
+https://github.com/NixOS/nix/issues/8101#issuecomment-2072870182
+https://github.com/NixOS/nix/issues/7101
+https://github.com/NixOS/nix/issues/9569#issuecomment-1849010136
+https://github.com/NixOS/nix/issues/3177
+https://github.com/NixOS/nix/issues/8101#issuecomment-1483878923
+https://discourse.nixos.org/t/serve-nix-store-over-ssh-and-use-as-substituter/24528
+https://discourse.nixos.org/t/cant-get-nix-serve-working-help-appreciated/18879/4
+
+ 
+```bash
+nix store ls --store http://localhost:4000  -lR "$(nix eval --raw nixpkgs#python3)"/bin
+```
+
+
+
+```bash
+ping -c3 1.1.1.1
+```
+
+
+
+```bash
+nix --option flake-registry "" --offline eval --raw nixpkgs#python3
+```
+
+```bash
+nix --option flake-registry "" --offline path-info --derivation nixpkgs#python3
+```
+
+
+Worked!
+```bash
+nix \
+copy \
+--from http://localhost:4000 \
+"$(nix --option flake-registry "" --offline  eval --raw nixpkgs#python311)" \
+--no-check-sigs
+
+nix \
+--option flake-registry "" \
+--offline \
+run \
+nixpkgs#python311 -- -c 'import this'
+```
+Refs.:
+- https://discourse.nixos.org/t/help-with-local-binary-cache/27126/4
+
+
+Broken:
+```bash
+nix \
+--option flake-registry "" \
+--offline \
+--store http://localhost:5000 \
+build \
+--eval-store /nix/store \
+--print-out-paths \
+nixpkgs#hello
+
+
+nix \
+--option flake-registry "" \
+--offline \
+--store http://localhost:4000 \
+--substituters http://localhost:4000/ \
+build \
+--builders-use-substitutes \
+--eval-store local \
+--keep-failed \
+--max-jobs 0 \
+--print-out-paths \
+'nixpkgs#figlet'
+```
+
+
+
+Broken:
+```bash
+ls -al $(nix \
+--option flake-registry "" \
+--offline \
+--store http://localhost:4000 \
+build \
+--eval-store 'local?root=/nix/store' \
+--keep-failed \
+--max-jobs 0 \
+--print-out-paths \
+'nixpkgs#figlet')
+```
+
+
+TODO:
+```bash
+--eval-store 'local?root=/nix/store' \
+--eval-store '' \
+--no-eval-cache \
+--no-use-registries \
 ```

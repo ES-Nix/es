@@ -140,6 +140,575 @@
             };
           };
 
+        /*
+          xhost + || nix run nixpkgs#xorg.xhost -- +
+
+          podman run --env="DISPLAY=${DISPLAY:-:0.0}" --interactive=true --mount=type=tmpfs,destination=/var \
+          --privileged=false --rm=true --tty=true --user=1234 --volume=/tmp/.X11-unix:/tmp/.X11-unix:ro \
+          localhost/static-xorg-xclock:latest
+
+          podman run --interactive=true --name=container-xclock --rm=true --tty=true \
+          localhost/static-xorg-xclock:latest bash
+
+          podman exec -it -u 0 container-xclock bash
+        */
+        cachedOCIImageStaticXorgXclock = prev.dockerTools.buildLayeredImage {
+          # https://github.com/NixOS/nixpkgs/issues/176081
+          name = "static-xorg-xclock";
+          tag = "latest";
+          config = {
+
+            contents = with prev; [
+              dockerTools.binSh
+              dockerTools.caCertificates
+              dockerTools.usrBinEnv
+              bashInteractive
+              coreutils
+              hello
+              xorg.xclock
+              (dockerTools.fakeNss.override {
+                extraPasswdLines = [ "newuser:x:9001:9001:new user:/home/newuser:/bin/sh" ];
+                extraGroupLines = [ "newuser:x:9001:" ];
+              })
+
+              (runCommand "tmp-dir" { } ''
+                mkdir -p $out/tmp
+                mkdir -p $out/var
+                mkdir -p $out/home/newuser
+              '')
+            ];
+
+            fakeRootCommands = ''
+              chmod 1777 tmp
+              chmod 1777 var
+              chown -v newuser:newuser home/newuser
+            '';
+
+            Env = [
+              # https://access.redhat.com/solutions/409033
+              # https://github.com/nix-community/home-manager/issues/703#issuecomment-489470035
+              # https://bbs.archlinux.org/viewtopic.php?pid=1805678#p1805678
+              "LC_ALL=C"
+              "DISPLAY=:0"
+              "HOME=/tmp"
+              # "PATH=/bin"
+            ];
+
+            # Entrypoint = [ "/bin/sh" "-c" ];
+            Cmd = [ "bash" ];
+
+            User = "newuser";
+            WorkingDir = "/home/newuser";
+            # Tty = true;
+          };
+        };
+
+        /*
+          docker run --interactive=true --name=container-base-env1 --rm=true --tty=true base-env1:latest
+
+        docker \
+        run \
+        --device=/dev/kvm:rw \
+        --interactive=true \
+        --rm=true \
+        --tty=true \
+        base-env1:latest \
+        sh
+
+        --mount=type=tmpfs,tmpfs-size=2G,destination=/tmp \
+        --workdir=/tmp \
+
+        */
+        cachedOCIImageBase1 = prev.dockerTools.buildImage {
+          name = "base-env1";
+          tag = "latest";
+
+          copyToRoot = [
+            prev.bashInteractive
+            prev.coreutils
+
+            # final.myvmNoGRaphicalPkg
+
+            (prev.runCommand "cretes-tmp-home" { } ''
+              mkdir -p $out/tmp
+              mkdir -p $out/home/nobody
+            '')
+
+            prev.dockerTools.fakeNss
+            prev.dockerTools.usrBinEnv
+            prev.dockerTools.binSh
+            prev.dockerTools.caCertificates
+            prev.dockerTools.fakeNss
+          ];
+
+          runAsRoot = ''
+            chmod 1777 tmp
+            chown -v nobody: home/nobody
+          '';
+
+          config = {
+
+            Cmd = [ "/bin/sh" ];
+
+            Env = [
+              "PATH=/bin"
+            ];
+            User = "nobody";
+          };
+        };
+
+
+        /*
+        docker \
+        run \
+        --device=/dev/kvm:rw \
+        --interactive=true \
+        --rm=true \
+        --tty=true \
+        layered-image-with-fake-root-commands:latest \
+        sh
+        */
+
+        fakeNss = prev.fakeNss.override {
+          extraPasswdLines = [ "newuser:x:9001:9001:new user:/home/newuser:/bin/sh" ];
+          extraGroupLines = [ "newuser:x:9001:" ];
+        };
+
+        cachedOCIImageBase2 = prev.dockerTools.buildLayeredImage {
+          name = "layered-image-with-fake-root-commands";
+          tag = "latest";
+          contents = [
+            prev.pkgsStatic.busybox
+
+            # final.myvmNoGRaphicalPkg
+            # prev.openssh
+
+            (prev.runCommand "cretes-tmp-home" { } ''
+              mkdir -p $out/tmp
+              mkdir -p $out/home/newuser
+            '')
+
+            prev.dockerTools.fakeNss
+            prev.dockerTools.usrBinEnv
+            prev.dockerTools.binSh
+            prev.dockerTools.caCertificates
+            final.dockerTools.fakeNss
+
+          ];
+
+          enableFakechroot = true;
+          fakeRootCommands = ''
+            chmod 1777 tmp
+            chown -v newuser: home/newuser tmp
+          '';
+
+          config = {
+            Cmd = [ "/bin/sh" ];
+            WorkingDir = "/home/newuser";
+            Env = [
+              "PATH=/bin"
+              "HOME=/home/newuser"
+            ];
+            User = "newuser";
+          };
+        };
+
+        #
+        /*
+           docker pull python:3.11.9-slim-bullseye
+           docker pull python:3.11.9-alpine3.20
+
+          cat > Containerfile << 'EOF'
+          FROM python:3.11.9-alpine3.20
+          ENV PYTHONDONTWRITEBYTECODE=1
+          ENV PYTHONUNBUFFERED=1
+          RUN pip install --no-cache-dir mmh3
+          EOF
+
+          docker \
+          build \
+          --file Containerfile \
+          --tag python-3.11.9-alpine3.20-mmh3 \
+          .
+
+           docker images
+
+           docker run --rm -ti stripped:nix python -c 'import magic'
+
+           docker run --rm -ti stripped:nix python -c 'import numpy as np; print(np.arange(24).reshape(2, 3, 4))'
+           docker run --rm -ti stripped:nix python -c 'import numpy as np; np.show_config(); print(np.__version__)'
+           docker run --rm -ti stripped:nix python -c \
+           'import mmh3; assert mmh3.hash128(bytes(123)) == 126000048256919600573431412872524959502'
+
+           du -shc $(nix-store -qR $(nix build --no-link --print-build-logs --print-out-paths \
+           'github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8#python3Minimal' ))
+
+           nix eval --json nixpkgs#python3Minimal.override.__functionArgs | jq
+
+            (let
+                self = (prev.pkgsStatic.python3Minimal.override {
+                  inherit self;
+                  includeSiteCustomize = true;
+                });
+              in self.withPackages (p: [ p.magic ]))
+
+
+        python3Static = prev.pkgsStatic.python3;
+        # python3Static = prev.pkgsStatic.python3Minimal;
+        # python3Static = prev.pkgsStatic.python3Packages.python;
+        # python3 = prev.pkgsStatic.python3Packages.python;
+        # python3Packages = final.python3Custom.pkgs;
+        python3Custom =
+          let
+            pyCustom = (final.python3.override {
+              self = final.python3Static;
+              includeSiteCustomize = true;
+            });
+          in
+          pyCustom.withPackages (p: with p; [ magic ]);
+
+        */
+        python3MinimalMuslWithMagic =
+          let
+            pyCustom = (prev.pkgsMusl.python3Minimal.override {
+              self = pyCustom;
+              includeSiteCustomize = true;
+            });
+          in
+          pyCustom.withPackages (p: [ p.magic ]);
+
+        strippedNix = prev.dockerTools.buildImage {
+          name = "stripped";
+          tag = "nix";
+          created = "now";
+          copyToRoot = [
+            final.python3MinimalMuslWithMagic
+          ];
+          config = {
+            cmd = [ "python" ];
+          };
+        };
+
+
+        python3MinimalMuslWithMmh3 =
+          let
+            pyCustom = (prev.pkgsMusl.python3Minimal.override {
+              self = pyCustom;
+              includeSiteCustomize = true;
+            });
+          in
+          pyCustom.withPackages (p: [ p.mmh3 ]);
+
+        OCIImagePython3MinimalMuslWithMmh3 = prev.dockerTools.buildImage {
+          name = "python3-mmh3";
+          tag = "0.0.1";
+          created = "now";
+          copyToRoot = [
+            final.python3MinimalMuslWithMagic
+          ];
+          config = {
+            cmd = [ "python" ];
+          };
+        };
+
+
+        # docker run --rm -ti --publish=6789:6789 python3-http-server:0.0.1
+        python3FHttpServerOCIImage = prev.dockerTools.buildImage {
+          name = "python3-http-server";
+          tag = "0.0.1";
+          created = "now";
+          copyToRoot = [
+            prev.pkgsMusl.python3Minimal
+            # prev.pkgsMusl.pkgsStatic.python3Minimal
+            # prev.pkgsStatic.pkgsMusl.python3Minimal
+          ];
+          config = {
+            Cmd = [ "python" "-m" "http.server" "6789" ];
+          };
+        };
+
+        python3WithFlask =
+          let
+            pyCustom = (prev.python3.override {
+              self = pyCustom;
+              includeSiteCustomize = true;
+            });
+          in
+          pyCustom.withPackages (pyPkgs: with pyPkgs ; [ flask ]);
+
+        # https://flask.palletsprojects.com/en/2.0.x/quickstart/#a-minimal-application
+        helloFlaskMinimal = prev.writeTextDir "hello.py" "${ builtins.readFile ./hello.py}";
+
+        # docker run --rm -ti --publish=5001:5001 python3-flask:0.0.1
+        python3FlaskOCIImage = prev.dockerTools.buildImage {
+          name = "python3-flask";
+          tag = "0.0.1";
+          created = "now";
+          copyToRoot = [
+            final.python3WithFlask
+          ];
+          config = {
+            Cmd = [ "python" "-m" "flask" "run" "--host=0.0.0.0" "--port=5001" "--debugger" ];
+            Env = [
+              # https://flask.palletsprojects.com/en/3.0.x/cli/#application-discovery
+              "FLASK_APP=${final.helloFlaskMinimal}/hello.py"
+            ];
+          };
+        };
+
+        python3WithFlaskRedis =
+          let
+            pyCustom = (prev.python3.override {
+              self = pyCustom;
+              includeSiteCustomize = true;
+            });
+          in
+          pyCustom.withPackages (pyPkgs: with pyPkgs ; [ flask redis ]);
+
+        #
+        helloFlaskRedis = prev.writeTextDir "hello-couter-redis.py" "${ builtins.readFile ./hello-couter-redis.py}";
+
+        # docker run --rm -ti --publish=5002:5002 python3-flask-redis:0.0.1
+        python3FlaskRedisOCIImage = prev.dockerTools.buildImage {
+          name = "python3-flask-redis";
+          tag = "0.0.1";
+          created = "now";
+          copyToRoot = [
+            final.python3WithFlaskRedis
+          ];
+          config = {
+            Cmd = [ "python" "-m" "flask" "run" "--host=0.0.0.0" "--port=5002" "--debugger" ];
+            Env = [
+              "FLASK_APP=${final.helloFlaskRedis}/hello-couter-redis.py"
+            ];
+          };
+        };
+
+
+        python3FlaskOCIImage2 = prev.dockerTools.buildImage {
+          name = "python3-flask";
+          tag = "0.0.1";
+          created = "now";
+          copyToRoot = [
+            final.python3WithFlask
+            final.helloFlaskMinimal
+          ];
+          config = {
+            Cmd = [ "python" "-m" "flask" "run" "--host=0.0.0.0" "--port=5001" "--debugger" ];
+            Env = [
+              "FLASK_APP=${final.helloFlaskMinimal}"
+            ];
+          };
+        };
+
+
+        # docker run --interactive=true --rm=true --tty=true static-nix-cacert run nixpkgs#hello
+        cachedOCIImageStaticNixCacert =
+          let
+            user = "appuser";
+            group = "appgroup";
+            uid = "1234";
+            gid = "9876";
+          in
+          prev.dockerTools.buildLayeredImage {
+            name = "static-nix-cacert";
+            tag = "latest";
+            includeStorePaths = false;
+
+            # cp -aTrv ${prev.pkgsStatic.busybox-sandbox-shell}/bin/busybox ./bin/sh
+            extraCommands = ''
+
+              mkdir -pv -m1777 ./tmp
+              mkdir -pv ./etc/ssl/certs
+              mkdir -pv -m0700 ./bin ./home/${user}/.local/bin
+              mkdir -pv -m1777 ./home/${user}/tmp
+              mkdir -pv -m1735 ./nix/var/nix
+
+              cp -aTrv ${prev.pkgsStatic.busybox}/bin/ ./bin/
+              cp -aTrv ${prev.pkgsStatic.nix}/bin/ ./home/${user}/.local/bin/
+              cp -v ${prev.cacert}/etc/ssl/certs/ca-bundle.crt ./etc/ssl/certs/
+
+              echo 'root:x:0:0::/root:/bin/sh' >> ./etc/passwd
+              echo "${user}:x:${uid}:${gid}:${group}:/home/${user}:/bin/sh" >> ./etc/passwd
+
+              echo 'root:x:0:' >> ./etc/group
+              echo "${group}:x:${gid}:${user}" >> ./etc/group
+            '';
+
+            fakeRootCommands = ''
+              chown -Rv "${uid}:${gid}" ./nix ./home/${user}/
+            '';
+
+            config.Entrypoint = [ "/home/${user}/.local/bin/nix" ];
+            config.User = "${user}:${group}";
+            config.Content = [ prev.python3Minimal ];
+            # config.Cmd = [ "nix" ];
+            config.WorkingDir = "/home/${user}";
+            config.Env = [
+              "PATH=/bin:/home/${user}/.local/bin"
+              "NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
+              "NIX_CONFIG=extra-experimental-features = nix-command flakes"
+              "TMPDIR=/home/${user}"
+            ];
+          };
+
+        /*
+          docker run -p 6379:6379 -it --rm redis:7.2.5-alpine3.20 sh -c 'redis-server'
+          docker run --net=host -it --rm redis:7.2.5-alpine3.20 sh -c 'redis-cli PING'
+
+          docker run -p 6379:6379 -it --rm static-redis-server-minimal
+          docker run --net=host -it --rm static-redis-cli-minimal
+
+          docker run -p 6379:6379 -d --name container-redis --rm static-redis-server-minimal
+          time docker stop container-redis
+
+
+          podman run -p 6379:6379 -it --rm static-redis-server-minimal
+          podman run --net=host -it --rm static-redis-cli-minimal
+
+          podman run -p 6379:6379 -d --name container-redis --rm static-redis-server-minimal
+          time podman stop container-redis
+
+        */
+        cachedOCIImageStaticRedisServerMinimal =
+          let
+            user = "appuser";
+            group = "appgroup";
+            uid = "1234";
+            gid = "9876";
+          in
+          prev.dockerTools.buildLayeredImage {
+            name = "static-redis-server-minimal";
+            tag = "latest";
+            includeStorePaths = false;
+
+            extraCommands = ''
+              mkdir -pv -m1777 ./tmp
+              mkdir -pv -m0700 ./bin
+              mkdir -pv ./etc ./data
+
+              cp -aTv ${prev.pkgsStatic.redis}/bin/redis-server ./bin/redis-server
+
+              echo 'root:x:0:0::/root:/bin/sh' >> ./etc/passwd
+              echo "${user}:x:${uid}:${gid}:${group}:/home/${user}:/bin/sh" >> ./etc/passwd
+
+              echo 'root:x:0:' >> ./etc/group
+              echo "${group}:x:${gid}:${user}" >> ./etc/group
+            '';
+
+            fakeRootCommands = ''
+              chown -Rv "${uid}:${gid}" ./data ./bin
+            '';
+
+            config.Entrypoint = [ "/bin/redis-server" "--protected-mode no" ];
+            # config.Cmd = [ "redis-server"  "--protected-mode no"];
+            config.User = "${user}:${group}";
+            config.WorkingDir = "/data";
+            # config.Stopsignal = "SIGRTMIN+3";
+            # config.Publish = { "6379/tcp" = { }; };
+            config.ExposedPorts = { "6379/tcp" = { }; }; # "<port>/<tcp|udp>": {}
+            config.Volumes = {
+              "/data" = { };
+            };
+            config.Env = [
+              "PATH=/bin"
+            ];
+          };
+
+        cachedOCIImageStaticRedisCLIMinimal =
+          let
+            user = "appuser";
+            group = "appgroup";
+            uid = "1234";
+            gid = "9876";
+          in
+          prev.dockerTools.buildLayeredImage {
+            name = "static-redis-cli-minimal";
+            tag = "latest";
+            includeStorePaths = false;
+
+            extraCommands = ''
+              mkdir -pv -m1777 ./tmp
+              mkdir -pv -m0700 ./bin
+              mkdir -pv ./etc
+
+              cp -aTv ${prev.pkgsStatic.redis}/bin/redis-cli ./bin/redis-cli
+
+              echo 'root:x:0:0::/root:/bin/sh' >> ./etc/passwd
+              echo "${user}:x:${uid}:${gid}:${group}:/home/${user}:/bin/sh" >> ./etc/passwd
+
+              echo 'root:x:0:' >> ./etc/group
+              echo "${group}:x:${gid}:${user}" >> ./etc/group
+            '';
+
+            fakeRootCommands = ''
+              chown -Rv "${uid}:${gid}" ./data ./bin
+            '';
+
+            config.Entrypoint = [ "/bin/redis-cli" "PING" ];
+            config.Env = [ "PATH=/bin" ];
+            config.ExposedPorts = { "6379/tcp" = { }; }; # "<port>/<tcp|udp>": {}
+            config.User = "${user}:${group}";
+            config.Volumes = { "/data" = { }; };
+            config.WorkingDir = "/data";
+          };
+
+
+        /*
+          docker pull memcached:1.6.29-alpine3.20
+
+          docker run -p 11211:11211 -d --name container-memcached --rm static-redis-server-minimal
+          time docker stop container-memcached
+
+          echo version | nc -N localhost 11211
+
+          podman run -p 11211:11211 -d --name container-memcached --rm static-redis-server-minimal
+          time podman stop container-memcached
+
+          https://book.hacktricks.xyz/network-services-pentesting/11211-memcache#manual
+        */
+        cachedOCIImageStaticMemcachedMinimal =
+          let
+            user = "appuser";
+            group = "appgroup";
+            uid = "1234";
+            gid = "9876";
+          in
+          prev.dockerTools.buildLayeredImage {
+            name = "static-memcached-minimal";
+            tag = "latest";
+            includeStorePaths = false;
+
+            extraCommands = ''
+              mkdir -pv -m1777 ./tmp
+              mkdir -pv -m0700 ./bin
+              mkdir -pv ./etc ./data
+
+              cp -aTv ${prev.pkgsStatic.memcached}/bin/memcached ./bin/memcached
+
+              echo 'root:x:0:0::/root:/bin/sh' >> ./etc/passwd
+              echo "${user}:x:${uid}:${gid}:${group}:/home/${user}:/bin/sh" >> ./etc/passwd
+
+              echo 'root:x:0:' >> ./etc/group
+              echo "${group}:x:${gid}:${user}" >> ./etc/group
+            '';
+
+            fakeRootCommands = ''
+              chown -Rv "${uid}:${gid}" ./data ./bin
+            '';
+
+            config.Entrypoint = [ "/bin/memcached" ];
+
+            config.User = "${user}:${group}";
+            config.WorkingDir = "/data";
+            config.ExposedPorts = { "11211/tcp" = { }; }; # "<port>/<tcp|udp>": {}
+            config.Volumes = {
+              "/data" = { };
+            };
+            config.Env = [
+              "PATH=/bin"
+            ];
+          };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
           # system = builtins.currentSystem;
@@ -201,12 +770,35 @@
                   script = ''
                     echo "Loading OCI Image in podman..."
                     podman load <"${pkgs.myappOCIImage}"
+
+                    podman load <"${pkgs.cachedOCIImageStaticXorgXclock}"
+                    podman load <"${pkgs.cachedOCIImageBase1}"
+
+                    # "''${pkgs.cachedOCIImageBase1}" | podman load
+                    # "''${pkgs.cachedOCIImageStaticXorgXclock}" | podman load
+
+                    podman load <"${pkgs.cachedOCIImageStaticRedisServerMinimal}"
+                    podman load <"${pkgs.cachedOCIImageStaticRedisCLIMinimal}"
+                    podman load <"${pkgs.python3FlaskRedisOCIImage}"
+                    podman load <"${pkgs.cachedOCIImageStaticMemcachedMinimal}"
                   '';
                   serviceConfig = {
                     Type = "oneshot";
                   };
                 };
 
+                /*
+
+                journalctl --unit docker-custom-bootstrap-1.service -b -f
+
+                    docker load <"${pkgs.myappOCIImage}"
+
+                    docker load <"${pkgs.cachedOCIImageStaticNixCacert}"
+                    docker load <"${pkgs.cachedOCIImageStaticXorgXclock}"
+                    docker load <"${pkgs.cachedOCIImageBase1}"
+                    docker load <"${pkgs.cachedOCIImageBase2}"
+
+                */
                 systemd.services.docker-custom-bootstrap-1 = {
                   description = "Docker Custom Bootstrap 1";
                   wantedBy = [ "multi-user.target" ];
@@ -215,13 +807,26 @@
                   script = ''
                     # set -x
                     echo "Loading OCI Image in docker..."
-                    docker load <"${pkgs.myappOCIImage}"
+
+                    docker load <"${pkgs.strippedNix}"
+                    docker load <"${pkgs.python3FlaskOCIImage}"
+
+
+                    # "''${pkgs.cachedOCIImageBase1}" | docker load
+                    # "''${pkgs.cachedOCIImageStaticXorgXclock}" | docker load
+
+                    docker load <"${pkgs.cachedOCIImageStaticRedisServerMinimal}"
+                    docker load <"${pkgs.cachedOCIImageStaticRedisCLIMinimal}"
+                    docker load <"${pkgs.python3FlaskRedisOCIImage}"
+
+                    docker load <"${pkgs.cachedOCIImageStaticMemcachedMinimal}"
+
+                    # docker load <"''${pkgs.vmNoGraphicalOCIImage}"
                   '';
                   serviceConfig = {
                     Type = "oneshot";
                   };
                 };
-
 
                 security.sudo.wheelNeedsPassword = false; # TODO: hardening
                 # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
@@ -317,6 +922,204 @@
             '';
         };
 
+
+        myvmNoGRaphicalPkg = final.nixos-vm-no-graphical.config.system.build.vm;
+        nixos-vm-no-graphical = nixpkgs.lib.nixosSystem {
+          system = prev.system;
+          modules = [
+            (
+
+              { lib, config, pkgs, ... }:
+              let
+                nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w";
+              in
+              {
+                # Internationalisation options
+                # i18n.defaultLocale = "en_US.UTF-8";
+                i18n.defaultLocale = "pt_BR.UTF-8";
+                console.keyMap = "br-abnt2";
+
+                virtualisation.vmVariant = {
+                  virtualisation.useNixStoreImage = true;
+                  virtualisation.writableStore = true; # TODO
+                  virtualisation.docker.enable = true;
+
+                  virtualisation.memorySize = 1024 * 3; # Use maximum of RAM MiB memory.
+                  virtualisation.diskSize = 1024 * 16; # Use maximum of hard disk MiB memory.
+                  virtualisation.cores = 4; # Number of cores.
+
+                  # https://discourse.nixos.org/t/nixpkgs-support-for-linux-builders-running-on-macos/24313/2
+                  virtualisation.forwardPorts = [
+                    {
+                      from = "host";
+                      # host.address = "127.0.0.1";
+                      host.port = 10022;
+                      # guest.address = "34.74.203.201";
+                      guest.port = 10022;
+                    }
+                  ];
+                  # https://lists.gnu.org/archive/html/qemu-discuss/2020-05/msg00060.html
+                  virtualisation.qemu.options = [
+                    "-display none "
+                    "-daemonize"
+                    "-pidfile pidfile.txt"
+                  ];
+
+                };
+
+                users.users.root = {
+                  password = "root";
+                  initialPassword = "root";
+                  openssh.authorizedKeys.keyFiles = [
+                    "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w" }"
+                  ];
+                };
+
+                # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
+                users.extraGroups.nixgroup.gid = 999;
+
+                security.sudo.wheelNeedsPassword = false;
+                users.users.nixuser = {
+                  isSystemUser = true;
+                  password = "121";
+                  createHome = true;
+                  home = "/home/nixuser";
+                  homeMode = "0700";
+                  description = "The VM tester user";
+                  group = "nixgroup";
+                  extraGroups = [
+                    "docker"
+                    "kvm"
+                    "libvirtd"
+                    "qemu-libvirtd"
+                    "wheel"
+                  ];
+                  packages = with pkgs; [
+                    bashInteractive
+                    coreutils
+                    direnv
+                    file
+                    gnumake
+                    openssh
+                    which
+                  ];
+                  shell = pkgs.bashInteractive;
+                  uid = 1234;
+                  autoSubUidGidRange = true;
+
+                  openssh.authorizedKeys.keyFiles = [
+                    "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w" }"
+                  ];
+
+                  openssh.authorizedKeys.keys = [
+                    "ssh-ed25519 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w"
+                  ];
+                };
+
+                # https://github.com/NixOS/nixpkgs/issues/21332#issuecomment-268730694
+                services.openssh = {
+                  allowSFTP = true;
+                  kbdInteractiveAuthentication = false;
+                  enable = true;
+                  forwardX11 = false;
+                  passwordAuthentication = false;
+                  permitRootLogin = "yes";
+                  ports = [ 10022 ];
+                  authorizedKeysFiles = [
+                    "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w" }"
+                  ];
+                };
+
+                # X configuration
+                services.xserver.enable = true;
+                services.xserver.layout = "br";
+
+                # services.xserver.displayManager.autoLogin.user = "nixuser";
+
+                # Enable ssh
+                # journalctl -u sshd -o json-pretty
+                services.sshd.enable = true;
+
+                nixpkgs.config.allowUnfree = true;
+
+                nix = {
+                  extraOptions = "experimental-features = nix-command flakes";
+                  package = pkgs.nix;
+                  readOnlyStore = true;
+                  registry.nixpkgs.flake = nixpkgs;
+                  nixPath = [ "nixpkgs=${pkgs.path}" ];
+                };
+                environment.etc."channels/nixpkgs".source = "${pkgs.path}";
+
+                environment.systemPackages = with pkgs; [
+                ];
+
+                system.stateVersion = "24.05";
+              }
+            )
+          ];
+        };
+
+
+
+        vmNoGraphicalOCIImage =
+          let
+
+            nonRootShadowSetup = { user, uid, group, gid }: with prev; [
+              (
+                writeTextDir "etc/shadow" ''
+                  ${user}:!:::::::
+                ''
+              )
+              (
+                writeTextDir "etc/passwd" ''
+                  ${user}:x:${toString uid}:${toString gid}::/home/${user}:${runtimeShell}
+                ''
+              )
+              (
+                writeTextDir "etc/group" ''
+                  ${group}:x:${toString gid}:
+                ''
+              )
+              (
+                writeTextDir "etc/gshadow" ''
+                  ${group}:x::
+                ''
+              )
+
+              (
+                prev.stdenv.mkDerivation {
+                  name = "tmp";
+                  phases = [ "installPhase" "fixupPhase" ];
+
+                  installPhase = ''
+                    mkdir -p $out/tmp
+                    mkdir -p $out/home/${user}
+                  '';
+                }
+              )
+            ];
+          in
+          prev.dockerTools.buildLayeredImage {
+            name = "vm-no-graphical-oci-image";
+            tag = "0.0.1";
+            contents = [
+              prev.busybox
+              prev.openssh
+              final.myvmNoGRaphicalPkg
+            ]
+            ++
+            (nonRootShadowSetup { user = "app_user"; uid = 12345; group = "app_group"; gid = 6789; })
+            ;
+
+            config = {
+              Cmd = [ "sh" ];
+              # Cmd = [ "${prev.lib.getExe final.myvmNoGRaphicalPkg}" ];
+            };
+          };
+
+
+
       })
     ];
   } // (
@@ -336,7 +1139,7 @@
         };
       in
       rec {
-        packages = { inherit (pkgs) myapp myappOCIImage; };
+        packages = { inherit (pkgs) myapp myappOCIImage python3Custom python3MinimalWithMagic; };
         defaultPackage = pkgs.myapp;
 
         packages.myvm = pkgs.myvm;
@@ -344,7 +1147,12 @@
 
         apps.default = {
           type = "app";
-          program = "${pkgs.automatic-vm}/bin/run-nixos-vm";
+          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+        };
+
+        apps.NixOSVMNoGraphical = {
+          type = "app";
+          program = "${pkgs.lib.getExe pkgs.myvmNoGRaphicalPkg}";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -458,9 +1266,15 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [ foo-bar myapp poetry ];
+          buildInputs = [
+            foo-bar
+            # myapp
+            # poetry
+            # python3Custom
+          ];
 
           shellHook = ''
+            echo ''${helloFlaskMinimal}
           '';
         };
 
