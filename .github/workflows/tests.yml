@@ -14,10 +14,10 @@ on: workflow_dispatch
 
 jobs:
   test:
-    # runs-on: arc-runner-set
+    runs-on: arc-runner-set
     # runs-on:
     #   labels: nixos
-    runs-on: self-hosted
+    # runs-on: self-hosted
     name: Testes
     steps:
       - name: checkout PR merge commit
