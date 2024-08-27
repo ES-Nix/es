@@ -46,10 +46,9 @@ jobs:
           # touch /dev/kvm
           # which docker
           # readlink -f $(which docker)
-          docker --version
+          docker --version && sleep 1000000
           # sudo docker info
           docker info
-          sleep 1000000
           docker images
           docker run --rm alpine cat /etc/os-release
           docker images
