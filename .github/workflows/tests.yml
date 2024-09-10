@@ -46,7 +46,7 @@ jobs:
           # touch /dev/kvm
           # which docker
           # readlink -f $(which docker)
-          docker --version && sleep 1000000
+          # docker --version && sleep 1000000
           # sudo docker info
           docker info
           docker images
