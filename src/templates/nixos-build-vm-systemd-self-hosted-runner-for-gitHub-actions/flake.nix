@@ -7,10 +7,15 @@
     update \
     --override-input nixpkgs github:NixOS/nixpkgs/c1be43e8e837b8dbee2b3665a007e761680f0c3d \
     --override-input flake-utils github:numtide/flake-utils/4022d587cbbfd70fe950c1e2083a02621806a725
-   */
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
 
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+  */
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
     podman-rootless.url = "github:ES-Nix/podman-rootless/from-nixpkgs";
     # sops-nix.url = "github:Mic92/sops-nix";
@@ -56,12 +61,6 @@
               allowUnfree = true;
             };
           };
-
-          hack = pkgsAllowUnfree.writeShellScriptBin "hack" ''
-            # https://dev.to/ifenna__/adding-colors-to-bash-scripts-48g4
-            echo -e '\n\n\n\e[32m\tAmbiente pronto!\e[0m\n'
-            echo -e '\n\t\e[33mignore as proximas linhas...\e[0m\n\n\n'
-          '';
 
           # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
           pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
@@ -123,7 +122,6 @@
               gettext
               gh
               gnumake
-              hack
               httpie
               jq
               patchelf
@@ -160,8 +158,6 @@
               # --encrypt \
               # --age $(age-keygen -y ~/.config/sops/age/keys.txt) \
               # secrets/secrets.yaml > secrets/secrets.yaml.encrypted
-
-              hack
             '';
           };
         })
@@ -326,30 +322,37 @@
 
                 TODO: https://www.youtube.com/watch?v=G5f6GC7SnhU
               */
-              services.github-runner.enable = true;
-              services.github-runner.ephemeral = true;
-              services.github-runner.extraLabels = [ "nixos" ];
-              # services.github-runner.extraPackages = config.environment.systemPackages;
-              services.github-runner.extraPackages = with pkgs; [ iputils which podman python39 sudo ];
-              services.github-runner.name = "${GH_HOSTNAME}";
-              services.github-runner.replace = true;
-              # services.github-runner.runnerGroup = "nixgroup"; # Apenas administradores da organização do github conseguem usar isso?
-              services.github-runner.tokenFile = "/run/secrets/github-runner/nixos.token";
-              services.github-runner.url = "https://github.com/ES-Nix/es";
-              services.github-runner.user = "nixuser";
-              systemd.services.github-runner.path = [ "/run/wrappers" "/run/current-system/sw/bin" ]; # https://discourse.nixos.org/t/podman-rootless-with-systemd/23536/6
+
+              services.github-runners = {
+                runner1 = {
+                  enable = true;
+                  ephemeral = true;
+                  extraLabels = [ "nixos" ];
+                  # extraPackages = config.environment.systemPackages;
+                  extraPackages = with pkgs; [ iputils which podman python39 sudo ];
+                  name = "${GH_HOSTNAME}";
+                  replace = true;
+                  # runnerGroup = "nixgroup"; # Apenas administradores da organização do github conseguem usar isso?
+                  tokenFile = "/run/secrets/github-runner/nixos.token";
+                  url = "https://github.com/ES-Nix/es";
+                  user = "nixuser";
+                };
+              };
+
+              systemd.services.github-runners-runner1.path = [ "/run/wrappers" "/run/current-system/sw/bin" ]; # https://discourse.nixos.org/t/podman-rootless-with-systemd/23536/6
+
               # systemd.user.extraConfig = ''
               #   DefaultEnvironment="PATH=/run/wrappers/bin:/run/current-system/sw/bin:/home/nixuser/.nix-profile/bin"
               # '';
 
-              # systemd.services.github-runner.path = [
+              # systemd.services.github-runners-runner1.path = [
               #   # https://stackoverflow.com/a/70964228
               #   # https://discourse.nixos.org/t/sudo-run-current-system-sw-bin-sudo-must-be-owned-by-uid-0-and-have-the-setuid-bit-set-and-cannot-chdir-var-cron-bailing-out-var-cron-permission-denied/20463/11
               #   "/run/current-system/sw/bin"
               #   "/run/wrappers/bin"
               # ];
 
-              services.github-runner.serviceOverrides = {
+              services.github-runners.runner1.serviceOverrides = {
                 ReadWritePaths = [
                   "/nix"
                   # "/nix/var/nix/profiles/per-user/" # https://github.com/cachix/cachix-ci-agents/blob/63f3f600d13cd7688e1b5db8ce038b686a5d29da/agents/linux.nix#L30C26-L30C59
@@ -533,7 +536,7 @@
               # Funciona, mas não resolveu o erro newuidmap: write to uid_map failed: Operation not permitted
               environment.etc.services.mode = ""; # https://github.com/containers/podman/issues/21033#issuecomment-1858199501
 
-              systemd.services.github-runner.serviceConfig.SupplementaryGroups = [ "docker" "podman" ];
+              systemd.services.github-runners.serviceConfig.SupplementaryGroups = [ "docker" "podman" ];
 
               systemd.user.services.populate-history-vagrant = {
                 script = ''
@@ -542,13 +545,13 @@
                   DESTINATION=/home/nixuser/.zsh_history
 
                   # TODO: https://stackoverflow.com/a/67169387
-                  echo "sudo systemd-analyze security github-runner-${GH_HOSTNAME}.service | cat" >> "$DESTINATION"
-                  echo "sudo systemctl show github-runner-${GH_HOSTNAME}.service | cat" >> "$DESTINATION"
-                  echo "sudo systemctl cat github-runner-${GH_HOSTNAME}.service | cat" >> "$DESTINATION"
-                  echo "systemctl status github-runner-${GH_HOSTNAME}.service | cat" >> "$DESTINATION"
-                  echo "save-pat && sudo systemctl restart github-runner-${GH_HOSTNAME}.service" >> "$DESTINATION"
-                  echo "sudo systemctl restart github-runner-${GH_HOSTNAME}.service" >> "$DESTINATION"
-                  echo "journalctl -xeu github-runner-${GH_HOSTNAME}.service" >> "$DESTINATION"
+                  echo "sudo systemd-analyze security github-runner-runner1.service | cat" >> "$DESTINATION"
+                  echo "sudo systemctl show github-runner-runner1.service | cat" >> "$DESTINATION"
+                  echo "sudo systemctl cat github-runner-runner1.service | cat" >> "$DESTINATION"
+                  echo "systemctl status github-runner-runner1.service | cat" >> "$DESTINATION"
+                  echo "save-pat && sudo systemctl restart github-runner-runner1.service" >> "$DESTINATION"
+                  echo "sudo systemctl restart github-runner-runner1.service" >> "$DESTINATION"
+                  echo "journalctl -xeu github-runner-runner1.service" >> "$DESTINATION"
 
                   echo "Ended"
                 '';
@@ -699,7 +702,7 @@
 
               nix = {
                 extraOptions = "experimental-features = nix-command flakes";
-                package = pkgs.nixVersions.nix_2_10;
+                # package = pkgs.nixVersions.nix_2_10;
                 registry.nixpkgs.flake = nixpkgs; # https://bou.ke/blog/nix-tips/
                 nixPath = [
                   "nixpkgs=/etc/channels/nixpkgs"

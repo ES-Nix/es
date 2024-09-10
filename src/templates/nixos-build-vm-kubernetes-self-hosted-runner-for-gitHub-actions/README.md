@@ -1,25 +1,351 @@
 # github self-hosted runner using kubernetes in NixOS QEMU
 
 
-Generating a token:
+0) Generating a token:
 - https://github.com/settings/tokens
 - with these checks: https://github.com/myoung34/docker-github-actions-runner/wiki/Usage#token-scope
 
 
+1)
 ```bash
 rm -fv nixos.qcow2; 
-nix run --impure --refresh --verbose \
-.#run-github-runner
+nix run --impure --refresh --verbose '.#run-github-runner'
 ```
 
 
-Copie e cole no terminal da VM e EDITE com seu PAT gerado no passo anterior:
+2) Copie e cole no terminal da VM e EDITE com seu PAT gerado no passo anterior:
+```bash
+GITHUB_PAT=ghp_yyyyyyyyyyyyyyy
+```
+
+3) Copie e cole no terminal da VM:
+```bash
+NAMESPACE="arc-systems"
+
+helm \
+install \
+arc \
+--namespace "${NAMESPACE}" \
+--create-namespace \
+oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller \
+--set image.tag="0.9.3" \
+--version "0.9.3"
+
+INSTALLATION_NAME="arc-runner-set"
+NAMESPACE="arc-runners"
+GITHUB_CONFIG_URL="https://github.com/ES-Nix/es"
+
+helm \
+install \
+"${INSTALLATION_NAME}" \
+--namespace "${NAMESPACE}" \
+--create-namespace \
+--set githubConfigUrl="${GITHUB_CONFIG_URL}" \
+--set githubConfigSecret.github_token="${GITHUB_PAT}" \
+oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
+--set image.tag="0.9.3" \
+--version "0.9.3"
+
+wk8s
+```
+
+
+4) Verifique que o runner aparece no link:
+https://github.com/ES-Nix/es/actions/runners?tab=self-hosted
+
+
+5) No terminal do clone local (apenas para testes manuais) do repositório:
+```bash
+export GH_TOKEN=
+```
+
+Note: o remoto tenta iniciar a execução com o código que está no REMOTO, ou seja,
+modificações apenas locais não são executadas.
+
+6) Executando manualmente um workflow:
+```bash
+gh workflow run tests.yml --ref feature/k8s
+```
+Refs.:
+- https://docs.github.com/en/enterprise-server@3.11/actions/using-workflows/manually-running-a-workflow?tool=cli#running-a-workflow
+
+Pelo navegador:
+https://github.com/ES-Nix/github-action-nix-flake/actions
+
+
+Links:
+- https://docs.github.com/en/enterprise-server@3.11/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/quickstart-for-actions-runner-controller
+- https://github.com/actions/actions-runner-controller/discussions/2775
+- https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/about-actions-runner-controller#about-actions-runner-controller
+- https://docs.github.com/en/enterprise-server@3.11/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/using-actions-runner-controller-runners-in-a-workflow#about-using-arc-runners-in-a-workflow-file
+- https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/about-actions-runner-controller#assets-and-releases
+- https://github.com/actions/runner/blob/9e3e57ff90c089641a3a5833c2211841da1a37f8/images/Dockerfile 
+- https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/removing-self-hosted-runners
+
+
+
+## DinD
+
+
+Copie e cole no terminal da VM e EDITE com seu PAT:
 ```bash
 GITHUB_PAT=ghp_yyyyyyyyyyyyyyy
 ```
 
 
+###
+
+
 ```bash
+cd "$HOME" \
+&& git clone https://github.com/actions/actions-runner-controller.git \
+&& cd actions-runner-controller \
+&& git checkout 80d848339e5eeaa6b2cda3c4a5393dfcb4614794
+
+cat << 'EOF' > enables-dind.patch
+diff --git a/charts/gha-runner-scale-set/values.yaml b/charts/gha-runner-scale-set/values.yaml
+index 6018b7d..d4ab3c2 100644
+--- a/charts/gha-runner-scale-set/values.yaml
++++ b/charts/gha-runner-scale-set/values.yaml
+@@ -75,8 +75,8 @@ githubConfigSecret:
+ ##
+ ## If any customization is required for dind or kubernetes mode, containerMode should remain
+ ## empty, and configuration should be applied to the template.
+-# containerMode:
+-#   type: "dind"  ## type can be set to dind or kubernetes
++containerMode:
++  type: "dind"  ## type can be set to dind or kubernetes
+ #   ## the following is required when containerMode.type=kubernetes
+ #   kubernetesModeWorkVolumeClaim:
+ #     accessModes: ["ReadWriteOnce"]
+@@ -139,7 +139,9 @@ template:
+   ##         - --group=$(DOCKER_GROUP_GID)
+   ##       env:
+   ##         - name: DOCKER_GROUP_GID
+-  ##           value: "123"
++  ##           value: "131"
++  ##         - name: DOCKER_IPTABLES_LEGACY
++  ##           value: "1"
+   ##       securityContext:
+   ##         privileged: true
+   ##       volumeMounts:
+
+EOF
+
+git apply enables-dind.patch \
+&& rm -v enables-dind.patch
+
+
+NAMESPACE="arc-systems"
+
+helm \
+install \
+arc \
+--namespace "${NAMESPACE}" \
+--create-namespace \
+oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller \
+--set image.tag="0.9.3" \
+--version "0.9.3"
+
+INSTALLATION_NAME="arc-runner-set"
+NAMESPACE="arc-runners"
+GITHUB_CONFIG_URL="https://github.com/ES-Nix/es"
+
+helm \
+install \
+"${INSTALLATION_NAME}" \
+--namespace "${NAMESPACE}" \
+--create-namespace \
+--set githubConfigUrl="${GITHUB_CONFIG_URL}" \
+--set githubConfigSecret.github_token="${GITHUB_PAT}" \
+oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
+--set image.tag="0.9.3" \
+--version "0.9.3"
+
+wk8s
+```
+
+
+
+
+```bash
+cat << 'EOF' > "$HOME"/values.yaml
+githubConfigUrl: ""
+
+githubConfigSecret:
+  github_token: ""
+
+template:
+  spec:
+    initContainers:
+    - name: init-dind-externals
+      image: ghcr.io/actions/actions-runner:2.319.1
+      command: ["cp", "-r", "-v", "/home/runner/externals/.", "/home/runner/tmpDir/"]
+      volumeMounts:
+        - name: dind-externals
+          mountPath: /home/runner/tmpDir
+    containers:
+    - name: runner
+      image: ghcr.io/actions/actions-runner:2.319.1
+      command: ["/home/runner/run.sh"]
+      env:
+        - name: DOCKER_HOST
+          value: unix:///var/run/docker.sock
+      volumeMounts:
+        - name: work
+          mountPath: /home/runner/_work
+        - name: dind-sock
+          mountPath: /var/run
+    - name: dind
+      image: docker:27.1.2-dind-alpine3.20
+      args:
+        - dockerd
+        - --host=unix:///var/run/docker.sock
+        - --group=$(DOCKER_GROUP_GID)
+      env:
+        - name: DOCKER_GROUP_GID
+          value: "131"
+        - name: DOCKER_IPTABLES_LEGACY
+          value: "1"
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: work
+          mountPath: /home/runner/_work
+        - name: dind-sock
+          mountPath: /var/run
+        - name: dind-externals
+          mountPath: /home/runner/externals
+    volumes:
+    - name: work
+      emptyDir: {}
+    - name: dind-sock
+      emptyDir: {}
+    - name: dind-externals
+      emptyDir: {}
+  spec:
+    containers:
+      - name: runner
+        image: ghcr.io/actions/actions-runner:2.319.1
+        command: ["/home/runner/run.sh"]
+EOF
+
+
+NAMESPACE="arc-systems"
+
+helm \
+install \
+arc \
+--namespace "${NAMESPACE}" \
+--create-namespace \
+oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller \
+--set image.tag="0.9.3" \
+--version "0.9.3"
+
+INSTALLATION_NAME="arc-runner-set"
+NAMESPACE="arc-runners"
+GITHUB_CONFIG_URL="https://github.com/ES-Nix/es"
+
+helm \
+install \
+"${INSTALLATION_NAME}" \
+--namespace "${NAMESPACE}" \
+--create-namespace \
+--set githubConfigUrl="${GITHUB_CONFIG_URL}" \
+--set githubConfigSecret.github_token="${GITHUB_PAT}" \
+--values "$HOME"/values.yaml \
+oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
+--set image.tag="0.9.3" \
+--version "0.9.3"
+
+wk8s
+```
+
+
+After the pod starts:
+```bash
+kubectl exec --namespace arc-runners -it arc-runner-set-xpj4v-runner-ghl4s -- bash 
+```
+
+
+Inside the container:
+```bash
+docker images
+```
+
+
+
+As an git patch:
+```bash
+cd "$HOME" \
+&& git clone https://github.com/emesar/actions-runner-controller.git \
+&& cd actions-runner-controller \
+&& git checkout 01abfdd45cc5c96711d9fdd31323787b8d1abc88
+
+cat << 'EOF' > enables-dind.patch
+diff --git a/charts/gha-runner-scale-set/values.yaml b/charts/gha-runner-scale-set/values.yaml
+index d1c8216..590873d 100644
+--- a/charts/gha-runner-scale-set/values.yaml
++++ b/charts/gha-runner-scale-set/values.yaml
+@@ -1,3 +1,4 @@
++
+ ## githubConfigUrl is the GitHub url for where you want to configure runners
+ ## ex: https://github.com/myorg/myrepo or https://github.com/myorg
+ githubConfigUrl: ""
+@@ -75,8 +76,8 @@ githubConfigSecret:
+ ##
+ ## If any customization is required for dind or kubernetes mode, containerMode should remain
+ ## empty, and configuration should be applied to the template.
+-# containerMode:
+-#   type: "dind"  ## type can be set to dind or kubernetes
++containerMode:
++  type: "dind"  ## type can be set to dind or kubernetes
+ #   ## the following is required when containerMode.type=kubernetes
+ #   kubernetesModeWorkVolumeClaim:
+ #     accessModes: ["ReadWriteOnce"]
+@@ -125,22 +126,22 @@ template:
+   ##       command: ["/home/runner/run.sh"]
+   ##       env:
+   ##         - name: DOCKER_HOST
+-  ##           value: unix:///run/docker/docker.sock
++  ##           value: unix:///var/run/docker.sock
+   ##       volumeMounts:
+   ##         - name: work
+   ##           mountPath: /home/runner/_work
+   ##         - name: dind-sock
+-  ##           mountPath: /run/docker
++  ##           mountPath: /var/run
+   ##           readOnly: true
+   ##     - name: dind
+   ##       image: docker:dind
+   ##       args:
+   ##         - dockerd
+-  ##         - --host=unix:///run/docker/docker.sock
++  ##         - --host=unix:///var/run/docker.sock
+   ##         - --group=$(DOCKER_GROUP_GID)
+   ##       env:
+   ##         - name: DOCKER_GROUP_GID
+-  ##           value: "123"
++  ##           value: "131"
+   ##         - name: DOCKER_IPTABLES_LEGACY
+   ##           value: "1"
+   ##       securityContext:
+@@ -149,7 +150,7 @@ template:
+   ##         - name: work
+   ##           mountPath: /home/runner/_work
+   ##         - name: dind-sock
+-  ##           mountPath: /run/docker
++  ##           mountPath: /var/run
+   ##         - name: dind-externals
+   ##           mountPath: /home/runner/externals
+   ##     volumes:
+
+EOF
+
+git apply enables-dind.patch \
+&& rm -v enables-dind.patch
+
+
 NAMESPACE="arc-systems"
 
 helm \
@@ -42,6 +368,7 @@ install \
 --create-namespace \
 --set githubConfigUrl="${GITHUB_CONFIG_URL}" \
 --set githubConfigSecret.github_token="${GITHUB_PAT}" \
+--values "$HOME"/actions-runner-controller/charts/gha-runner-scale-set/values.yaml \
 oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
 --set image.tag="0.9.0" \
 --version "0.9.0"
@@ -50,44 +377,125 @@ wk8s
 ```
 
 
+### ?
 
 
-Verifique que o runner aparece no link:
-https://github.com/ES-Nix/es/actions/runners?tab=self-hosted
-
-No terminal do clone local (apenas para testes manuais) do repositório:
 ```bash
-export GH_TOKEN=ghp_yyyyyyyyyyyyyyy
+NAMESPACE="arc-systems"
+
+helm \
+install \
+arc \
+--namespace "${NAMESPACE}" \
+--create-namespace \
+oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller \
+--set image.tag="0.9.3" \
+--version "0.9.3"
+
+
+cat << 'EOF' > values.yaml
+githubConfigUrl: ""
+
+githubConfigSecret:
+  github_token: ""
+
+## maxRunners is the max number of runners the autoscaling runner set will scale up to.
+maxRunners: 5
+
+## minRunners is the min number of idle runners. The target number of runners created will be
+## calculated as a sum of minRunners and the number of jobs assigned to the scale set.
+minRunners: 0
+
+template:
+  spec:
+    initContainers:
+    - name: init-dind-externals
+      image: ghcr.io/actions/actions-runner:2.319.1
+      command: ["cp", "-r", "-v", "/home/runner/externals/.", "/home/runner/tmpDir/"]
+      volumeMounts:
+        - name: dind-externals
+          mountPath: /home/runner/tmpDir
+    containers:
+    - name: runner
+      image: ghcr.io/actions/actions-runner:2.319.1
+      command: ["/home/runner/run.sh"]
+      env:
+        - name: DOCKER_HOST
+          value: unix:///var/run/docker.sock
+      volumeMounts:
+        - name: work
+          mountPath: /home/runner/_work
+        - name: dind-sock
+          mountPath: /var/run
+    - name: dind
+      image: docker:27.1.2-dind-alpine3.20
+      args:
+        - dockerd
+        - --host=unix:///var/run/docker.sock
+        - --group=$(DOCKER_GROUP_GID)
+      env:
+        - name: DOCKER_GROUP_GID
+          value: "131"
+        - name: DOCKER_IPTABLES_LEGACY
+          value: "1"          
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: work
+          mountPath: /home/runner/_work
+        - name: dind-sock
+          mountPath: /var/run
+        - name: dind-externals
+          mountPath: /home/runner/externals
+    volumes:
+    - name: work
+      emptyDir: {}
+    - name: dind-sock
+      emptyDir: {}
+    - name: dind-externals
+      emptyDir: {}
+EOF
+
+
+INSTALLATION_NAME="arc-runner-set"
+NAMESPACE="arc-runners"
+GITHUB_CONFIG_URL="https://github.com/ES-Nix/es"
+
+helm \
+install \
+"${INSTALLATION_NAME}" \
+--namespace "${NAMESPACE}" \
+--create-namespace \
+--set githubConfigUrl="${GITHUB_CONFIG_URL}" \
+--set githubConfigSecret.github_token="${GITHUB_PAT}" \
+--values "$HOME"/values.yaml \
+oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
+--set image.tag="0.9.3" \
+--version "0.9.3"
+
+wk8s
 ```
 
-Note: o remoto tenta iniciar a execução com o código que está no REMOTO, ou seja,
-modificações apenas locais não são executadas.
 ```bash
-gh workflow run tests.yml --ref feature/k8s
+kubectl exec --namespace arc-runners -it arc-gha-rs-controller-5f79dc8687-lpdx6 -- bash
 ```
-Refs.:
-- https://docs.github.com/en/enterprise-server@3.11/actions/using-workflows/manually-running-a-workflow?tool=cli#running-a-workflow
-
-Pelo navegador:
-https://github.com/ES-Nix/github-action-nix-flake/actions
 
 
-Links:
-- https://docs.github.com/en/enterprise-server@3.11/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/quickstart-for-actions-runner-controller
-- https://github.com/actions/actions-runner-controller/discussions/2775
-- https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/about-actions-runner-controller#about-actions-runner-controller
-- https://docs.github.com/en/enterprise-server@3.11/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/using-actions-runner-controller-runners-in-a-workflow#about-using-arc-runners-in-a-workflow-file
-- https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/about-actions-runner-controller#assets-and-releases
-- https://github.com/actions/runner/blob/9e3e57ff90c089641a3a5833c2211841da1a37f8/images/Dockerfile 
-- https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/removing-self-hosted-runners
-
-## DinD
-
-
-Copie e cole no terminal da VM e EDITE com seu PAT:
 ```bash
-GITHUB_PAT=ghp_yyyyyyyyyyyyyyy
+docker \
+run \
+-it \
+--rm \
+-v /var/run/docker.sock:/var/run/docker.sock:ro \
+docker:27.1.2-dind-alpine3.20 \
+sh \
+-c \
+'docker images'
 ```
+
+
+
+https://datawookie.dev/blog/2024/04/dind-in-github-actions/
 
 
 ### O mais simples (que deveria funcionar!)

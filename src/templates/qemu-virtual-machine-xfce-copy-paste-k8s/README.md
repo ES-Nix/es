@@ -673,7 +673,4 @@ TODO:
    ]);
 ```
 
-Alpine -> LFS -> busybox -> toybox
 
-
-Qual a maior imagem OCI que vocês conhecem?

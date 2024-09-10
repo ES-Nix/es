@@ -14,7 +14,7 @@ github:ES-nix/es#pandocLaTeX
 # nix build --impure --print-out-paths '.#'
 # nix run '.#'
 # nix build --print-build-logs --print-out-paths .\#checks.x86_64-linux.test-nixos \
-nix flake check '.#'
+nix flake check '.#' --verbose
 ```
 Refs.:
 - 

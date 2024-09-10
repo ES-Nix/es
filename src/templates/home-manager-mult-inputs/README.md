@@ -14,6 +14,16 @@ Refs.:
 
 github:NixOS/nixpkgs/
 
+
+
+
+```bash
+nixos-21-11-begin 506445d88e183bce80e47fc612c710eb592045ed
+nixos-21-11-end eabc38219184cc3e04a974fe31857d8e0eac098d
+
+nixos-22.05-begin 7a94fcdda304d143f9a40006c033d7e190311b54
+nixos-22.05-end 380be19fbd2d9079f677978361792cb25e8a3635
+
 nixos-22.11-begin bd15cafc53d0aecd90398dd3ffc83a908bceb734
 nixos-22.11-end ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b
 
@@ -25,3 +35,4 @@ nixos-23.11-end 25cf937a30bf0801447f6bf544fc7486c6309234
 
 nixos-24.05-begin 5646423bfac84ec68dfc60f2a322e627ef0d6a95
 nixos-24.05-end d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8
+```

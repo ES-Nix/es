@@ -6,8 +6,13 @@ https://nixos.wiki/wiki/Nixpkgs/Reviewing_changes#Testing_the_cross-compilation_
 ```bash
 nix \ 
 build \ 
-.#nixosConfigurations.nixos.config.services.xserver.displayManager.sessionData.desktops
+'.#nixosConfigurations.nixos.config.services.xserver.displayManager.sessionData.desktops'
 ```
+
+```bash
+$(ldd  $(which id)| tail -n1 | cut -d ' ' -f3)
+```
+
 
 ```nix
 {

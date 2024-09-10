@@ -1,7 +1,7 @@
 
 
 ```bash
-git clone https://github.com/PedroRegisPOAR/TopDownShooter.git \
+git clone --branch main --single-branch https://github.com/PedroRegisPOAR/TopDownShooter.git \
 && cd TopDownShooter \
 && nix \
 --refresh \
@@ -14,6 +14,22 @@ Refs.:
 - https://godot-rust.github.io/gdnative-book/recipes/nix-build-system.html
 
 
+
+```bash
+# git clone --branch main --single-branch --depth=1 https://github.com/PedroRegisPOAR/TopDownShooter.git
+git config --global http.postBuffer 524288000 # Set buffer size to 500 MB
+git config --global http.lowSpeedLimit 0      # Disable low speed limit
+git config --global http.lowSpeedTime 999999  # Set low speed time limit to a large value
+```
+Refs.:
+- https://stackoverflow.com/a/77999795
+- https://github.com/orgs/community/discussions/48568#discussioncomment-9998178
+
+
+```bash
+git add .
+```
+
 ```bash
 nix develop --impure '.#' --command nixGL godot4 -e
 ```
@@ -21,7 +37,7 @@ nix develop --impure '.#' --command nixGL godot4 -e
 
 ```bash
 cat > Containerfile << 'EOF'
-FROM docker.io/library/alpine:3.19.1 as alpine-with-ca-certificates-tzdata
+FROM docker.io/library/alpine:3.20.2 as alpine-with-ca-certificates-tzdata
 
 # https://stackoverflow.com/a/69918107
 # https://serverfault.com/a/1133538
@@ -77,7 +93,7 @@ RUN CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 
          --extra-experimental-features auto-allocate-uids \
          profile \
          install \
-         github:NixOS/nixpkgs/ebe6e807793e7c9cc59cf81225fdee1a03413811#pkgsStatic.nix \
+         github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06#pkgsStatic.nix \
  && rm -v ./nix \
  && mkdir -pv "$HOME"/.config/nix \
  && grep 'experimental-features' "$HOME"/.config/nix/nix.conf -q &> /dev/null || (echo 'experimental-features = nix-command flakes' >> "$HOME"/.config/nix/nix.conf) \
@@ -99,7 +115,7 @@ RUN CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 
  && nix \
       registry \
       pin \
-      nixpkgs github:NixOS/nixpkgs/ebe6e807793e7c9cc59cf81225fdee1a03413811 \
+      nixpkgs github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06 \
  && nix flake metadata nixpkgs
 
 EOF
@@ -150,19 +166,37 @@ podman \
 run \
 --annotation=run.oci.keep_original_groups=1 \
 --device=/dev/kvm:rw \
---device=/dev/dri:ro \
+--device=/dev/dri:rw \
 --env="DISPLAY=${DISPLAY:-:0}" \
+--group-add=keep-groups \
 --hostname=container-nix \
 --interactive=true \
 --name=container-alpine-with-ca-certificates-tzdata \
---privileged=true \
+--privileged=false \
 --tty=true \
---rm=true \
+--rm=false \
+--userns=keep-id \
 --volume=/tmp/.X11-unix:/tmp/.X11-unix:ro \
---volume=/etc/localtime:/etc/localtime:ro \
 --volume="$(pwd)":/home/nixuser/code:rw \
 localhost/alpine-with-ca-certificates-tzdata:latest \
-sh -cl 'nix run nixpkgs#xorg.xclock'
+sh -cl 'touch /home/nixuser/code && nix run nixpkgs#xorg.xclock'
 ```
 Refs.:
 - 
+
+
+Why NixOS does not have `/etc/localtime`? 
+So the volume `--volume=/etc/localtime:/etc/localtime:ro` just breaks!?!
+
+
+```bash
+podman \
+run \
+--group-add=keep-groups \
+--privileged=false \
+--rm=true \
+--userns=keep-id \
+--volume="$(pwd)":/home/nixuser/code:rw \
+busybox \
+sh -cl 'id'
+```

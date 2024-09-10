@@ -1,4 +1,6 @@
 
+TODO: revise the flake.nix and add what may be missing.
+```nix
   nixpkgs.config = {
     allowBroken = false;
     allowUnfree = true;
@@ -168,3 +170,4 @@ which-key-nvim
 #    vimAlias = true;
 #    vimdiffAlias = true;
 #  };
+```

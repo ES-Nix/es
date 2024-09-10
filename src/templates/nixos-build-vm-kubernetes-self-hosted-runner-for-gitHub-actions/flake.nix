@@ -1,15 +1,20 @@
 {
   description = "";
 
+  /*
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+  */
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
-
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
-    podman-rootless.url = "github:ES-Nix/podman-rootless/from-nixpkgs";
+    # podman-rootless.url = "github:ES-Nix/podman-rootless/from-nixpkgs";
     # sops-nix.url = "github:Mic92/sops-nix";
-
     # sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    podman-rootless.inputs.nixpkgs.follows = "nixpkgs";
+    # podman-rootless.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -24,6 +29,40 @@
         inherit self final prev;
 
         foo-bar = prev.hello;
+
+        cachedOCIImageActionsRunner = prev.dockerTools.pullImage {
+          finalImageTag = "2.319.1";
+          imageDigest = "sha256:30a523019a27c97da3f2145252dad9478b7427a8b484a0c775f3a8605d84d35d";
+          imageName = "ghcr.io/actions/actions-runner";
+          name = "ghcr.io/actions/actions-runner";
+          sha256 = "sha256-VdeO9yOoKm8YQiNLYfCIs4S17oE0C4GN1YxFtZU54JM=";
+        };
+
+        cachedOCIImageGhaRunnerScaleSetController090 = prev.dockerTools.pullImage {
+          finalImageTag = "0.9.0";
+          imageDigest = "sha256:ccc6a7a9cc216f8e294686c78347fca3d492078e39b6b90f0855e9b758ac1978";
+          imageName = "ghcr.io/actions/gha-runner-scale-set-controller";
+          name = "ghcr.io/actions/gha-runner-scale-set-controller";
+          sha256 = "sha256-c8L7ndtAGKEm01tbPnW/v9Tt7qNWuvg38K7S9SQE9vc=";
+        };
+
+        cachedOCIImageGhaRunnerScaleSetController = prev.dockerTools.pullImage {
+          finalImageTag = "0.9.3";
+          imageDigest = "sha256:63a90e30999cf47a5b36b88bbf9411233fa9e10dfc6d6467335577a02f18572c";
+          imageName = "ghcr.io/actions/gha-runner-scale-set-controller";
+          name = "ghcr.io/actions/gha-runner-scale-set-controller";
+          sha256 = "sha256-oQXoazC4UBLb7kt8fTvdvA1b0Dm6q9TWv3qMeeG7udk=";
+        };
+
+        cachedOCIImageDinD = prev.dockerTools.pullImage {
+          finalImageTag = "27.1.2-dind-alpine3.20";
+          imageDigest = "sha256:2e5515536bf789843b48030fdca3e3719463ba85c43b1da7d5687f5997b79d26";
+          imageName = "docker";
+          name = "docker";
+          sha256 = "sha256-eY9wwi2WBRFjFsNfORbB06TgtB74hjVi/ppOgkp05/I=";
+        };
+
+
       };
     } //
     (
@@ -48,14 +87,6 @@
               allowUnfree = true;
             };
           };
-
-          hack = pkgsAllowUnfree.writeShellScriptBin "hack" ''
-            # Dont overwrite customised configuration
-
-            # https://dev.to/ifenna__/adding-colors-to-bash-scripts-48g4
-            echo -e '\n\n\n\e[32m\tAmbiente pronto!\e[0m\n'
-            echo -e '\n\t\e[33mignore as proximas linhas...\e[0m\n\n\n'
-          '';
 
           # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
           pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
@@ -116,20 +147,20 @@
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
               age
-              allAttrs.podman-rootless.packages.${system}.podman
               bashInteractive
               coreutils
               curl
               gettext
               gh
               gnumake
-              hack
               httpie
               jq
               patchelf
               sops
               skopeo
               ssh-to-age
+
+              nix-prefetch-docker
             ];
 
             shellHook = ''
@@ -158,8 +189,6 @@
               # --encrypt \
               # --age $(age-keygen -y ~/.config/sops/age/keys.txt) \
               # secrets/secrets.yaml > secrets/secrets.yaml.encrypted
-
-              hack
             '';
           };
         })
@@ -451,7 +480,7 @@
 
               nix = {
                 extraOptions = "experimental-features = nix-command flakes";
-                package = pkgs.nixVersions.nix_2_10;
+                # package = pkgs.nixVersions.nix_2_10;
                 registry.nixpkgs.flake = nixpkgs; # https://bou.ke/blog/nix-tips/
                 nixPath = [ "nixpkgs=${pkgs.path}" ];
               };
@@ -541,6 +570,22 @@
 
               # nix eval --impure --json \
               # '.#nixosConfigurations.vm.config.services.kubernetes.kubelet.seedDockerImages'
+              # TODO: test that it is working!
+              services.kubernetes.kubelet.seedDockerImages = (with pkgs; [
+                (dockerTools.buildImage {
+    name = "pause";
+    tag = "latest";
+    copyToRoot = pkgs.buildEnv {
+      name = "image-root";
+      pathsToLink = [ "/bin" ];
+      paths = [ config.services.kubernetes.package.pause ];
+    };
+    config.Cmd = ["/bin/pause"];
+  })
+                cachedOCIImageActionsRunner
+                cachedOCIImageGhaRunnerScaleSetController
+                cachedOCIImageDinD
+              ]);
               # services.kubernetes.kubelet.seedDockerImages = (with pkgs; [
               #   cachedOCIImage1
               #   cachedOCIImage2
@@ -548,6 +593,24 @@
               #   cachedOCIImage4
               #   cachedOCIImage5
               # ]);
+
+              systemd.services.docker-custom-bootstrap-1 = {
+                description = "Docker Custom Bootstrap 1";
+                wantedBy = [ "multi-user.target" ];
+                after = [ "docker.service" ];
+                path = with pkgs; [ docker ];
+                script = ''
+                  # set -x
+                  echo "Loading OCI Image in docker..."
+
+                  docker load <"${pkgs.cachedOCIImageDinD}"
+                  docker load <"${pkgs.cachedOCIImageActionsRunner}"
+
+                '';
+                serviceConfig = {
+                  Type = "oneshot";
+                };
+              };
 
               services.kubernetes.roles = [ "master" "node" ];
               services.kubernetes.masterAddress = "nixos";

@@ -7,9 +7,16 @@
     lock \
     --override-input nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b \
     --override-input flake-utils github:numtide/flake-utils/4022d587cbbfd70fe950c1e2083a02621806a725
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/7619e43c2b48c29e24b88a415256f09df96ec276'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
 
     poetry2nix = {
@@ -20,7 +27,7 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, poetry2nix }: {
-    overlay = nixpkgs.lib.composeManyExtensions [
+    overlays.default = nixpkgs.lib.composeManyExtensions [
       poetry2nix.overlays.default
       (final: prev: {
         foo-bar = prev.hello;
@@ -28,6 +35,7 @@
         myapp = prev.poetry2nix.mkPoetryApplication {
           src = prev.poetry2nix.cleanPythonSources { src = ./.; };
           projectDir = ./.;
+          # python = prev.python3Minimal;
 
           overrides = prev.poetry2nix.defaultPoetryOverrides.extend
             (final: prev: {
@@ -313,7 +321,6 @@
           };
         };
 
-        #
         /*
            docker pull python:3.11.9-slim-bullseye
            docker pull python:3.11.9-alpine3.20
@@ -494,10 +501,37 @@
             final.helloFlaskMinimal
           ];
           config = {
-            Cmd = [ "python" "-m" "flask" "run" "--host=0.0.0.0" "--port=5001" "--debugger" ];
+            Cmd = [ "python" "-m" "flask" "run" "--host=0.0.0.0" "--port=5001" "--debug" ];
             Env = [
               "FLASK_APP=${final.helloFlaskMinimal}"
             ];
+          };
+        };
+
+        python3WithOpentelemetryInstrumentationFastapi =
+          let
+            pyCustom = (prev.python3.override {
+              self = pyCustom;
+              includeSiteCustomize = true;
+            });
+          in
+          pyCustom.withPackages (pyPkgs: with pyPkgs ; [ fastapi uvicorn opentelemetry-instrumentation-fastapi ]);
+
+        #
+        opentelemetryInstrumentationFastapi = prev.writeTextDir "opentelemetry-instrumentation-fastapi.py"
+          "${ builtins.readFile ./opentelemetry-instrumentation-fastapi.py}";
+
+        # docker run --rm -ti --publish=8000:8000 python3-opentelemetry-instrumentation-fastapi:0.0.1
+        python3WithOpentelemetryInstrumentationFastapiOCIImage = prev.dockerTools.buildImage {
+          name = "python3-opentelemetry-instrumentation-fastapi";
+          tag = "0.0.1";
+          created = "now";
+          copyToRoot = [
+            final.python3WithOpentelemetryInstrumentationFastapi
+          ];
+          config = {
+            Cmd = [ "uvicorn" "opentelemetry-instrumentation-fastapi:app" "--host" "0.0.0.0" "--port" "8000" ];
+            WorkingDir = "${final.opentelemetryInstrumentationFastapi}";
           };
         };
 
@@ -762,30 +796,30 @@
                   };
 
 
-                systemd.user.services.podman-custom-bootstrap-1 = {
-                  description = "Podman Custom Bootstrap 1";
-                  wantedBy = [ "default.target" ];
-                  after = [ "podman.service" ];
-                  path = with pkgs; [ "/run/wrappers" podman ];
-                  script = ''
-                    echo "Loading OCI Image in podman..."
-                    podman load <"${pkgs.myappOCIImage}"
-
-                    podman load <"${pkgs.cachedOCIImageStaticXorgXclock}"
-                    podman load <"${pkgs.cachedOCIImageBase1}"
-
-                    # "''${pkgs.cachedOCIImageBase1}" | podman load
-                    # "''${pkgs.cachedOCIImageStaticXorgXclock}" | podman load
-
-                    podman load <"${pkgs.cachedOCIImageStaticRedisServerMinimal}"
-                    podman load <"${pkgs.cachedOCIImageStaticRedisCLIMinimal}"
-                    podman load <"${pkgs.python3FlaskRedisOCIImage}"
-                    podman load <"${pkgs.cachedOCIImageStaticMemcachedMinimal}"
-                  '';
-                  serviceConfig = {
-                    Type = "oneshot";
-                  };
-                };
+                #                systemd.user.services.podman-custom-bootstrap-1 = {
+                #                  description = "Podman Custom Bootstrap 1";
+                #                  wantedBy = [ "default.target" ];
+                #                  after = [ "podman.service" ];
+                #                  path = with pkgs; [ "/run/wrappers" podman ];
+                #                  script = ''
+                #                    echo "Loading OCI Image in podman..."
+                #                    podman load <"${pkgs.myappOCIImage}"
+                #
+                #                    podman load <"${pkgs.cachedOCIImageStaticXorgXclock}"
+                #                    podman load <"${pkgs.cachedOCIImageBase1}"
+                #
+                #                    # "''${pkgs.cachedOCIImageBase1}" | podman load
+                #                    # "''${pkgs.cachedOCIImageStaticXorgXclock}" | podman load
+                #
+                #                    podman load <"${pkgs.cachedOCIImageStaticRedisServerMinimal}"
+                #                    podman load <"${pkgs.cachedOCIImageStaticRedisCLIMinimal}"
+                #                    podman load <"${pkgs.python3FlaskRedisOCIImage}"
+                #                    podman load <"${pkgs.cachedOCIImageStaticMemcachedMinimal}"
+                #                  '';
+                #                  serviceConfig = {
+                #                    Type = "oneshot";
+                #                  };
+                #                };
 
                 /*
 
@@ -808,18 +842,19 @@
                     # set -x
                     echo "Loading OCI Image in docker..."
 
-                    docker load <"${pkgs.strippedNix}"
-                    docker load <"${pkgs.python3FlaskOCIImage}"
+                    # docker load <"''${pkgs.strippedNix}"
+                    # docker load <"''${pkgs.python3FlaskOCIImage}"
 
 
                     # "''${pkgs.cachedOCIImageBase1}" | docker load
                     # "''${pkgs.cachedOCIImageStaticXorgXclock}" | docker load
 
-                    docker load <"${pkgs.cachedOCIImageStaticRedisServerMinimal}"
-                    docker load <"${pkgs.cachedOCIImageStaticRedisCLIMinimal}"
-                    docker load <"${pkgs.python3FlaskRedisOCIImage}"
+                    # docker load <"''${pkgs.cachedOCIImageStaticRedisServerMinimal}"
+                    # docker load <"''${pkgs.cachedOCIImageStaticRedisCLIMinimal}"
+                    # docker load <"''${pkgs.python3FlaskRedisOCIImage}"
+                    docker load <"${pkgs.python3WithOpentelemetryInstrumentationFastapiOCIImage}"
 
-                    docker load <"${pkgs.cachedOCIImageStaticMemcachedMinimal}"
+                    # docker load <"''${pkgs.cachedOCIImageStaticMemcachedMinimal}"
 
                     # docker load <"''${pkgs.vmNoGraphicalOCIImage}"
                   '';
@@ -875,7 +910,7 @@
                 system.stateVersion = "24.05";
               })
 
-            { nixpkgs.overlays = [ self.overlay ]; }
+            { nixpkgs.overlays = [ self.overlays.default ]; }
           ];
           specialArgs = { inherit nixpkgs; };
         };
@@ -1135,12 +1170,19 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ self.overlay ];
+          overlays = [ self.overlays.default ];
         };
       in
       rec {
-        packages = { inherit (pkgs) myapp myappOCIImage python3Custom python3MinimalWithMagic; };
-        defaultPackage = pkgs.myapp;
+        packages = {
+          inherit (pkgs)
+            myapp
+            myappOCIImage
+            # python3Custom
+            # python3MinimalWithMagic
+            ;
+        };
+        packages.default = pkgs.myapp;
 
         packages.myvm = pkgs.myvm;
         packages.automatic-vm = pkgs.automatic-vm;
@@ -1158,6 +1200,7 @@
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
+          testAutomatic-vm = pkgs.automatic-vm;
           testMyappOCIImageDockerFirefoxOCR = pkgs.testers.runNixOSTest {
             name = "test-myapp-as-oci-image-docker-firefox-ocr";
             nodes.machineWithDockerFirefoxOCR =
@@ -1183,8 +1226,6 @@
               };
 
             enableOCR = true;
-
-            # Set the timeout to 160 seconds
             globalTimeout = 160;
 
             testScript = { nodes, ... }:
@@ -1230,6 +1271,7 @@
               };
 
             enableOCR = true;
+            globalTimeout = 60;
 
             testScript = ''
               start_all()

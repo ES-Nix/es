@@ -14,13 +14,13 @@ Refs.:
 - https://wiki.archlinux.org/title/QEMU#SPICE
 
 
-So, it loohs like what is here:
+So, it looks like what is here:
 https://www.kraxel.org/blog/2021/05/qemu-cut-paste/
 +
 https://jeancharles.quillet.org/posts/2023-01-16-Basic-nix-vm-for-just-anything.html
 was deprecated/remove from QEMU. Where exactly?
 
-Are any of those the related to this `-chardev qemu-vdagent`?
+Are any of those related to this `-chardev qemu-vdagent`?
 - https://gitlab.com/Remmina/Remmina/-/issues/1268
 - https://gitlab.xfce.org/xfce/xfce4-settings/-/issues/142
 
@@ -342,3 +342,10 @@ qemu-system-x86_64 \
 -device usb-tablet,bus=usb-bus.0 -hda nixos.img
 ```
 
+
+TODO: test plasma and others.
+```
+services.xserver.displayManager.sddm.enable = true;
+services.xserver.desktopManager.plasma5.enable = true;
+services.xserver.displayManager.autoLogin.user = "nixuser";
+```

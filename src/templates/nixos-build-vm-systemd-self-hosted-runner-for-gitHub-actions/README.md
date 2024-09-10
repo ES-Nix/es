@@ -14,6 +14,12 @@ nix run --impure --refresh --verbose .#run-github-runner
 ```
 
 
+```bash
+cp -v .env.example .env
+test -f .env && source .env
+```
+
+
 Passo 2: Injetando manualmente o PAT. No terminal da VM use 
 "seta para cima" (para acessar o histórico):
 ```bash
