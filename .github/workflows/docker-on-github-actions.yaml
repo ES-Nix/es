@@ -10,11 +10,12 @@ on: workflow_dispatch
 
 jobs:
   push_container:
-    runs-on: arc-runner-set
+    # runs-on: arc-runner-set
+    runs-on: nixos
     # runs-on: ubuntu-latest
     services:
       docker:
-        image: docker:dind
+        image: docker:27.1.2-dind-alpine3.20
         options: --privileged --shm-size=2g
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock:ro
