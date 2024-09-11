@@ -93,12 +93,13 @@ build \
 $FLAKE_ATTR
 
 AUX=$(nix build --impure --print-out-paths $FLAKE_ATTR)
-nix -vvvvv profile remove '.*'
 
-# It looks like the symbolic link
+# Even removing all packages it still making home-manager break, why?
+nix profile remove '.*'
+# It looks like the symbolic link breaks home-manager, why?
 ls -ahl "$HOME"/.local/state/nix/profiles/profile
 file "$HOME"/.local/state/nix/profiles
-rm -fv "$HOME"/.local/state/nix/profiles
+test -d "$HOME"/.local/state/nix/profiles && rm -frv "$HOME"/.local/state/nix/profiles
 
 "$AUX"/activate
 
