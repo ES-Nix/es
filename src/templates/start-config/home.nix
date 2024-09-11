@@ -105,6 +105,7 @@
     # ptrace
     traceroute
     # nixVersions.nix_2_10
+    nix
     man
     man-db
     (aspellWithDicts (d: with d; [ de en pt_BR ])) # nix repl --expr 'import <nixpkgs> {}' <<<'builtins.attrNames aspellDicts' | tr ' ' '\n'
