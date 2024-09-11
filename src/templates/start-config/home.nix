@@ -448,7 +448,7 @@
     enable = true;
     # What about github:NixOS/nix#nix-static can it be injected here? What would break?
     # package = pkgs.pkgsStatic.nixVersions.nix_2_10;
-    package = pkgs.nixVersions.nix_2_10;
+    package = pkgs.nix;
     # Could be useful:
     # export NIX_CONFIG='extra-experimental-features = nix-command flakes'
     extraOptions = ''
