@@ -7,7 +7,7 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
-    --override-input home-manager 'github:nix-community/home-manager/f33900124c23c4eca5831b9b5eb32ea5894375ce'
+    --override-input home-manager 'github:nix-community/home-manager/208df2e558b73b6a1f0faec98493cb59a25f62ba'
   */
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
@@ -34,16 +34,7 @@
         "aarch64-darwin"
       ];
 
-      mkSystem = extraModules:
-        nixpkgs.lib.nixosSystem rec {
-          system = "x86_64-linux";
-          modules = [
-            # bake the git revision of the repo into the system
-            ({ ... }: { system.configurationRevision = self.sourceInfo.rev; })
-          ] ++ extraModules;
-        };
-
-      f = { system, username, arg-pkgs, home ? "", stateVersion ? "22.11" }:
+      f = { system, username, arg-pkgs, home ? "", stateVersion ? "24.05" }:
         let
           pkgs = arg-pkgs;
           baseHomeDirectory = "${if pkgs.stdenv.isLinux then "/home/" else "${if pkgs.stdenv.isDarwin then "/User/" else builtins.throw "Unsuported system!"}"}";
@@ -59,8 +50,9 @@
                 homeDirectory = "${homeDirectory}";
                 stateVersion = "${stateVersion}";
                 packages = with pkgs; [
-                  sl
-                  cowsay
+                  # sl
+                  # cowsay
+                  hello
                 ];
               };
 
