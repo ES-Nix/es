@@ -549,6 +549,8 @@
       # ZSH_AUTOSUGGEST_MANUAL_REBIND="true";
       # PROMPT="|%F{153}%n@%m%f|%F{174}%1~%f> ";
 
+      DIRENV_LOG_FORMAT = "";
+
       LANG = "en_US.utf8";
       # fc-match list
       FONTCONFIG_FILE = "${pkgs.fontconfig.out}/etc/fonts/fonts.conf";

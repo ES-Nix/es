@@ -4,15 +4,16 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs github:NixOS/nixpkgs/d12251ef6e8e6a46e05689eeccd595bdbd3c9e60 \
-    --override-input flake-utils github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a
+    --override-input nixpkgs 'github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a7' \
+    --override-input flake-utils 'github:numtide/flake-utils/c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a' \
+    --override-input home-manager 'github:nix-community/home-manager/208df2e558b73b6a1f0faec98493cb59a25f62ba'
   */
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
 
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/release-24.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -59,6 +60,8 @@
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
+          # packages.default = self.homeConfigurations."${suportedSystem}"."${userName}";
+
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
               foo-bar
@@ -82,6 +85,7 @@
           };
 
           homeConfigurations."${userName}" = home-manager.lib.homeManagerConfiguration {
+            # system = "${suportedSystem}";
             pkgs = pkgsAllowUnfree;
             modules = [
               ({ pkgs, ... }:
@@ -110,11 +114,14 @@
                     registry.nixpkgs.flake = nixpkgs;
                     settings = {
                       bash-prompt-prefix = "(nix:$name)\\040";
+
+                      keep-build-log = true;
                       keep-derivations = true;
                       keep-env-derivations = true;
                       keep-failed = false;
                       keep-going = true;
                       keep-outputs = true;
+
                       nix-path = "nixpkgs=flake:nixpkgs";
                       tarball-ttl = 2419200; # 60 * 60 * 24 * 7 * 4 = one month
                     };
@@ -155,7 +162,6 @@
             ];
             extraSpecialArgs = { nixpkgs = nixpkgs; };
           };
-
         }
       )
 

@@ -1,5 +1,74 @@
 # es
 
+
+## Remote using this flake
+
+
+```bash
+nix run --impure 'github:ES-Nix/es/?dir=src/templates/nginx'
+```
+
+
+## With a local clone
+
+
+```bash
+nix run --impure 'github:ES-Nix/es/?dir=src/templates/nginx'
+```
+
+
+```bash
+nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
+'./src/templates/pandoc-latex' \
+'./src/templates/nginx' \
+'./src/templates/nixos-build-vm-systemd-self-hosted-runner-for-gitHub-actions' \
+'./src/templates/nixos-build-vm-kubernetes-self-hosted-runner-for-gitHub-actions' \
+'./src/templates/nixos-tests-hello-systemd-service' \
+'./src/templates/poetry2nix-basic-flask' \
+'./src/templates/poetry2nix-basic' \
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker' \
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-flask' \
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-k8s' \
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-podman-flask' \
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-python-script-and-package' \
+'./src/templates/minimal-busybox-sandbox-shell' \
+'./src/templates/nginx' \
+'./src/templates/flake-utils-godot4' \
+'./src/templates/nix-flakes-flake-utils-devShell' \
+'./src/templates/nix-flakes-flake-utils-devShell-home-manager#homeConfigurations.x86_64-linux.vagrant.activationPackage'
+```
+
+```bash
+nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
+'./src/templates/valkey-static' \
+'./src/templates/redis-static' \
+'./src/templates/nginx-static' \
+'./src/templates/memcached-static'
+```
+
+```bash
+nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
+'./src/templates/binfmt-emulated-systems-hello' \
+'./src/templates/binfmt-emulated-systems-docker' \
+'./src/templates/binfmt-emulated-systems-python-docker-registry-images'
+```
+
+```bash
+nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
+'./src/templates/nixos-iso-offline-install'
+```
+
+```bash
+nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
+'./src/templates/docker-multiple-kernel-versions'
+```
+
+```bash
+nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
+'./src/templates/bug-nixostest'
+```
+
+
 ## Contributing
 
 ```bash
@@ -334,6 +403,7 @@ EOF
 ```
 
 
+TODO: 
 ```bash
 templates = import ./src/templates { system = "x86_64-linux"; } ;
 templates.default = import ./src/templates;

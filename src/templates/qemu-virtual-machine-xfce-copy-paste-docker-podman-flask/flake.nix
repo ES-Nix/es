@@ -11,14 +11,19 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/aa4e34969baa92fcc227f880d82b1f5a6cc1d343' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
-    --override-input poetry2nix 'github:nix-community/poetry2nix/7619e43c2b48c29e24b88a415256f09df96ec276'
+    --override-input poetry2nix 'github:nix-community//poetry2nix/8a18db56dd62edd26458a87e4d335b7df84c3f3f'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
-
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -26,9 +31,10 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }: {
+  outputs = { self, nixpkgs, flake-utils, poetry2nix, }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       poetry2nix.overlays.default
+
       (final: prev: {
         foo-bar = prev.hello;
 
@@ -583,164 +589,6 @@
               "NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
               "NIX_CONFIG=extra-experimental-features = nix-command flakes"
               "TMPDIR=/home/${user}"
-            ];
-          };
-
-        /*
-          docker run -p 6379:6379 -it --rm redis:7.2.5-alpine3.20 sh -c 'redis-server'
-          docker run --net=host -it --rm redis:7.2.5-alpine3.20 sh -c 'redis-cli PING'
-
-          docker run -p 6379:6379 -it --rm static-redis-server-minimal
-          docker run --net=host -it --rm static-redis-cli-minimal
-
-          docker run -p 6379:6379 -d --name container-redis --rm static-redis-server-minimal
-          time docker stop container-redis
-
-
-          podman run -p 6379:6379 -it --rm static-redis-server-minimal
-          podman run --net=host -it --rm static-redis-cli-minimal
-
-          podman run -p 6379:6379 -d --name container-redis --rm static-redis-server-minimal
-          time podman stop container-redis
-
-        */
-        cachedOCIImageStaticRedisServerMinimal =
-          let
-            user = "appuser";
-            group = "appgroup";
-            uid = "1234";
-            gid = "9876";
-          in
-          prev.dockerTools.buildLayeredImage {
-            name = "static-redis-server-minimal";
-            tag = "latest";
-            includeStorePaths = false;
-
-            extraCommands = ''
-              mkdir -pv -m1777 ./tmp
-              mkdir -pv -m0700 ./bin
-              mkdir -pv ./etc ./data
-
-              cp -aTv ${prev.pkgsStatic.redis}/bin/redis-server ./bin/redis-server
-
-              echo 'root:x:0:0::/root:/bin/sh' >> ./etc/passwd
-              echo "${user}:x:${uid}:${gid}:${group}:/home/${user}:/bin/sh" >> ./etc/passwd
-
-              echo 'root:x:0:' >> ./etc/group
-              echo "${group}:x:${gid}:${user}" >> ./etc/group
-            '';
-
-            fakeRootCommands = ''
-              chown -Rv "${uid}:${gid}" ./data ./bin
-            '';
-
-            config.Entrypoint = [ "/bin/redis-server" "--protected-mode no" ];
-            # config.Cmd = [ "redis-server"  "--protected-mode no"];
-            config.User = "${user}:${group}";
-            config.WorkingDir = "/data";
-            # config.Stopsignal = "SIGRTMIN+3";
-            # config.Publish = { "6379/tcp" = { }; };
-            config.ExposedPorts = { "6379/tcp" = { }; }; # "<port>/<tcp|udp>": {}
-            config.Volumes = {
-              "/data" = { };
-            };
-            config.Env = [
-              "PATH=/bin"
-            ];
-          };
-
-        cachedOCIImageStaticRedisCLIMinimal =
-          let
-            user = "appuser";
-            group = "appgroup";
-            uid = "1234";
-            gid = "9876";
-          in
-          prev.dockerTools.buildLayeredImage {
-            name = "static-redis-cli-minimal";
-            tag = "latest";
-            includeStorePaths = false;
-
-            extraCommands = ''
-              mkdir -pv -m1777 ./tmp
-              mkdir -pv -m0700 ./bin
-              mkdir -pv ./etc
-
-              cp -aTv ${prev.pkgsStatic.redis}/bin/redis-cli ./bin/redis-cli
-
-              echo 'root:x:0:0::/root:/bin/sh' >> ./etc/passwd
-              echo "${user}:x:${uid}:${gid}:${group}:/home/${user}:/bin/sh" >> ./etc/passwd
-
-              echo 'root:x:0:' >> ./etc/group
-              echo "${group}:x:${gid}:${user}" >> ./etc/group
-            '';
-
-            fakeRootCommands = ''
-              chown -Rv "${uid}:${gid}" ./data ./bin
-            '';
-
-            config.Entrypoint = [ "/bin/redis-cli" "PING" ];
-            config.Env = [ "PATH=/bin" ];
-            config.ExposedPorts = { "6379/tcp" = { }; }; # "<port>/<tcp|udp>": {}
-            config.User = "${user}:${group}";
-            config.Volumes = { "/data" = { }; };
-            config.WorkingDir = "/data";
-          };
-
-
-        /*
-          docker pull memcached:1.6.29-alpine3.20
-
-          docker run -p 11211:11211 -d --name container-memcached --rm static-redis-server-minimal
-          time docker stop container-memcached
-
-          echo version | nc -N localhost 11211
-
-          podman run -p 11211:11211 -d --name container-memcached --rm static-redis-server-minimal
-          time podman stop container-memcached
-
-          https://book.hacktricks.xyz/network-services-pentesting/11211-memcache#manual
-        */
-        cachedOCIImageStaticMemcachedMinimal =
-          let
-            user = "appuser";
-            group = "appgroup";
-            uid = "1234";
-            gid = "9876";
-          in
-          prev.dockerTools.buildLayeredImage {
-            name = "static-memcached-minimal";
-            tag = "latest";
-            includeStorePaths = false;
-
-            extraCommands = ''
-              mkdir -pv -m1777 ./tmp
-              mkdir -pv -m0700 ./bin
-              mkdir -pv ./etc ./data
-
-              cp -aTv ${prev.pkgsStatic.memcached}/bin/memcached ./bin/memcached
-
-              echo 'root:x:0:0::/root:/bin/sh' >> ./etc/passwd
-              echo "${user}:x:${uid}:${gid}:${group}:/home/${user}:/bin/sh" >> ./etc/passwd
-
-              echo 'root:x:0:' >> ./etc/group
-              echo "${group}:x:${gid}:${user}" >> ./etc/group
-            '';
-
-            fakeRootCommands = ''
-              chown -Rv "${uid}:${gid}" ./data ./bin
-            '';
-
-            config.Entrypoint = [ "/bin/memcached" ];
-
-            config.User = "${user}:${group}";
-            config.WorkingDir = "/data";
-            config.ExposedPorts = { "11211/tcp" = { }; }; # "<port>/<tcp|udp>": {}
-            config.Volumes = {
-              "/data" = { };
-            };
-            config.Env = [
-              "PATH=/bin"
             ];
           };
 
@@ -1310,7 +1158,7 @@
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             foo-bar
-            # myapp
+            myapp
             # poetry
             # python3Custom
           ];

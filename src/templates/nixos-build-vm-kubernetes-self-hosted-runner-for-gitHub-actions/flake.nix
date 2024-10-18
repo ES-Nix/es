@@ -96,6 +96,7 @@
 
           packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
+          packages.default = packages.automatic-vm;
           packages.automatic-vm = pkgsAllowUnfree.writeShellApplication {
             name = "run-nixos-vm";
             runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
@@ -573,15 +574,15 @@
               # TODO: test that it is working!
               services.kubernetes.kubelet.seedDockerImages = (with pkgs; [
                 (dockerTools.buildImage {
-    name = "pause";
-    tag = "latest";
-    copyToRoot = pkgs.buildEnv {
-      name = "image-root";
-      pathsToLink = [ "/bin" ];
-      paths = [ config.services.kubernetes.package.pause ];
-    };
-    config.Cmd = ["/bin/pause"];
-  })
+                  name = "pause";
+                  tag = "latest";
+                  copyToRoot = pkgs.buildEnv {
+                    name = "image-root";
+                    pathsToLink = [ "/bin" ];
+                    paths = [ config.services.kubernetes.package.pause ];
+                  };
+                config.Cmd = ["/bin/pause"];
+              })
                 cachedOCIImageActionsRunner
                 cachedOCIImageGhaRunnerScaleSetController
                 cachedOCIImageDinD

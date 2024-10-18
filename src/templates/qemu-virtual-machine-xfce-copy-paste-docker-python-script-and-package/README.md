@@ -34,6 +34,17 @@ TODO: missing checks that validate code formating, like black.
 
 
 ```bash
+nix flake metadata '.#'
+nix flake show '.#'
+
+nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
+
+nix flake check --verbose '.#'
+# nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.testBinfmtMany'
+```
+
+
+```bash
 nix build --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.testMyappOCIImageDockerFirefoxOCR'
 ```
 
@@ -184,37 +195,128 @@ https://docs.docker.com/compose/gettingstarted/#step-1-set-up
 
 
 
-
+```bash
 opentelemetry-instrument uvicorn opentelemetry-instrumentation-fastapi:app --host 0.0.0.0 --port 8000
+```
+
+```bash
+# docker run --rm -ti --publish=8000:8000 python3-opentelemetry-instrumentation-fastapi:0.0.1
+python3WithOpentelemetryInstrumentationFastapiOCIImage = prev.dockerTools.buildImage {
+  name = "python3-opentelemetry-instrumentation-fastapi";
+  tag = "0.0.1";
+  created = "now";
+  copyToRoot = [
+    final.appFastAPI
+  ];
+  config = {
+    Cmd = [ "opentelemetry-instrument" "uvicorn" "opentelemetry-instrumentation-fastapi:app" "--host" "0.0.0.0" "--port" "8000" ];
+    WorkingDir = "${final.appFastAPI}";
+    Env = with prev; [
+      "OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE='.*'"
+    ];
+  };
+};
+```
 
 
-        # docker run --rm -ti --publish=8000:8000 python3-opentelemetry-instrumentation-fastapi:0.0.1
-        python3WithOpentelemetryInstrumentationFastapiOCIImage = prev.dockerTools.buildImage {
-          name = "python3-opentelemetry-instrumentation-fastapi";
-          tag = "0.0.1";
-          created = "now";
-          copyToRoot = [
-            final.appFastAPI
-          ];
-          config = {
-            Cmd = [ "opentelemetry-instrument" "uvicorn" "opentelemetry-instrumentation-fastapi:app" "--host" "0.0.0.0" "--port" "8000" ];
-            WorkingDir = "${final.appFastAPI}";
-            Env = with prev; [
-              "OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE='.*'"
-            ];
-          };
-        };
-
+```bash
 python -m myFlaskServer
 python -c 'import flask'
 python -c 'import packageFlaskAPI'
 python -c 'import myFlaskServer'
+```
+
+
+
+
+```bash
+python -m flask run --host=0.0.0.0 --port=5001 --debug
+
+python -m flask --app fl4sk/fl4sk:app run --host=0.0.0.0 --port=5001 --debug
+python -m fl4sk --app fl4sk/fl4sk:app run --host=0.0.0.0 --port=5001 --debug
+
+python -m Package
+
+Package
+```
+
+
+
+
+```nix            
+uvicorn
+opentelemetry-instrumentation
+opentelemetry-instrumentation-flask
+
+# scipy
+#  cffi
+#  cryptography
+#  cython
+#  folium
+#  jax
+#  jupyter
+#  jupyterlab
+#  # keras
+#  mmh3
+#  networkx
+#  numpy
+#  pandas
+#  pillow
+#  polars
+#  psycopg2
+#  pymupdf
+#  pyspark
+#  rustworkx
+#  scikitimage
+#  scikitlearn
+#  scipy
+#  selenium
+#  shapely
+#  sympy
+#  # tensorflow
+#  tinygrad
+#  torch
+```
+
+```nix
+config.virtualisation.memorySize = 1024 * 2; # Use MiB memory.
+config.virtualisation.diskSize = 1024 * 15; # Use MiB memory.
+```
+
+
+```bash
+flask
+fastapi
+django
+```
+
+
+```bash
+xdotool search --onlyvisible --class firefox getwindowname %@
+Problem loading page — Mozilla Firefo
+```
+
+
+```bash
+nix flake update '.#'
+ ```
+
+```bash
+nix flake metadata '.#'
+```
+
+```bash
+nix flake check '.#'
+```
 
 
 
 
 
+####
 
+
+TODO: imagemagic
 
 ```bash
 nix-store --query --graph --include-outputs --force-realise \
@@ -362,138 +464,4 @@ okular ffmpeg-full.ps
 
 ```bash
 nix path-info -rsSh $(nix path-info --derivation nixpkgs#hello)
-```
-
-
-```bash
-python -m flask run --host=0.0.0.0 --port=5001 --debug
-
-python -m flask --app fl4sk/fl4sk:app run --host=0.0.0.0 --port=5001 --debug
-python -m fl4sk --app fl4sk/fl4sk:app run --host=0.0.0.0 --port=5001 --debug
-
-python -m Package
-
-Package
-```
-
-
-
-
-```nix            
-            uvicorn
-            opentelemetry-instrumentation
-            opentelemetry-instrumentation-flask
-
-            # scipy
-            #  cffi
-            #  cryptography
-            #  cython
-            #  folium
-            #  jax
-            #  jupyter
-            #  jupyterlab
-            #  # keras
-            #  mmh3
-            #  networkx
-            #  numpy
-            #  pandas
-            #  pillow
-            #  polars
-            #  psycopg2
-            #  pymupdf
-            #  pyspark
-            #  rustworkx
-            #  scikitimage
-            #  scikitlearn
-            #  scipy
-            #  selenium
-            #  shapely
-            #  sympy
-            #  # tensorflow
-            #  tinygrad
-            #  torch
-```
-
-```nix
-              config.virtualisation.memorySize = 1024 * 2; # Use MiB memory.
-              config.virtualisation.diskSize = 1024 * 15; # Use MiB memory.
-```
-
-
-```bash
-flask
-fastapi
-django
-```
-
-
-```bash
-xdotool search --onlyvisible --class firefox getwindowname %@
-Problem loading page — Mozilla Firefo
-```
-
-
-
-
-docker, podman, 
-runc, crun, ?
-youki, sysbox, ?
-
-kubernetes
-
-Chef, Puppet, Ansible, SaltStack
-
-
-Quanto de:
-- RAM
-- HD
-
-Qual o hardware?
-- x86_64?
-- aarch64?
-- Linux? Darwin? 
-- Pode criar o `/nix`?
-- O user tem acesso ao device `/dev/kvm`?
-
-
-
-De que forma instalou:
-- nix single user (no deamom, no systemd)
-- nix multuser (deamom, systemd unit/service)
-- nix inside a container (docker, podman)
-- nix as cli in WSL
-- nix with home-manager in WSL
-- nix as OS in WSL
-- nix in Mac (DeterminateSystem Intaller's?)
-- nix in Virtual Machine as the Operational System? 
-
-
-
-nix-index
-nix-du
-
-pkgs.steam-run
-pkgs.buildFHSUserEnv
-pkgs.buildFHSUserEnvBubblewrap
-
-nix-ld,
-nix-alien, 
-
-direnv vs lorri
-
-qemu-virtual-machine-xfce-copy-paste-docker-podman-python-standard-library-http-server
-
-
-
-
-```bash
-nix flake update '.#'
- ```
-
-```bash
-nix flake metadata '.#'
-```
-
-```bash
-nix flake check '.#'
 ```

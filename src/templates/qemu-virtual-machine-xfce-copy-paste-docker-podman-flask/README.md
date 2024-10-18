@@ -6,6 +6,16 @@ nix run --impure --refresh --verbose .#
 ```
 
 
+```bash
+nix flake metadata '.#'
+nix flake show '.#'
+
+nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
+
+nix flake check --verbose '.#'
+# nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.testBinfmtMany'
+```
+
 
 Invoking in the host:
 ```bash

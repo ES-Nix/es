@@ -1,5 +1,5 @@
 {
-  description = "Este é o nix (com flakes) para o ambiente de desenvolvimento do github-ci-runner";
+  description = "Este é nix flake para executar localmente GitHub Actions Runners em máquina virtual NixOS via systemd";
 
   /*
     nix \
@@ -17,11 +17,8 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
-    podman-rootless.url = "github:ES-Nix/podman-rootless/from-nixpkgs";
     # sops-nix.url = "github:Mic92/sops-nix";
-
     # sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    podman-rootless.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -70,6 +67,7 @@
 
           packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
+          packages.default = packages.automatic-vm;
           packages.automatic-vm = pkgsAllowUnfree.writeShellApplication {
             name = "run-nixos-vm";
             runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
@@ -104,7 +102,7 @@
             '';
           };
 
-          apps.run-github-runner = {
+          apps.default = {
             type = "app";
             program = "${self.packages."${system}".automatic-vm}/bin/run-nixos-vm";
           };
@@ -115,7 +113,6 @@
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
               age
-              allAttrs.podman-rootless.packages.${system}.podman
               bashInteractive
               coreutils
               curl

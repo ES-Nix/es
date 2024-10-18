@@ -5,8 +5,9 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
-    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+    --override-input nixpkgs 'github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
+    --override-input flake-utils 'github:nix-community//poetry2nix/3c92540611f42d3fb2d0d084a6c694cd6544b609'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -188,7 +189,7 @@
                 machine.succeed("docker load < ${self.packages.${system}.myappOCIImage}")
                 machine.succeed("podman load < ${self.packages.${system}.myappOCIImage}")
 
-                # machine.succeed("docker run --rm myapp-oci-image:0.0.1 | grep -q 'Hello poetry2nix!'")
+                # machine.succeed("docker run --rm myapp-oci-image:0.0.1 | grep -q 'Hello E poetry2nix!'")
                 # machine.succeed("podman run --rm localhost/myapp-oci-image:0.0.1 | grep -q 'Hello poetry2nix!'")
               '';
               hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs

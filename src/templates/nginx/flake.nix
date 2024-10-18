@@ -32,6 +32,59 @@
         inherit self final prev;
 
         foo-bar = prev.hello;
+
+        myCustomImage =
+          let
+            conf = {
+              nginxWebRoot = prev.writeTextDir "index.html"
+                ''
+                  <html>
+                    <body>
+                      <center>
+                      <marquee><h1>all ur PODZ is belong to ME</h1></marquee>
+                      <img src=\"https://m.media-amazon.com/images/M/MV5BYjBlODg3ZTgtN2ViNS00MDlmLWIyMTctZmQ2NWYwMzE2N2RmXkEyXkFqcGdeQVRoaXJkUGFydHlJbmdlc3Rpb25Xb3JrZmxvdw@@._V1_.jpg\" width=\"100%\">
+                      </center>
+                    </body>
+                  </html>\n
+                '';
+
+              nginxPort = "80";
+              nginxConf = prev.writeText "nginx.conf" ''
+                user nobody nobody;
+                daemon off;
+                error_log /dev/stdout info;
+                pid /dev/null;
+                events {}
+                http {
+                  access_log /dev/stdout;
+                  server {
+                    listen ${conf.nginxPort};
+                    index index.html;
+                    location / {
+                      root ${conf.nginxWebRoot};
+                    }
+                  }
+                }
+              '';
+            };
+          in
+          prev.dockerTools.buildLayeredImage {
+            name = "joshrosso";
+            tag = "1.4";
+            contents = with prev; [ fakeNss nginx ];
+
+            extraCommands = ''
+              mkdir -p tmp/nginx_client_body
+
+              # nginx still tries to read this directory even if error_log
+              # directive is specifying another file :/
+              mkdir -p var/log/nginx
+            '';
+            config = {
+              Cmd = [ "nginx" "-c" conf.nginxConf ];
+              ExposedPorts = { "${conf.nginxPort}/tcp" = { }; };
+            };
+          };
       };
     } //
     (
@@ -64,6 +117,7 @@
 
           packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
+          packages.default = packages.automatic-vm;
           packages.automatic-vm = pkgsAllowUnfree.writeShellApplication {
             name = "run-nixos-vm";
             runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
@@ -193,7 +247,7 @@
                   ];
                 };
 
-              networking.firewall.allowedTCPPorts = [ (builtins.head config.virtualisation.vmVariant.virtualisation.forwardPorts).guest.port ];
+              # networking.firewall.allowedTCPPorts = [ (builtins.head config.virtualisation.vmVariant.virtualisation.forwardPorts).guest.port ];
 
               security.sudo.wheelNeedsPassword = false; # TODO: hardening
               # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
@@ -265,7 +319,7 @@
                           spec:
                             containers:
                             - name: message
-                              image: joshrosso/kubecon:1.4
+                              image: joshrosso:1.4
                               ports:
                               - containerPort: 80
                         '';
@@ -274,7 +328,7 @@
                       #! ${pkgs.runtimeShell}
 
                         while true; do
-                          sudo -E kubectl get pods -n kube-system --field-selector status.phase=Running | grep Running && break;
+                          sudo -E kubectl get pods --namespace kube-system --field-selector status.phase=Running | grep Running && break;
                           sudo -E kubectl get pod --all-namespaces -o wide;
                           sleep 0.5;
                           clear;
@@ -283,7 +337,7 @@
                         sudo -E kubectl apply -f ${joshrossoKubecon};
 
                         while true; do
-                          sudo -E kubectl get pods -n default --field-selector status.phase=Running | grep Running && break;
+                          sudo -E kubectl get pods --namespace default --field-selector status.phase=Running | grep Running && break;
                           sudo -E kubectl get pod --all-namespaces -o wide;
                           sleep 0.5;
                           clear;
@@ -322,76 +376,24 @@
               environment.variables.KUBECONFIG = "/etc/${config.services.kubernetes.pki.etcClusterAdminKubeconfig}";
               # services.kubernetes.kubelet.extraOpts = "--fail-swap-on=false"; # If you use swap it is an must!
 
+              services.kubernetes.kubelet.seedDockerImages = (with pkgs; [
+                myCustomImage
+              ]);
 
-              systemd.services.kubelet-custom-bootstrap = {
-                description = "Boostrap Custom Kubelet";
-                wantedBy = [ "kubernetes.target" ];
-                after = [ "docker.service" "network.target" ];
-                path = with pkgs; [ docker ];
-                script =
-                  let
-                    myCustomImage =
-                      let
-                        conf = {
-                          nginxWebRoot = pkgs.writeTextDir "index.html"
-                            ''
-                              <html>
-                                <body>
-                                  <center>
-                                  <marquee><h1>all ur PODZ is belong to ME</h1></marquee>
-                                  <img src=\"https://m.media-amazon.com/images/M/MV5BYjBlODg3ZTgtN2ViNS00MDlmLWIyMTctZmQ2NWYwMzE2N2RmXkEyXkFqcGdeQVRoaXJkUGFydHlJbmdlc3Rpb25Xb3JrZmxvdw@@._V1_.jpg\" width=\"100%\">
-                                  </center>
-                                </body>
-                              </html>\n
-                            '';
-
-                          nginxPort = "80";
-                          nginxConf = pkgs.writeText "nginx.conf" ''
-                            user nobody nobody;
-                            daemon off;
-                            error_log /dev/stdout info;
-                            pid /dev/null;
-                            events {}
-                            http {
-                              access_log /dev/stdout;
-                              server {
-                                listen ${conf.nginxPort};
-                                index index.html;
-                                location / {
-                                  root ${conf.nginxWebRoot};
-                                }
-                              }
-                            }
-                          '';
-                        };
-                      in
-                      pkgs.dockerTools.buildLayeredImage {
-                        name = "joshrosso";
-                        tag = "1.4";
-                        contents = [ pkgs.fakeNss pkgs.nginx ];
-
-                        extraCommands = ''
-                          mkdir -p tmp/nginx_client_body
-
-                          # nginx still tries to read this directory even if error_log
-                          # directive is specifying another file :/
-                          mkdir -p var/log/nginx
-                        '';
-                        config = {
-                          Cmd = [ "nginx" "-c" conf.nginxConf ];
-                          ExposedPorts = { "${conf.nginxPort}/tcp" = { }; };
-                        };
-                      };
-                  in
-                  ''
-                    echo "Seeding docker image..."
-                    docker load <"${myCustomImage}"
-                  '';
-                serviceConfig = {
-                  Slice = "kubernetes.slice";
-                  Type = "oneshot";
-                };
-              };
+              #  systemd.services.kubelet-custom-bootstrap = {
+              #    description = "Boostrap Custom Kubelet";
+              #    wantedBy = [ "kubernetes.target" ];
+              #    after = [ "docker.service" "network.target" ];
+              #    path = with pkgs; [ docker ];
+              #    script = ''
+              #      echo "Seeding docker image..."
+              #      docker load <"${pkgs.myCustomImage}"
+              #    '';
+              #    serviceConfig = {
+              #      Slice = "kubernetes.slice";
+              #      Type = "oneshot";
+              #    };
+              #  };
 
               system.stateVersion = "24.05";
             })

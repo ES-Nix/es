@@ -8,9 +8,17 @@ Generating a token:
 
 
 ```bash
+nix flake show '.#'
+
+nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
+
+nix flake check --verbose '.#'
+```
+
+```bash
 rm -fv nixos.qcow2;  
 
-nix run --impure --refresh --verbose .#run-github-runner
+nix run --impure --refresh --verbose .#
 ```
 
 

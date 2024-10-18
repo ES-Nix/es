@@ -54,6 +54,7 @@
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
+          packages.default = self.devShells."${suportedSystem}".default;
           devShells.default = pkgsAllowUnfree.mkShell.override { stdenv = pkgsAllowUnfree.clangStdenv; } {
             buildInputs = with pkgsAllowUnfree; [
               # Rust related dependencies

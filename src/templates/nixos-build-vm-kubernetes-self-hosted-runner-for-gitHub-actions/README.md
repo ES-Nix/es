@@ -9,7 +9,7 @@
 1)
 ```bash
 rm -fv nixos.qcow2; 
-nix run --impure --refresh --verbose '.#run-github-runner'
+nix run --impure --refresh --verbose '.#'
 ```
 
 

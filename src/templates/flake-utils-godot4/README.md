@@ -200,3 +200,28 @@ run \
 busybox \
 sh -cl 'id'
 ```
+
+
+
+```bash
+xhost + || nix run nixpkgs#xorg.xhost -- +
+podman \
+run \
+--annotation=run.oci.keep_original_groups=1 \
+--device=/dev/kvm:rw \
+--device /dev/dri:rw \
+--env="DISPLAY=${DISPLAY:-:0}" \
+--hostname=container-nix \
+--interactive=true \
+--name=container-alpine-with-ca-certificates-tzdata \
+--privileged=true \
+--security-opt seccomp=unconfined \
+--shm-size=2G \
+--tty=true \
+--rm=true \
+--volume=/tmp/.X11-unix:/tmp/.X11-unix:ro \
+--volume=/etc/localtime:/etc/localtime:ro \
+--volume="$(pwd)":/home/nixuser/code:rw \
+localhost/alpine-with-ca-certificates-tzdata:latest \
+sh -l
+```

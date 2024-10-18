@@ -13,7 +13,7 @@ github:ES-nix/es#pandocLaTeX
 
 # nix build --impure --print-out-paths '.#'
 # nix run '.#'
-# nix build --print-build-logs --print-out-paths .\#checks.x86_64-linux.test-nixos \
+# nix build --print-build-logs --print-out-paths '.#checks.x86_64-linux.test-nixos'
 nix flake check '.#' --verbose
 ```
 Refs.:
@@ -76,9 +76,9 @@ def create_gif_if_images_differ(image1, image2,
         print("Image Similarity: {:.4f}%".format(score * 100))
         
         # The diff image contains the actual image differences between the two images
-        # and is represented as a floating point data type in the range [0,1] 
+        # and is represented as a floating point data type in the range [0, 1] 
         # so we must convert the array to 8-bit unsigned integers in the range
-        # [0,255] before we can use it with OpenCV
+        # [0, 255] before we can use it with OpenCV
         diff = (diff * 255).astype("uint8")
         diff_box = cv2.merge([diff, diff, diff])
         
@@ -160,6 +160,8 @@ Refs.:
 - https://codereview.stackexchange.com/a/263497
 - https://stackoverflow.com/a/72159410
 - https://stackoverflow.com/a/55014800
+
+
 
 ## In nix shell
 
@@ -506,3 +508,4 @@ TODOs:
 - https://github.com/jgm/citeproc/issues/133#issuecomment-1533588728
 - https://github.com/jupyter-book/jupyter-book/issues/274#issuecomment-540672801
 - https://chrisholdgraf.com/blog/2019/2019-11-11-ipynb_pandoc/
+

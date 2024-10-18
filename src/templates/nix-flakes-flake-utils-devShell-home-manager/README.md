@@ -9,6 +9,12 @@ nix eval --apply 'builtins.attrNames' '.#homeConfigurations.x86_64-linux.vagrant
 nix build --no-link --print-build-logs --print-out-paths '.#homeConfigurations.x86_64-linux.vagrant.activationPackage'
 ```
 
+
+```bash
+nix build --no-link --print-build-logs --print-out-paths '.#homeConfigurations.aarch64-linux.vagrant.activationPackage'
+```
+
+
 ```bash
 mkdir -pv devShellHello \
 && cd devShellHello \

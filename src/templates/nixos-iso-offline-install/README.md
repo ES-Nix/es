@@ -143,3 +143,34 @@ sudo parted /dev/sda align-check
 ```
 Refs.:
 - https://superuser.com/a/1378922
+
+
+
+TODO: 
+```bash
+linux>   dependency already copied: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/hid/hid.ko.xz
+linux>   dependency already copied: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/hid/usbhid/usbhid.ko.xz
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/hid/hid-corsair.ko.xz
+linux> root module: pcips2
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/input/serio/serio.ko.xz
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/input/serio/pcips2.ko.xz
+linux> root module: atkbd
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/input/vivaldi-fmap.ko.xz
+linux>   dependency already copied: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/input/serio/serio.ko.xz
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/input/serio/libps2.ko.xz
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/input/keyboard/atkbd.ko.xz
+linux> root module: i8042
+linux>   dependency already copied: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/input/serio/serio.ko.xz
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/input/serio/i8042.ko.xz
+linux> root module: rtc_cmos
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/rtc/rtc-cmos.ko.xz
+linux> root module: dm_mod
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/dax/dax.ko.xz
+linux>   copying dependency: /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/md/dm-mod.ko.xz
+linux> firmware for /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/usb/host/xhci-pci.ko.xz: renesas_usb_fw.mem
+linux> lib/firmware -> /nix/store/04mhgl5fdvlji9gishk49j52sazjqkx3-linux-6.6.56-modules-shrunk/lib/firmware
+linux> WARNING: missing firmware renesas_usb_fw.mem for module /nix/store/r7c08gq8jbvwqnskpjbv4dp99fasq394-linux-6.6.56-modules/lib/modules/6.6.56/kernel/drivers/usb/host/xhci-pci.ko.xz
+linux> depmod: WARNING: could not open modules.builtin.modinfo at /nix/store/04mhgl5fdvlji9gishk49j52sazjqkx3-linux-6.6.56-modules-shrunk/lib/modules/6.6.56: No such file or directory
+error: derivation '/nix/store/gbab580sb7la6prasabjr6ipp51m2bcp-closure-info.drv' requires non-existent output 'bin' from input derivation '/nix/store/f3dhj2810j9apyrrdifp0n8h5madfia0-libidn2-2 /179m29,8s
+```
+

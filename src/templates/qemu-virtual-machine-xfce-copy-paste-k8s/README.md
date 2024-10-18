@@ -159,7 +159,7 @@ This is what you need:
 ```bash
 services.kubernetes.roles = [ "master" "node" ];
 services.kubernetes.masterAddress = "${config.networking.hostName}";
-environment.variables.KUBECONFIG = "/etc/${cfg.services.kubernetes.pki.etcClusterAdminKubeconfig}";
+environment.variables.KUBECONFIG = "/etc/${config.services.kubernetes.pki.etcClusterAdminKubeconfig}";
 # services.kubernetes.kubelet.extraOpts = "--fail-swap-on=false"; # If you use swap it is an must!
 ```
 

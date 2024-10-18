@@ -28,6 +28,16 @@ nix develop '.#' --command python -c 'from app.main import start; start()'
 
 
 ```bash
+nix flake show '.#'
+
+nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
+
+nix flake check --verbose '.#'
+# nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.testBinfmtMany'
+```
+
+
+```bash
 nix \
 flake \
 lock \

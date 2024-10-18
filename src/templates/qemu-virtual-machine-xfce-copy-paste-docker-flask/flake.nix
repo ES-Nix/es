@@ -268,6 +268,7 @@
         # packages.default = pkgs.myapp;
 
         packages.myvm = pkgs.myvm;
+        packages.default = packages.automatic-vm;
         packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {

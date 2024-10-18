@@ -47,6 +47,7 @@
       in
       rec {
 
+        packages.default = packages.vm;
         packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
         apps.default = {
