@@ -581,8 +581,8 @@
                     pathsToLink = [ "/bin" ];
                     paths = [ config.services.kubernetes.package.pause ];
                   };
-                config.Cmd = ["/bin/pause"];
-              })
+                  config.Cmd = [ "/bin/pause" ];
+                })
                 cachedOCIImageActionsRunner
                 cachedOCIImageGhaRunnerScaleSetController
                 cachedOCIImageDinD

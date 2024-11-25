@@ -46,26 +46,12 @@
               let
 
                 nonRootShadowSetup = { user, uid, group, gid }: with pkgs; [
-                  (
-                    writeTextDir "etc/shadow" ''
-                      ${user}:!:::::::
-                    ''
-                  )
-                  (
-                    writeTextDir "etc/passwd" ''
-                      ${user}:x:${toString uid}:${toString gid}::/home/${user}:${runtimeShell}
-                    ''
-                  )
-                  (
-                    writeTextDir "etc/group" ''
-                      ${group}:x:${toString gid}:
-                    ''
-                  )
-                  (
-                    writeTextDir "etc/gshadow" ''
-                      ${group}:x::
-                    ''
-                  )
+                  (writeTextDir "etc/shadow" ''${user}:!:::::::'')
+                  (writeTextDir "etc/group" ''${group}:x:${toString gid}:'')
+                  (writeTextDir "etc/gshadow" ''${group}:x::'')
+                  (writeTextDir "etc/passwd" ''
+                    ${user}:x:${toString uid}:${toString gid}::/home/${user}:${runtimeShell}
+                  '')
                 ];
 
                 troubleshootPackages = with pkgs; [

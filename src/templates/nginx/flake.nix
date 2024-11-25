@@ -11,8 +11,8 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
-    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+    --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
+    --override-input flake-utils 'github:numtide/flake-utils/c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -121,40 +121,23 @@
           packages.automatic-vm = pkgsAllowUnfree.writeShellApplication {
             name = "run-nixos-vm";
             runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
-            /*
-              Pode ocorrer uma condição de corrida de seguinte forma:
-              a VM inicializa (o processo não é bloqueante, executa em background)
-              o spice/VNC interno a VM inicializa
-              o remote-viewer tenta conectar, mas o spice não está pronto ainda
-
-              TODO: idealmente não deveria ser preciso ter mais uma dependência (o curl)
-                    para poder sincronizar o cliente e o server. Será que no caso de
-                    ambos estarem na mesma máquina seria melhor usar virt-viewer -fw?
-              https://unix.stackexchange.com/a/698488
-            */
             text = ''
+                export VNC_PORT=3001
 
-              # https://unix.stackexchange.com/a/230442
-              # export NO_AT_BRIDGE=1
-              # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
-              export LD_LIBRARY_PATH="${pkgsAllowUnfree.libcanberra-gtk3}"/lib/gtk-3.0/modules
+                ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
 
-              ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
+                for _ in {0..50}; do
+                  if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
+                  then
+                    break
+                  fi
+                  # date +'%d/%m/%Y %H:%M:%S:%3N'
+                  sleep 0.1
+                done;
 
-              export VNC_PORT=3001
+                remote-viewer spice://localhost:"$VNC_PORT"
 
-              for _ in web{0..50}; do
-                if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
-                then
-                  break
-                fi
-                # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.2
-              done;
-
-              remote-viewer spice://localhost:"$VNC_PORT"
-
-              kill $PID_QEMU
+                kill $PID_QEMU
             '';
           };
 

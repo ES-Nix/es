@@ -53,9 +53,9 @@
     #
     # steam-run
 
-#    xorg.xclock
-#    hello
-#    sl
+    #    xorg.xclock
+    #    hello
+    #    sl
     #    asciiquarium
     #    figlet
     #    cowsay
@@ -71,53 +71,53 @@
 
     # # TODO: testar com o zsh
     ## bashInteractive # https://www.reddit.com/r/NixOS/comments/zx4kmh/alpinewsl_home_manager_bash_issue/
-#    awscli
-#    coreutils
-#    binutils
-#    utillinux
-#    xorg.xkill
-#    glibc.bin
-#    patchelf
-#    gparted
-#    # glxinfo
-#    file
-#    findutils
-#    gnugrep
-#    gnumake
-#    gnused
-#    gawk
-#    hexdump
-#    which
-#    xz
-#    exfat
-#    procps
-#    curl
-#    wget
-#    lsof
-#    tree
-#    killall
-#    nmap
-#    netcat
-#    nettools
-#    ripgrep
-#    tmate
-#    strace
-#    # ptrace
-#    traceroute
+    #    awscli
+    #    coreutils
+    #    binutils
+    #    utillinux
+    #    xorg.xkill
+    #    glibc.bin
+    #    patchelf
+    #    gparted
+    #    # glxinfo
+    #    file
+    #    findutils
+    #    gnugrep
+    #    gnumake
+    #    gnused
+    #    gawk
+    #    hexdump
+    #    which
+    #    xz
+    #    exfat
+    #    procps
+    #    curl
+    #    wget
+    #    lsof
+    #    tree
+    #    killall
+    #    nmap
+    #    netcat
+    #    nettools
+    #    ripgrep
+    #    tmate
+    #    strace
+    #    # ptrace
+    #    traceroute
     # nixVersions.nix_2_10
     nix
-#    man
-#    man-db
-#    (aspellWithDicts (d: with d; [ de en pt_BR ])) # nix repl --expr 'import <nixpkgs> {}' <<<'builtins.attrNames aspellDicts' | tr ' ' '\n'
-#    gnome.simple-scan
-#    imagemagick
-#    nix-prefetch-git
-#    nixfmt
-#    hydra-check
-#    nixos-option
-#    shellcheck
+    #    man
+    #    man-db
+    #    (aspellWithDicts (d: with d; [ de en pt_BR ])) # nix repl --expr 'import <nixpkgs> {}' <<<'builtins.attrNames aspellDicts' | tr ' ' '\n'
+    #    gnome.simple-scan
+    #    imagemagick
+    #    nix-prefetch-git
+    #    nixfmt
+    #    hydra-check
+    #    nixos-option
+    #    shellcheck
 
-#    nano
+    #    nano
     neovim
 
     fontconfig
@@ -667,12 +667,12 @@
   # isn't installed, it will tell you which package contains it.
   # https://eevie.ro/posts/2022-01-24-how-i-nix.html
   #
-#  programs.nix-index = {
-#    enable = true;
-#    # enableFishIntegration = true;
-#    # enableBashIntegration = true;
-#    enableZshIntegration = true;
-#  };
+  #  programs.nix-index = {
+  #    enable = true;
+  #    # enableFishIntegration = true;
+  #    # enableBashIntegration = true;
+  #    enableZshIntegration = true;
+  #  };
 
   programs.home-manager = {
     enable = true;

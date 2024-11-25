@@ -70,6 +70,7 @@ Refs.:
 ```bash
 nix eval nixpkgs#stdenv.hostPlatform.system
 nix eval nixpkgs#lib.systems.parse.execFormats.macho
+nix eval nixpkgs#stdenv.hostPlatform.parsed.cpu.name
 nix eval nixpkgs#stdenv.hostPlatform.parsed.kernel.execFormat
 ```
 Refs.:
@@ -92,6 +93,9 @@ nix fmt '.#'
 ```
 
 
+
+TODO: check it, it made me really confused
+https://github.com/NixOS/nixpkgs/issues/283098
 
 
 TODO: Transform that in an flake and write NixOS tests for it!

@@ -6,15 +6,30 @@
 
 ```bash
 nix run --impure 'github:ES-Nix/es/?dir=src/templates/nginx'
+
+nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
+'github:ES-Nix/es/?dir=src/templates/pandoc-latex'
+
+nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
+'github:ES-Nix/es/?dir=src/templates/memcached-static'
+
+```
+
+
+
+```bash
+docker \
+run \
+--tty=true \
+--interactive=true \
+--rm=true \
+docker.io/nixpkgs/nix-flakes \
+bash
 ```
 
 
 ## With a local clone
 
-
-```bash
-nix run --impure 'github:ES-Nix/es/?dir=src/templates/nginx'
-```
 
 
 ```bash
@@ -38,34 +53,58 @@ nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
 './src/templates/nix-flakes-flake-utils-devShell-home-manager#homeConfigurations.x86_64-linux.vagrant.activationPackage'
 ```
 
+
 ```bash
 nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
 './src/templates/valkey-static' \
 './src/templates/redis-static' \
 './src/templates/nginx-static' \
-'./src/templates/memcached-static'
+'./src/templates/memcached-static' \
+'./src/templates/memcached-static-cross'
 ```
 
+
+Only in unstable it has the binfmt needed:
 ```bash
 nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
 './src/templates/binfmt-emulated-systems-hello' \
 './src/templates/binfmt-emulated-systems-docker' \
-'./src/templates/binfmt-emulated-systems-python-docker-registry-images'
+'./src/templates/binfmt-emulated-systems-python-docker-registry-images' \
+'./src/templates/binfmt-emulated-riscv64-python-alpine-wheels-via-pip-and-docker'
 ```
 
+
+It takes too long to build:
 ```bash
 nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
 './src/templates/nixos-iso-offline-install'
 ```
 
+Only works in some different commit:
 ```bash
 nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
 './src/templates/docker-multiple-kernel-versions'
 ```
 
+Only works in some different commit:
 ```bash
 nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
 './src/templates/bug-nixostest'
+```
+
+
+Cleaning/garbage collect:
+```bash
+nix \
+store \
+gc \
+--verbose \
+--option keep-outputs true \
+--option keep-build-log true \
+--option keep-derivations true \
+--option keep-env-derivations true \
+&& nix-collect-garbage --delete-old --verbose \
+&& nix store optimise --verbose
 ```
 
 
@@ -129,83 +168,6 @@ run \
 github:ES-nix/es#sendToCacheInstallStartConfigTemplate
 ```
 
-```bash
-export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 \
-&& nix show-derivation --impure github:NixOS/nixpkgs/nixpkgs-unstable#darwin.builder
-```
-
-```bash
-export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 \
-&& nix build --impure --print-build-logs github:NixOS/nixpkgs/nixpkgs-unstable#darwin.builder
-```
-
-```bash
-nix build --impure --no-link --print-build-logs \
-"$HOME"/.config/nixpkgs#nixosConfigurations.x86_64-linux.build-vm-dev.config.system.build.vm
-```
-
-```bash
-error: derivation '/nix/store/v8hi07w07q0dvdf035y73xm6ia2ps09y-python3-3.10.10.drv' may not be deterministic: output '/nix/store/ppjxjd3li8r9b61n1nn5jqgdd20bcvj7-python3-3.10.10' differs
-```
-
-```bash
-export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
-nix build --impure --print-build-logs nixpkgs#glibc
-
-FLAKE_ATTR="$DIRECTORY_TO_CLONE"'#homeConfigurations.'$FLAKE_ARCHITECTURE'"'"$DUMMY_USER-$DUMMY_HOSTNAME"'"''.activationPackage'
-
-
-export NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
-
-time \
-nix \
---option eval-cache false \
---option extra-trusted-public-keys binarycache-1:XiPHS/XT/ziMHu5hGoQ8Z0K88sa1Eqi5kFTYyl33FJg= \
---option extra-substituters https://playing-bucket-nix-cache-test.s3.amazonaws.com \
-build \
---impure \
---keep-failed \
---no-link \
---print-build-logs \
---print-out-paths \
-'.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
-
-$FLAKE_ATTR
-
-
-nix \
-build \
---impure \
---keep-failed \
---no-link \
---print-build-logs \
---print-out-paths \
-'.#homeConfigurations.aarch64-darwin."alvaro-Maquina-Virtual-de-Alvaro.local".activationPackage'
-```
-
-
-```bash
-nix \
-build \
---impure \
---print-build-logs \
---print-out-paths \
---rebuild \
---expr \
-'
-  (                                         
-    with builtins.getFlake "github:NixOS/nixpkgs/f0fa012b649a47e408291e96a15672a4fe925d65";
-    with legacyPackages.${builtins.currentSystem};
-    (pkgsStatic.python3Minimal.override
-      {
-        reproducibleBuild = true;
-      }
-    )
-  )
-'
-```
-
-
 
 ### 
 
@@ -223,34 +185,6 @@ TODO: test all the templates!
 nix flake show templates --json
 ```
 
-
-
-```bash
-mkdir -pv ~/sandbox/sandbox \
-&& cd ~/sandbox/sandbox
-```
-
-```bash
-nix flake init --template templates#full
-```
-
-```bash
-nix flake show .#
-```
-
-```bash
-git init \
-&& git status \
-&& git add . \
-&& nix flake update --override-input nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b \
-&& git status \
-&& git add . \
-&& git commit -m 'First nix flake commit'"$(date +'%d/%m/%Y %H:%M:%S:%3N')" \
-&& nix flake lock \
-&& git add . \
-&& git commit -m 'Second nix flake commit'"$(date +'%d/%m/%Y %H:%M:%S:%3N')" \
-&& git status
-```
 
 
 

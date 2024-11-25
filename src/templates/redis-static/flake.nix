@@ -11,7 +11,13 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a7' \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
+    --override-input flake-utils 'github:numtide/flake-utils/c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4' \
     --override-input flake-utils 'github:numtide/flake-utils/c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a'
   */
   inputs = {
@@ -80,15 +86,10 @@
           timeout 1 docker stop container-redis && echo $?
           docker run --net=host --rm redis:7.2.5-alpine3.20 sh -c 'redis-cli PING'
 
-
           docker run -p 6379:6379 --name=container-redis-server -d --rm redis-server-static:latest
           docker run --net=host --rm redis-cli-static:latest
-          timeout 2 docker stop container-redis-server
+          timeout 1 docker stop container-redis-server
           docker run --net=host --rm redis-cli-static:latest
-
-              cp -aTv ${prev.pkgsStatic.tini}/bin/tini ./bin/tini
-              cp -aTv ${prev.pkgsStatic.gosu}/bin/gosu ./bin/gosu
-              cp -aTv ${prev.lib.getExe prev.pkgsStatic.busybox} ./bin/busybox
         */
         OCIImageStaticRedisServer =
           let

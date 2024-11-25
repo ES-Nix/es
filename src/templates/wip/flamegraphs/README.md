@@ -125,6 +125,13 @@ TODO:
 https://discourse.nixos.org/t/nix-flamegraph-or-profiling-tool/33333/11
 
 
+References
+- https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/monitoring_and_managing_system_status_and_performance/getting-started-with-flamegraphs_monitoring-and-managing-system-status-and-performance#getting-started-with-flamegraphs_monitoring-and-managing-system-status-and-performance
+- https://arxiv.org/pdf/2301.08941
+- https://stackoverflow.com/a/57432063
+
+
+
 ## 1 Billion Rows of Data
 
 I Parsed 1 Billion Rows Of Text (It Sucked)

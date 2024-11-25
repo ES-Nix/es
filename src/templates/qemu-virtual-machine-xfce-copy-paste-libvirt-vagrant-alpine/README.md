@@ -3,6 +3,8 @@
 
 
 ```bash
+export NIXPKGS_ALLOW_UNFREE=1
+
 nix flake metadata '.#'
 nix flake show '.#'
 

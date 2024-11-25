@@ -11,7 +11,7 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a7' \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
     --override-input flake-utils 'github:numtide/flake-utils/c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a'
   */
   inputs = {
@@ -119,7 +119,7 @@
 
         checks = {
           inherit (pkgs)
-             minimalBusyboxSandboxShell
+            minimalBusyboxSandboxShell
             ;
         };
 

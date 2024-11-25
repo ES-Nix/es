@@ -7,6 +7,12 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b' \
     --override-input flake-utils 'github:numtide/flake-utils/5aed5285a952e0b949eb3ba02c12fa4fcfef535f'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.11";
@@ -260,7 +266,7 @@
 
               nix = {
                 extraOptions = "experimental-features = nix-command flakes";
-                package = pkgs.nixVersions.nix_2_10;
+                # package = pkgs.nixVersions.nix_2_10;
                 readOnlyStore = true;
                 registry.nixpkgs.flake = nixpkgs; # https://bou.ke/blog/nix-tips/
                 nixPath = [ "nixpkgs=${pkgs.path}" ];

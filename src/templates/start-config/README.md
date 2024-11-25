@@ -73,8 +73,10 @@ docker \
 run \
 --env="DISPLAY=${DISPLAY:-:0}" \
 --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw \
--ti \
---rm \
+--interactive=true \
+--privileged=true \
+--tty=true \
+--rm=true \
 ubuntu-base:latest
 ```
 

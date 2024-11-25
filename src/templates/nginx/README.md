@@ -6,6 +6,15 @@ nix run --impure 'github:ES-Nix/es/?dir=src/templates/nginx'
 
 
 
+```bash
+nix flake show '.#' --impure
+
+nix build --cores 5 --no-link --print-build-logs --print-out-paths '.#' --impure
+
+nix flake check --verbose '.#' --impure
+```
+
+
 ```nix
   services.nginx.enable = true;
   services.nginx.virtualHosts."fooo" = {

@@ -3,15 +3,20 @@
 ```bash
 git clone --branch main --single-branch https://github.com/PedroRegisPOAR/TopDownShooter.git \
 && cd TopDownShooter \
+&& git checkout b703e8a15f69fb78480328084f2b8d718417e240 \
 && nix \
 --refresh \
 flake \
 init \
 --template \
-github:ES-nix/es#flakesUtilsGodot4
+github:ES-nix/es#flakesUtilsGodot4 \
+&& git add . \
+&& nix develop --impure '.#' --command nixGL godot4 --rendering-driver opengl3
 ```
 Refs.:
 - https://godot-rust.github.io/gdnative-book/recipes/nix-build-system.html
+
+
 
 
 
@@ -31,13 +36,13 @@ git add .
 ```
 
 ```bash
-nix develop --impure '.#' --command nixGL godot4 -e
+nix develop --impure '.#' --command nixGL godot4 --rendering-driver opengl3
 ```
 
 
 ```bash
 cat > Containerfile << 'EOF'
-FROM docker.io/library/alpine:3.20.2 as alpine-with-ca-certificates-tzdata
+FROM docker.io/library/alpine:3.20.3 as alpine-with-ca-certificates-tzdata
 
 # https://stackoverflow.com/a/69918107
 # https://serverfault.com/a/1133538
@@ -84,8 +89,9 @@ WORKDIR /home/nixuser
 ENV USER="nixuser"
 
 RUN CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 || $(wget -q &> /dev/null; test $? -eq 1) && echo 'wget -O-' && exit 0 || echo no-curl-or-wget) \
- && $CURL_OR_WGET_OR_ERROR https://hydra.nixos.org/build/237228729/download/2/nix > nix \
+ && $CURL_OR_WGET_OR_ERROR https://hydra.nixos.org/build/278365608/download-by-type/file/binary-dist > nix \
  && chmod -v +x nix \
+ && ./nix --version \
  && echo \
  && ./nix \
          --extra-experimental-features nix-command \
@@ -93,7 +99,7 @@ RUN CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 
          --extra-experimental-features auto-allocate-uids \
          profile \
          install \
-         github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06#pkgsStatic.nix \
+         github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4#nix \
  && rm -v ./nix \
  && mkdir -pv "$HOME"/.config/nix \
  && grep 'experimental-features' "$HOME"/.config/nix/nix.conf -q &> /dev/null || (echo 'experimental-features = nix-command flakes' >> "$HOME"/.config/nix/nix.conf) \
@@ -115,7 +121,7 @@ RUN CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 
  && nix \
       registry \
       pin \
-      nixpkgs github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06 \
+      nixpkgs github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4 \
  && nix flake metadata nixpkgs
 
 EOF
@@ -145,7 +151,7 @@ xhost + || nix run nixpkgs#xorg.xhost -- +
 podman \
 run \
 --device=/dev/kvm:rw \
---device=/dev/dri:ro \
+--device=/dev/dri:rw \
 --env="DISPLAY=${DISPLAY:-:0}" \
 --userns=keep-id \
 --hostname=container-nix \
@@ -174,7 +180,7 @@ run \
 --name=container-alpine-with-ca-certificates-tzdata \
 --privileged=false \
 --tty=true \
---rm=false \
+--rm=true \
 --userns=keep-id \
 --volume=/tmp/.X11-unix:/tmp/.X11-unix:ro \
 --volume="$(pwd)":/home/nixuser/code:rw \

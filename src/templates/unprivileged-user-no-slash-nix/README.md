@@ -3,21 +3,36 @@
 
 TODO: it hardcodes the hydra id with the architecture too
 
+```bash
+curl -L https://hydra.nixos.org/job/nix/maintenance-2.25/buildStatic.nix.x86_64-linux/latest/download-by-type/file/binary-dist -o nix
+```
+Refs.:
+- https://github.com/NixOS/nix/issues/8144
+- https://github.com/containerbase/base/pull/3066/files#diff-92a562189b79bf0b6bfe28cc697d5726955290aa94518b9bcae956c3b1a8bc32R360
+
+
 For x86_64-linux:
 ```bash
-curl -L https://hydra.nixos.org/build/257665509/download-by-type/file/binary-dist > nix \
+curl -L https://hydra.nixos.org/build/278365608/download-by-type/file/binary-dist > nix \
 && chmod +x nix \
 && ./nix --version
 ```
 
 Not a must:
 ```bash
-echo a559d9c4c144859251ab5441cf285f1c38861e4bb46509e38229474368286467'  'nix \
+echo 383bfe61455128d9fa69cb3c3fa3932701a8b6a28fa4b7cca22b63f8f29c0361'  'nix \
 | sha256sum -c
 ```
 
+```bash
+nix \
+build \
+--cores 5 --no-link --print-build-logs --print-out-paths \
+'github:NixOS/nix/d97ebe519a79cc1f8830980c95b2683f2b573bf1?narHash=sha256-ZIxE4LKzdoQ97oZ9PMlj5pO/HIMUeMio9qJ1SmMZOwo%3D#hydraJobs.buildStatic.nix-cmd.x86_64-linux'
+```
 
-For x86_64-linux:
+
+For aarch64-linux:
 ```bash
 curl -L https://hydra.nixos.org/build/257665509/download-by-type/file/binary-dist > nix \
 && chmod +x nix \
@@ -35,19 +50,20 @@ echo a559d9c4c144859251ab5441cf285f1c38861e4bb46509e38229474368286467'  'nix \
 ```bash
 export NIX_CONFIG="extra-experimental-features = nix-command flakes auto-allocate-uids"
 export PATH="$HOME"/.nix-profile/bin:"$PATH"
-export NIX_PATH=nixpkgs=$(./nix eval --raw github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a#path)
+export NIX_PATH=nixpkgs=$(./nix eval --raw github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4#path)
 ```
 
 
 Really bare bones:
 ```bash
 ./nix \
+--option sandbox false \
 --extra-experimental-features nix-command \
 --extra-experimental-features flakes \
 shell \
 --override-flake \
 nixpkgs \
-github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a \
+github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4 \
 nixpkgs#bashInteractive \
 nixpkgs#home-manager \
 nixpkgs#nix \
@@ -59,6 +75,7 @@ home-manager init \
 && cd /home/"$USER"/.config/home-manager/
 
 nix \
+--option sandbox false \
 --extra-experimental-features nix-command \
 --extra-experimental-features flakes \
 --extra-experimental-features auto-allocate-uids \
@@ -66,8 +83,8 @@ nix \
 --option warn-dirty false \
 flake \
 lock \
---override-input nixpkgs github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a \
---override-input home-manager github:nix-community/home-manager/2f23fa308a7c067e52dfcc30a0758f47043ec176
+--override-input nixpkgs github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4 \
+--override-input home-manager github:nix-community/home-manager/aecd341dfead1c3ef7a3c15468ecd71e8343b7c6
 
 home-manager init --switch
 
@@ -91,7 +108,7 @@ shell \
 --keep USER \
 --override-flake \
 nixpkgs \
-github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a \
+github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4 \
 nixpkgs#bashInteractive \
 nixpkgs#coreutils \
 nixpkgs#gnused \
@@ -112,9 +129,9 @@ cat << 'EOF' > flake.nix
   description = "Home Manager configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.05";
+      url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -149,7 +166,7 @@ cat << 'EOF' > flake.nix
 
               nix = {
                 enable = true;
-                package = pkgs.nixStatic;
+                package = pkgs.nix;
                 extraOptions = ''
                   experimental-features = nix-command flakes
                 '';
@@ -203,7 +220,8 @@ sed -i 's/.*userName = ".*";/userName = "'"$USER"'";/' /home/"$USER"/.config/hom
 git config init.defaultBranch \
 || git config --global init.defaultBranch main
 
-git init && git add .
+git init \
+&& git add .
 
 "$OLD_PWD"/nix \
 --extra-experimental-features nix-command \
@@ -213,8 +231,8 @@ git init && git add .
 --option warn-dirty false \
 flake \
 lock \
---override-input nixpkgs github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a \
---override-input home-manager github:nix-community/home-manager/2f23fa308a7c067e52dfcc30a0758f47043ec176
+--override-input nixpkgs github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4 \
+--override-input home-manager github:nix-community/home-manager/aecd341dfead1c3ef7a3c15468ecd71e8343b7c6
 
 git add .
 
@@ -271,13 +289,13 @@ It is broken. Only works inside chroot/nix shell:
 shell \
 --override-flake \
 nixpkgs \
-github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a \
+github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4 \
 nixpkgs#bashInteractive \
 nixpkgs#home-manager \
 --command \
 bash \
 -c \
-'/home/"$USER"/.nix-profile/bin/zsh -cl "nix --version"'
+'/home/"$USER"/.nix-profile/bin/zsh -cl "nix --version && home-manager --version"'
 ```
 
 
@@ -387,6 +405,9 @@ localhost/alpine-with-static-nix:latest \
 sh \
 -l
 ```
+
+
+
 
 
 

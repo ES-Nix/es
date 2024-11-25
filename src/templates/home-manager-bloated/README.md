@@ -1,4 +1,9 @@
 
+
+
+
+
+
 TODO: revise the flake.nix and add what may be missing.
 ```nix
   nixpkgs.config = {

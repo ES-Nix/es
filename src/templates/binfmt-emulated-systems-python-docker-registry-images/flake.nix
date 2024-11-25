@@ -160,55 +160,55 @@
 
               config.virtualisation.docker.enable = true;
 
-#              config.boot.binfmt.emulatedSystems = [
-#                "aarch64-linux"
-#                # "armv6l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
-#                "armv7l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
-#                # "i386-linux"
-#                # "i686-linux"
-#                "mips64el-linux"
-#                "powerpc64le-linux"
-#                "riscv64-linux"
-#                "s390x-linux"
-#              ];
-#
-#              config.boot.binfmt.registrations = {
-#                aarch64-linux = {
-#                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
-#                  fixBinary = true;
-#                };
-#                armv7l-linux = {
-#                  # TODO: why armv6l-linux gives the same result?
-#                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-arm";
-#                  # interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-armeb";
-#                  fixBinary = true;
-#                };
-#                #i686-linux = {
-#                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-i386";
-#                #  fixBinary = true;
-#                #};
-#                #
-#                #i686-linux = {
-#                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-x86_64";
-#                #  fixBinary = true;
-#                #};
-#                mips64el-linux = {
-#                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-mips64el";
-#                  fixBinary = true;
-#                };
-#                powerpc64le-linux = {
-#                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-ppc64le";
-#                  fixBinary = true;
-#                };
-#                riscv64-linux = {
-#                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-riscv64";
-#                  fixBinary = true;
-#                };
-#                s390x-linux = {
-#                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-s390x";
-#                  fixBinary = true;
-#                };
-#              };
+              #              config.boot.binfmt.emulatedSystems = [
+              #                "aarch64-linux"
+              #                # "armv6l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
+              #                "armv7l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
+              #                # "i386-linux"
+              #                # "i686-linux"
+              #                "mips64el-linux"
+              #                "powerpc64le-linux"
+              #                "riscv64-linux"
+              #                "s390x-linux"
+              #              ];
+              #
+              #              config.boot.binfmt.registrations = {
+              #                aarch64-linux = {
+              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
+              #                  fixBinary = true;
+              #                };
+              #                armv7l-linux = {
+              #                  # TODO: why armv6l-linux gives the same result?
+              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-arm";
+              #                  # interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-armeb";
+              #                  fixBinary = true;
+              #                };
+              #                #i686-linux = {
+              #                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-i386";
+              #                #  fixBinary = true;
+              #                #};
+              #                #
+              #                #i686-linux = {
+              #                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-x86_64";
+              #                #  fixBinary = true;
+              #                #};
+              #                mips64el-linux = {
+              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-mips64el";
+              #                  fixBinary = true;
+              #                };
+              #                powerpc64le-linux = {
+              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-ppc64le";
+              #                  fixBinary = true;
+              #                };
+              #                riscv64-linux = {
+              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-riscv64";
+              #                  fixBinary = true;
+              #                };
+              #                s390x-linux = {
+              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-s390x";
+              #                  fixBinary = true;
+              #                };
+              #              };
             };
 
           globalTimeout = 4 * 60;
@@ -232,8 +232,8 @@
 
             print(machine.succeed("docker images"))
 
-            # machine.succeed("docker run --privileged --rm tonistiigi/binfmt --install all")
-            machine.succeed("docker run --privileged --rm tonistiigi/binfmt --install arm64,riscv64,arm,s390x,ppc64le,mips64le")
+            machine.succeed("docker run --privileged --rm tonistiigi/binfmt --install all")
+            # machine.succeed("docker run --privileged --rm tonistiigi/binfmt --install arm64,riscv64,arm,s390x,ppc64le,mips64le")
 
             with subtest("arm32v5"):
                 expected = 'armel armv7l Python 3.9.19 linux-armv7l little '

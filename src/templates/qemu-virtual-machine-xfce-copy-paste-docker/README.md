@@ -10,9 +10,9 @@ nix run --impure --refresh --verbose '.#'
 
 TODO: make more similar to others flake templates?
 ```bash
-nix flake show '.#' --impure
+nix flake show --impure '.#'
 
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
+nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure '.#'
 
-nix flake check --verbose '.#'
+nix flake check --impure --verbose '.#'
 ```

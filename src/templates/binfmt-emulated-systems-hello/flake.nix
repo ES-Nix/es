@@ -13,6 +13,13 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/aa4e34969baa92fcc227f880d82b1f5a6cc1d343' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -86,9 +93,9 @@
                   fixBinary = true;
                 };
                 mips64el-linux = {
-                   interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-mips64el";
-                   fixBinary = true;
-                 };
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-mips64el";
+                  fixBinary = true;
+                };
                 powerpc64-linux = {
                   interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-ppc64";
                   fixBinary = true;

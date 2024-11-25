@@ -33,7 +33,7 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/f85a2d005e83542784a755ca8da112f4f65c4aa4' \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
 
   */
@@ -47,7 +47,7 @@
       (final: prev: {
         foo-bar = prev.hello;
 
-        perl356 = prev.pkgsStatic.perl536;
+        # perl540 = prev.pkgsStatic.perl540;
 
         # nginxMusl = prev.pkgsMusl.nginx;
         # nginxStaticPerl356 = prev.nginx.override {
@@ -64,7 +64,7 @@
         #  }
         #);
         nginxStatic = (prev.pkgsStatic.nginx.override {
-          perl = prev.pkgsStatic.perl536;
+          perl = prev.pkgsStatic.perl540;
         }).overrideAttrs (oldAttrs:
           {
             configureFlags = (prev.lib.subtractLists [
@@ -390,7 +390,7 @@
           inherit (pkgs)
             testNginxStatic
             nginxStatic
-            perl356
+            perl540
             ;
 
           default = pkgs.testNginxStatic;
