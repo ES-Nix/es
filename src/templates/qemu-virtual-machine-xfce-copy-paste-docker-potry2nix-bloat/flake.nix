@@ -141,7 +141,7 @@
 
             };
 
-          globalTimeout = 2*60;
+          globalTimeout = 2 * 60;
 
           testScript = ''
             start_all()

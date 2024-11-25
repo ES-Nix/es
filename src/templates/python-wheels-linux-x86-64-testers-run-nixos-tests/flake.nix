@@ -63,11 +63,11 @@
           asttokens
           async-timeout
           attrs
-#          awswrangler
-#          azure-common
-#          azure-core
-#          azure-identity
-#          azure-storage-blob
+          #          awswrangler
+          #          azure-common
+          #          azure-core
+          #          azure-identity
+          #          azure-storage-blob
           babel
           backoff
           bcrypt
@@ -248,7 +248,7 @@
           openai
           opencv4
           openpyxl
-#          # opensearch-py
+          #          # opensearch-py
           opentelemetry-api
           opentelemetry-sdk
           opentelemetry-semantic-conventions
@@ -311,10 +311,10 @@
           pyrsistent
           pysocks
           pyspark
-#          # pytest
-#          # pytest-cov
-#          # pytest-runner
-#          # pytest-xdist
+          #          # pytest
+          #          # pytest-cov
+          #          # pytest-runner
+          #          # pytest-xdist
           python-dateutil
           python-dotenv
           python-json-logger

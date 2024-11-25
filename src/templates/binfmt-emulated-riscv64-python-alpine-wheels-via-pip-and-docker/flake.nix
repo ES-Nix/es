@@ -56,7 +56,7 @@
               config.virtualisation.docker.enable = true;
 
               config.environment.systemPackages = with final; [
-                 riscv64MuslPython312
+                riscv64MuslPython312
               ];
 
               config.boot.binfmt.emulatedSystems = [
@@ -73,7 +73,7 @@
 
           globalTimeout = 2 * 60;
 
-            /*
+          /*
             print(machine.succeed("ls -alh ${final.distRiscv64.pname + "-" + final.distRiscv64.version + "-" +
               "cp" + final.riscv64MuslPython39.sourceVersion.major + final.riscv64MuslPython39.sourceVersion.minor + "-" +
               "cp" + final.riscv64MuslPython39.sourceVersion.major + final.riscv64MuslPython39.sourceVersion.minor + "-" +

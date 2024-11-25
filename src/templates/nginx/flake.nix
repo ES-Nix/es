@@ -122,22 +122,22 @@
             name = "run-nixos-vm";
             runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
             text = ''
-                export VNC_PORT=3001
+              export VNC_PORT=3001
 
-                ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
+              ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
 
-                for _ in {0..50}; do
-                  if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
-                  then
-                    break
-                  fi
-                  # date +'%d/%m/%Y %H:%M:%S:%3N'
-                  sleep 0.1
-                done;
+              for _ in {0..50}; do
+                if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
+                then
+                  break
+                fi
+                # date +'%d/%m/%Y %H:%M:%S:%3N'
+                sleep 0.1
+              done;
 
-                remote-viewer spice://localhost:"$VNC_PORT"
+              remote-viewer spice://localhost:"$VNC_PORT"
 
-                kill $PID_QEMU
+              kill $PID_QEMU
             '';
           };
 

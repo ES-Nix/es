@@ -34,7 +34,7 @@
         distRiscv64 = prev.pkgsCross.riscv64.python312Packages.mmh3.dist;
 
         riscv64Python312 = prev.pkgsCross.riscv64.python312.withPackages (pyPkgs: with pyPkgs; [
-          mmh3  # for tests
+          mmh3 # for tests
           # Not packaged?!
           # maturin
           # msgpack
@@ -70,26 +70,26 @@
 
           # Compiles!
           # TODO: test again!
-            #aiohttp
-            #cffi
-            #cryptography
-            #frozenlist
-            #httptools
-            #lxml
-            #msgspec
-            #multidict
-            #nh3
-            #orjson
-            #protobuf
-            #pyzmq
-            #regex
-            #tiktoken
-            #ujson
-            #uvicorn
-            #uvloop
-            #websockets
-            #xxhash
-            #yarl
+          #aiohttp
+          #cffi
+          #cryptography
+          #frozenlist
+          #httptools
+          #lxml
+          #msgspec
+          #multidict
+          #nh3
+          #orjson
+          #protobuf
+          #pyzmq
+          #regex
+          #tiktoken
+          #ujson
+          #uvicorn
+          #uvloop
+          #websockets
+          #xxhash
+          #yarl
         ]);
 
         testBinfmtMany = prev.testers.runNixOSTest {
@@ -121,7 +121,7 @@
 
           globalTimeout = 2 * 60;
 
-            /*
+          /*
               ${
                 final.python39Packages.mmh3.pname
                 + "-"
