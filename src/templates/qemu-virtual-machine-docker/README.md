@@ -181,3 +181,6 @@ run \
 vm-no-graphical-oci-image:0.0.1 \
 sh 
 ```
+
+
+foo
