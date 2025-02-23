@@ -15,7 +15,7 @@ qemu-img info "$DISK_NAME"
 
 qemu-kvm \
 -enable-kvm \
--m 4G \
+-m 6G \
 -boot a \
 -hda "$DISK_NAME" \
 -bios "$FULL_PATH_TO_OVMF" \

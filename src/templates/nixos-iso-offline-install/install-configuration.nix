@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ inputs, config, pkgs, lib, ... }:
 
 {
   hardware.enableRedistributableFirmware = true;
@@ -72,11 +72,10 @@
   };
   environment.etc."channels/nixpkgs".source = pkgs.path;
   nix = {
-    package = pkgs.nixFlakes;
+    package = pkgs.nix;
     extraOptions = ''
       experimental-features = nix-command flakes
     '';
-
   };
 
   # Enable the X11 windowing system.

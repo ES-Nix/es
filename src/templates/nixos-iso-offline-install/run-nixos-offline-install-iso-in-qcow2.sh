@@ -29,7 +29,7 @@ qemu-system-x86_64 \
 -enable-kvm \
 -boot d \
 -hda "$VM_DISK_NAME" \
--m 2G \
+-m 3G \
 -bios "$VM_OVMF_FULL_PATH_TO_OVMF" \
 -cdrom "$VM_ISO_FULL_PATH" \
 --net nic,model=virtio \
