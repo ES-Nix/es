@@ -175,15 +175,15 @@ in
   # environment.systemPackages = mkForce [ pkgs.parted ];
 
   # If you don't want the docs
-  # documentation.enable = lib.mkForce false;
-  # documentation.nixos.enable = lib.mkForce false;
+  documentation.enable = lib.mkForce false;
+  documentation.nixos.enable = lib.mkForce false;
 
   # If you don't need wifi
-  # networking.wireless.enable = lib.mkForce false;
+  networking.wireless.enable = lib.mkForce false;
 
   # This is used to pull in stdenv to speed up the installation, so removing it
   # means you have to download it
-  # system.extraDependencies = lib.mkForce [ ];
+  system.extraDependencies = lib.mkForce [ ];
 
   systemd.user.services.populate-history = {
     script = ''
