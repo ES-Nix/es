@@ -32,5 +32,5 @@ jobs:
 
       - name: Run Nix Build
         run: |
-          nix flake maetada nixpkgs
+          nix flake metada nixpkgs
           nix build --print-build-logs nixpkgs#hello
