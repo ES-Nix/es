@@ -31,5 +31,6 @@ jobs:
         run: uname -a
 
       - name: Run Nix Build
-        run: nix flake maetada nixpkgs
-        run: nix build --print-build-logs nixpkgs#hello
+        run: |
+          nix flake maetada nixpkgs
+          nix build --print-build-logs nixpkgs#hello
