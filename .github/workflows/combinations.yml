@@ -1,4 +1,4 @@
-name: Nix Build
+name: "Test matrix of OSes and Nix"
 
 on:
   push:
@@ -17,12 +17,18 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+          # - ubuntu-24.04
+          # - ubuntu-22.04
+          # - ubuntu-20.04
           - macos-latest
+          # - macos-15
+          # - macos-14
           - macos-13
 
-    steps:
-      - name: Metadata about the runs-on machine
+      - name: Metadata about the runs-on machine before everything
         run: |
+          id
+          stat /dev/kvm || true            
           uname -a
           cat /etc/os-release || true
           cat /etc/lsb-release || true
@@ -39,20 +45,20 @@ jobs:
           sysctl -a | grep -i sched || true
           sysctl -a | grep -i numa || true
 
-      - name: Run 
-        run: |
-          curl -L https://hydra.nixos.org/job/nix/master/buildStatic.nix.$(uname -m)-linux/latest/download-by-type/file/binary-dist > nix \
-          && chmod +x nix \
-          && ./nix --version \
-          && ./nix \
-                --extra-experimental-features nix-command \
-                --extra-experimental-features flakes \
-                build \
-                --print-build-logs \
-                nixpkgs#hello
+      - uses: DeterminateSystems/nix-installer-action@v16
+        with:
+          source-tag: v0.38.1
+          diagnostic-endpoint: ""
 
-      - name: Setup Nix
-        uses: DeterminateSystems/nix-installer-action@main
+      - name: Build pkgsStatic.hello for testing nix
+        run: |
+          nix flake --version
+          # nix registry list
+          nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
+          nix run nixpkgs#nix-info -- --markdown
+          nix flake metadata nixpkgs
+          nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
+          nix build --no-link --print-out-paths nixpkgs#pkgsStatic.sqlite
 
       - name: Run Nix Build
         run: |
