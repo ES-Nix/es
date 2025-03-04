@@ -64,6 +64,7 @@ jobs:
           nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
+          echo $NIX_PATH
           # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
           # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
 
