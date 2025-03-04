@@ -25,6 +25,7 @@ jobs:
           # - macos-14
           - macos-13
 
+    steps:
       - name: Metadata about the runs-on machine before everything
         run: |
           id
@@ -50,7 +51,7 @@ jobs:
           source-tag: v0.38.1
           diagnostic-endpoint: ""
 
-      - name: Build pkgsStatic.hello for testing nix
+      - name: Pinning nipkgs commit and build pkgsStatic.sqlite for testing nix
         run: |
           nix flake --version
           # nix registry list
@@ -58,10 +59,4 @@ jobs:
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
           nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
-          nix build --no-link --print-out-paths nixpkgs#pkgsStatic.sqlite
-
-      - name: Run Nix Build
-        run: |
-          nix flake --version
-          nix flake metadata nixpkgs
-          nix build --print-build-logs nixpkgs#pkgsStatic.hello
+          nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
