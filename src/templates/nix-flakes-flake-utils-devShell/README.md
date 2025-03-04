@@ -19,6 +19,7 @@ Refs.:
 
 ```bash
 nix flake show '.#'
+nix flake metadata '.#'
 
 nix develop '.#' -c true
 nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
