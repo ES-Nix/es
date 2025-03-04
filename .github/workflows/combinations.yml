@@ -47,6 +47,10 @@ jobs:
           sysctl -a | grep -i sched || true
           sysctl -a | grep -i numa || true
 
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: DeterminateSystems/nix-installer-action@v16
         with:
           source-tag: v0.38.1
@@ -65,8 +69,8 @@ jobs:
 
       - name: Build checkedout local flake
         run: |
-          nix flake --version
-          nix flake metadata '.#'
-          nix flake show '.#'
-          nix develop '.#' --command true
+          nix flake metadata './src/templates/nix-flakes-flake-utils-devShell'
+          nix flake show './src/templates/nix-flakes-flake-utils-devShell'
+          nix develop './src/templates/nix-flakes-flake-utils-devShell' --command true
           nix flake check './src/templates/nix-flakes-flake-utils-devShell'
+          nix build './src/templates/nix-flakes-flake-utils-devShell'
