@@ -70,6 +70,52 @@ jobs:
 
       - name: Build checkedout local flake
         run: |
+          nix  \
+            build \
+            --no-link \
+            --print-build-logs \
+            --expr \
+            "$(cat <<- 'EOF'
+            let
+                #
+                flake-registry = (builtins.fetchGit {
+                    url = "https://github.com/NixOS/flake-registry.git";
+                    ref = "master";
+                    rev = "02fe640c9e117dd9d6a34efc7bcb8bd09c08111d";
+                  }
+                ); 
+                nixpkgs = (builtins.getFlake "github:NixOS/nixpkgs/107d5ef05c0b1119749e381451389eded30fb0d5"); 
+                pkgs = import nixpkgs { 
+                  system = "x86_64-linux";
+                  config.allowUnfreePredicate = pkg: builtins.elem (pkgs.lib.getName pkg) [ "vagrant" ];
+                };
+            in
+                pkgs.testers.runNixOSTest { name = "test-build-and-rebuild-vagrant";
+                                            nodes = { 
+                                              machineA = { config, pkgs, ... }: { 
+                                                environment.systemPackages = with pkgs; [ vagrant nix ];
+                                                system.extraDependencies =  with pkgs; [ vagrant.inputDerivation  ];
+                                                nix.extraOptions = "experimental-features = nix-command flakes";
+                                                nix.registry.nixpkgs.flake = nixpkgs;
+                                                nix.settings.flake-registry = "${flake-registry}/flake-registry.json";
+                                                nix.nixPath = [ "nixpkgs=${pkgs.path}" ];
+                                                nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (pkgs.lib.getName pkg) [ "vagrant" ];
+                                              };
+                                            };
+                                            node.specialArgs = { inherit nixpkgs; };
+                                            testScript = { nodes, ... }: ''
+                                                machineA.succeed("nix flake --version >&2")
+                                                machineA.succeed("nix flake metadata nixpkgs >&2")
+                                                machineA.succeed("nix eval nixpkgs#config >&2")
+                                                machineA.succeed("nix build --no-link --print-build-logs --print-out-paths nixpkgs#vagrant >&2")
+                                                machineA.succeed("nix build --no-link --print-build-logs --print-out-paths --rebuild nixpkgs#vagrant >&2")
+                                            '';
+                                          }
+            EOF
+            )"
+
+      - name: Build checkedout local flake
+        run: |
           nix flake metadata './src/templates/nix-flakes-flake-utils-devShell'
           nix flake show './src/templates/nix-flakes-flake-utils-devShell'
           nix develop './src/templates/nix-flakes-flake-utils-devShell' --command true
