@@ -6,9 +6,15 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a7' \
     --override-input flake-utils 'github:numtide/flake-utils/c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -28,7 +34,7 @@
       overlays.default = final: prev: {
         inherit self final prev;
 
-        foo-bar = prev.hello;
+        f00Bar = prev.hello;
       };
     } //
     flake-utils.lib.eachSystem suportedSystems
@@ -40,7 +46,7 @@
             config.allowUnfreePredicate = (_: true);
             config.android_sdk.accept_license = true;
             config.allowUnfree = true;
-            config.cudaSupport = true;
+            config.cudaSupport = false;
           };
 
           # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
@@ -55,9 +61,8 @@
 
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
-              foo-bar
-              # python312
-
+              f00Bar
+              # python313
               # bashInteractive
               pleaseKeepMyInputs
             ];
@@ -73,6 +78,13 @@
 
               hello
             '';
+          };
+
+          checks = {
+            inherit (pkgsAllowUnfree)
+              f00Bar
+              ;
+              default = self.packages."${suportedSystem}".default;
           };
         }
       )

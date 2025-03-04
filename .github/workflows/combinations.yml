@@ -24,6 +24,7 @@ jobs:
           # - macos-15
           # - macos-14
           - macos-13
+        nix-version: [2.26.2]
 
     steps:
       - name: Metadata about the runs-on machine before everything
@@ -50,7 +51,8 @@ jobs:
         with:
           source-tag: v0.38.1
           diagnostic-endpoint: ""
-
+          nix-package-url: https://releases.nixos.org/nix/nix-${{ matrix.nix-version }}/nix-${{ matrix.nix-version }}-${{ runner.arch == 'X64' && 'x86_64' || 'aarch64' }}-${{ runner.os == 'macOS' && 'darwin' || 'linux' }}.tar.xz
+ 
       - name: Pinning nipkgs commit and build pkgsStatic.sqlite for testing nix
         run: |
           nix flake --version
@@ -58,5 +60,13 @@ jobs:
           nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
-          nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
-          nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
+          # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
+          # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
+
+      - name: Build checkedout local flake
+        run: |
+          nix flake --version
+          nix flake metadata '.#'
+          nix flake show '.#'
+          nix develop '.#' --command true
+          nix flake check './src/templates/nix-flakes-flake-utils-devShell'
