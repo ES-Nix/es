@@ -20,10 +20,10 @@ jobs:
           # - ubuntu-24.04
           # - ubuntu-22.04
           # - ubuntu-20.04
-          - macos-latest
+          # - macos-latest
           # - macos-15
           # - macos-14
-          - macos-13
+          # - macos-13
         nix-version: [2.26.2]
 
     steps:
@@ -111,8 +111,8 @@ jobs:
                                                 machineA.succeed("nix build --no-link --print-build-logs --print-out-paths --rebuild nixpkgs#vagrant >&2")
                                             '';
                                           }
-            EOF
-            )"
+EOF
+)"
 
       - name: Build checkedout local flake
         run: |
