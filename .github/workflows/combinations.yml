@@ -56,11 +56,6 @@ jobs:
           source-tag: v0.38.1
           diagnostic-endpoint: ""
           nix-package-url: https://releases.nixos.org/nix/nix-${{ matrix.nix-version }}/nix-${{ matrix.nix-version }}-${{ runner.arch == 'X64' && 'x86_64' || 'aarch64' }}-${{ runner.os == 'macOS' && 'darwin' || 'linux' }}.tar.xz
- 
-      - name: Configure Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v9
-        with:
-          diagnostic-endpoint: ""
 
       - name: Pinning nipkgs commit and build pkgsStatic.sqlite for testing nix
         run: |
