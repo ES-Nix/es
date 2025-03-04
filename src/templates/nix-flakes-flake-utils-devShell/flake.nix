@@ -62,8 +62,9 @@
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
               f00Bar
-              # python313
-              # bashInteractive
+              python313
+              uv
+              bashInteractive
               pleaseKeepMyInputs
             ];
 
