@@ -1,13 +1,8 @@
 name: "Test matrix of OSes and Nix"
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - '*'
-
+  push:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -20,11 +15,16 @@ jobs:
           # - ubuntu-24.04
           # - ubuntu-22.04
           # - ubuntu-20.04
-          # - macos-latest
+          # 
+          # - ubuntu-latest-arm
+          - ubuntu-24.04-arm
+          # - ubuntu-22.04-arm
+          #           
+          - macos-latest
           # - macos-15
           # - macos-14
-          # - macos-13
-        nix-version: [2.26.2]
+          - macos-13
+        nix-version: [2.26.3]
 
     steps:
       - name: Metadata about the runs-on machine before everything
@@ -40,7 +40,7 @@ jobs:
           free -h || true
           nproc || true
           lscpu || true
-          sysctl -a || true
+          # sysctl -a || true
           sysctl -a | grep -i mem || true
           sysctl -a | grep -i cpu || true
           sysctl -a | grep -i vm || true
@@ -51,22 +51,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: DeterminateSystems/nix-installer-action@v16
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v16
         with:
           source-tag: v0.38.1
           diagnostic-endpoint: ""
           nix-package-url: https://releases.nixos.org/nix/nix-${{ matrix.nix-version }}/nix-${{ matrix.nix-version }}-${{ runner.arch == 'X64' && 'x86_64' || 'aarch64' }}-${{ runner.os == 'macOS' && 'darwin' || 'linux' }}.tar.xz
 
-      - name: Pinning nipkgs commit and build pkgsStatic.sqlite for testing nix
+      - name: Build pkgsStatic.hello for testing nix
         run: |
           nix flake --version
           # nix registry list
           nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
-          echo $NIX_PATH
           # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
+          # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.sqlite
           # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
+          # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.ffmpeg
 
       - name: Build checked out local flake
         run: |

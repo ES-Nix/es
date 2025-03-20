@@ -9,7 +9,7 @@ pkgs.stdenv.mkDerivation rec {
     file
     gnused
     git
-    nixStatic
+    nix
     openssh
     home-manager
   ];

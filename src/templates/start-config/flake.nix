@@ -15,6 +15,13 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
     --override-input home-manager 'github:nix-community/home-manager/2f23fa308a7c067e52dfcc30a0758f47043ec176'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input home-manager 'github:nix-community/home-manager/f6af7280a3390e65c2ad8fd059cdc303426cbd59'  
   */
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
@@ -38,7 +45,7 @@
       suportedSystems = [
         "x86_64-linux"
         # "aarch64-linux"
-        "aarch64-darwin"
+        # "aarch64-darwin"
       ];
 
       f = { system, username, arg-pkgs, home ? "", stateVersion ? "24.05" }:
@@ -105,7 +112,7 @@
             test -d .profiles || mkdir -v .profiles
 
             test -L .profiles/dev \
-            || nix develop .# --profile .profiles/dev --command id
+            || nix develop .# --profile .profiles/dev --command true
 
             test -L .profiles/dev-shell-default \
             || nix build $(nix eval --impure --raw .#devShells."$system".default.drvPath) --out-link .profiles/dev-shell-"$system"-default

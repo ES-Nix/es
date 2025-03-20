@@ -12,7 +12,6 @@ nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
 
 nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
 'github:ES-Nix/es/?dir=src/templates/memcached-static'
-
 ```
 
 
@@ -30,10 +29,14 @@ bash
 
 ## With a local clone
 
-
+TODO: remove warnings
+TODO: better name things, consistenciy and case conventions
 
 ```bash
+nix flake check --cores 6 --impure \
+
 nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
+--override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
 './src/templates/pandoc-latex' \
 './src/templates/nginx' \
 './src/templates/nixos-build-vm-systemd-self-hosted-runner-for-gitHub-actions' \
@@ -53,10 +56,13 @@ nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
 './src/templates/nix-flakes-flake-utils-devShell-home-manager#homeConfigurations.x86_64-linux.vagrant.activationPackage'
 ```
 
+--override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3'
+
+
 
 ```bash
 nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
-'./src/templates/valkey-static' \
+--override-input nixpkgs 'github:NixOS/nixpkgs/95600680c021743fd87b3e2fe13be7c290e1cac4' \
 './src/templates/redis-static' \
 './src/templates/nginx-static' \
 './src/templates/memcached-static' \
@@ -64,21 +70,39 @@ nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
 ```
 
 
+TODO: re-execute
+```bash
+nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
+--override-input nixpkgs 'github:NixOS/nixpkgs/95600680c021743fd87b3e2fe13be7c290e1cac4' \
+'./src/templates/binfmt-emulated-systems-python-docker-registry-images'
+```
+
 Only in unstable it has the binfmt needed:
 ```bash
 nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
+--override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-ubuntu' \
 './src/templates/binfmt-emulated-systems-hello' \
 './src/templates/binfmt-emulated-systems-docker' \
-'./src/templates/binfmt-emulated-systems-python-docker-registry-images' \
 './src/templates/binfmt-emulated-riscv64-python-alpine-wheels-via-pip-and-docker'
 ```
 
 
-It takes too long to build:
+TODO: It takes too long to build. 
 ```bash
 nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
+--override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
 './src/templates/nixos-iso-offline-install'
 ```
+
+It is broken, see the issue.
+```bash
+nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
+--override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
+'./src/templates/valkey-static'
+```
+Refs.:
+- https://github.com/NixOS/nixpkgs/issues/387010
 
 Only works in some different commit:
 ```bash
@@ -134,8 +158,8 @@ export NIX_CONFIG='extra-experimental-features = nix-command flakes'
 
 nix -vv registry pin nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b
 
-#command -v ssh-keygen || nix profile install nixpkgs#openssh
-#command -v git || nix profile install nixpkgs#git
+# command -v ssh-keygen || nix profile install nixpkgs#openssh
+# command -v git || nix profile install nixpkgs#git
 
 time \
 nix \
