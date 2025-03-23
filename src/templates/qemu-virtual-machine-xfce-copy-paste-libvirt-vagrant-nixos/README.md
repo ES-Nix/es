@@ -28,7 +28,7 @@ run \
 2)
 ```bash
 prepare-vagrant-vms \
-&& cd "$HOME"/vagrant-examples/libvirt/alpine/ \
+&& cd "$HOME"/vagrant-examples/libvirt/nixos/ \
 && vagrant up \
 && vagrant ssh
 
@@ -36,7 +36,23 @@ prepare-vagrant-vms \
 vagrant ssh -- -t 'id && cat /etc/os-release'
 vagrant ssh -c 'id && cat /etc/os-release'
 
-PRETTY_NAME="Alpine Linux v3.19"
+
+ANSI_COLOR="1;34"
+BUG_REPORT_URL="https://github.com/NixOS/nixpkgs/issues"
+BUILD_ID="24.05.20240530.d24e7fd"
+DOCUMENTATION_URL="https://nixos.org/learn.html"
+HOME_URL="https://nixos.org/"
+ID=nixos
+IMAGE_ID=""
+IMAGE_VERSION=""
+LOGO="nix-snowflake"
+NAME=NixOS
+PRETTY_NAME="NixOS 24.05 (Uakari)"
+SUPPORT_END="2024-12-31"
+SUPPORT_URL="https://nixos.org/community.html"
+VERSION="24.05 (Uakari)"
+VERSION_CODENAME=uakari
+VERSION_ID="24.05"
 ```
 
 
@@ -49,9 +65,8 @@ vagrant destroy --force; vagrant destroy --force && vagrant up && vagrant ssh
 ### 
 
 ```bash
-cd /etc/nixos
-
-cat << 'EOF' | sudo tee custom-configuration.nix
+cd /etc/nixos \
+&& cat << 'EOF' | sudo tee custom-configuration.nix
 { config, nixpkgs, pkgs, lib, modulesPath, ... }:
 let
   cfg = config;
@@ -85,14 +100,23 @@ in
 }
 EOF
 
-
 sudo \
 nix \
 flake \
 lock \
---override-input nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8
+--override-input nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8 \
+&& sudo nixos-rebuild switch -L
 
-sudo nixos-rebuild switch -L
+sudo reboot
+```
+
+```bash
+sudo \
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0 \
+&& sudo nixos-rebuild switch -L
 
 sudo reboot
 ```

@@ -26,11 +26,10 @@ run \
 
 
 ```bash
-prepare-vagrant-vms
-
-cd "$HOME"/vagrant-examples/libvirt/ubuntu/
-
-vagrant up && vagrant ssh
+prepare-vagrant-vms \
+&& cd "$HOME"/vagrant-examples/libvirt/ubuntu/ \
+&& vagrant up \
+&& vagrant ssh
 
 
 vagrant ssh -- -t 'id && cat /etc/os-release'

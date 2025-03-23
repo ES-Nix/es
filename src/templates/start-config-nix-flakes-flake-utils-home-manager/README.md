@@ -1,12 +1,18 @@
 
-TODO: 275159880
+
+```bash
+nix flake show '.#'
+nix flake metadata '.#'
+nix flake check --impure '.#'
+```
+
 ```bash
 sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix'
 
-curl -L https://hydra.nixos.org/build/257665509/download-by-type/file/binary-dist -o nix
+curl -L https://hydra.nixos.org/build/278148689/download-by-type/file/binary-dist -o nix
 
 # Not a must:
-echo a5c359f6820114982424242631976ae5ca366f705a567425c648e79795cbf95d'  'nix \
+echo 41ffe16f6119fbcf06f2e442d62cf7e051e272a9e2bac0cda754732652282134'  'nix \
 | sha256sum -c
 
 chmod -v +x nix \
@@ -18,6 +24,18 @@ chmod -v +x nix \
 run \
 github:ES-nix/es#installStartConfigTemplate
 ```
+
+./nix \
+--extra-experimental-features nix-command \
+--extra-experimental-features flakes \
+--refresh \
+run --impure 'github:ES-Nix/es/?dir=src/templates/nginx'
+
+./nix \
+--extra-experimental-features nix-command \
+--extra-experimental-features flakes \
+run \
+'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0#nixosTests.docker-rootless.driverInteractive'
 
 
 ```bash

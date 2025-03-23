@@ -42,7 +42,7 @@ nix develop --impure '.#' --command nixGL godot4 --rendering-driver opengl3
 
 ```bash
 cat > Containerfile << 'EOF'
-FROM docker.io/library/alpine:3.20.3 as alpine-with-ca-certificates-tzdata
+FROM docker.io/library/alpine:3.21.2 as alpine-with-ca-certificates-tzdata
 
 # https://stackoverflow.com/a/69918107
 # https://serverfault.com/a/1133538
@@ -82,14 +82,14 @@ RUN apk update \
  && echo 'End tzdata stuff!' 
 
 # sudo sh -c 'mkdir -pv /nix/var/nix && chmod -v 0777 /nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix'
-RUN mkdir -pv /nix/var/nix && chmod -v 0777 /nix && chown -Rv nixuser:nixgroup /nix
+# RUN mkdir -pv /nix/var/nix && chmod -v 0777 /nix && chown -Rv nixuser:nixgroup /nix
 
 USER nixuser
 WORKDIR /home/nixuser
 ENV USER="nixuser"
 
 RUN CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 || $(wget -q &> /dev/null; test $? -eq 1) && echo 'wget -O-' && exit 0 || echo no-curl-or-wget) \
- && $CURL_OR_WGET_OR_ERROR https://hydra.nixos.org/build/278365608/download-by-type/file/binary-dist > nix \
+ && $CURL_OR_WGET_OR_ERROR https://hydra.nixos.org/build/278148689/download-by-type/file/binary-dist > nix \
  && chmod -v +x nix \
  && ./nix --version \
  && echo \
@@ -99,7 +99,7 @@ RUN CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 
          --extra-experimental-features auto-allocate-uids \
          profile \
          install \
-         github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4#nix \
+         github:NixOS/nixpkgs/5ef6c425980847c78a80d759abc476e941a9bf42#nixVersions.nix_2_26 \
  && rm -v ./nix \
  && mkdir -pv "$HOME"/.config/nix \
  && grep 'experimental-features' "$HOME"/.config/nix/nix.conf -q &> /dev/null || (echo 'experimental-features = nix-command flakes' >> "$HOME"/.config/nix/nix.conf) \
@@ -121,7 +121,7 @@ RUN CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 
  && nix \
       registry \
       pin \
-      nixpkgs github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4 \
+      nixpkgs github:NixOS/nixpkgs/5ef6c425980847c78a80d759abc476e941a9bf42 \
  && nix flake metadata nixpkgs
 
 EOF

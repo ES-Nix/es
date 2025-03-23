@@ -12,13 +12,22 @@
   */
 
   # TODO: better name it.
-  startConfig = {
-    description = "Base configuration";
-    path = ./start-config;
+  startConfigNixFlakesHomeManagerZsh = {
+    description = "Base configuration: nix + flakes + home-manager + zsh + vscodium + neovim";
+    path = ./start-config-nix-flakes-flake-utils-home-manager;
+    welcomeText = ''
+      # A
+      It was created to be an start point with some batteries include.
+      ## B
+      C
+        ## More D
+      - [nixos.wiki](https://nixos.wiki/wiki/)
+      - ...
+    '';    
   };
 
   devShellHello = {
-    description = "";
+    description = "It is an nix flake example of a devShell and uses flake-utils support multiple architectures";
     path = ./nix-flakes-flake-utils-devShell;
   };
 
@@ -50,11 +59,6 @@
   QEMUVirtualMachineXfceCopyPaste = {
     description = "QEMU Virtual Machine with xfce and copy/paste working";
     path = ./qemu-virtual-machine-xfce-copy-paste;
-  };
-
-  QEMUVirtualMachineXfceCopyPasteMinimal = {
-    description = "Minimal QEMU Virtual Machine with xfce and copy/paste working";
-    path = ./qemu-virtual-machine-xfce-copy-paste-minimal;
   };
 
   QEMUVirtualMachineXfceCopyPasteK8s = {

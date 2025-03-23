@@ -33,36 +33,47 @@ TODO: remove warnings
 TODO: better name things, consistenciy and case conventions
 
 ```bash
-nix flake check --cores 6 --impure \
+# Defines a multi-line bash array of templates
+TEMPLATE_FOLDERS_RELATIVE_PATH=(
+    './src/templates/pandoc-latex'
+    # './src/templates/nginx'
+    # './src/templates/nixos-build-vm-systemd-self-hosted-runner-for-gitHub-actions'
+    # './src/templates/nixos-build-vm-kubernetes-self-hosted-runner-for-gitHub-actions'
+    # './src/templates/nixos-tests-hello-systemd-service'
+    # './src/templates/poetry2nix-basic-flask'
+    # './src/templates/poetry2nix-basic'
+    # './src/templates/qemu-virtual-machine-xfce-copy-paste-docker'
+    # './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-flask'
+    # './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-podman-flask'
+    # './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-python-script-and-package'
+    # './src/templates/minimal-busybox-sandbox-shell'
+    # './src/templates/nginx'
+    # './src/templates/flake-utils-godot4'
+    # './src/templates/nix-flakes-flake-utils-devShell'
+    # './src/templates/nix-flakes-flake-utils-devShell-home-manager#homeConfigurations.x86_64-linux.vagrant.activationPackage'
+)
 
-nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
---override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
-'./src/templates/pandoc-latex' \
-'./src/templates/nginx' \
-'./src/templates/nixos-build-vm-systemd-self-hosted-runner-for-gitHub-actions' \
-'./src/templates/nixos-build-vm-kubernetes-self-hosted-runner-for-gitHub-actions' \
-'./src/templates/nixos-tests-hello-systemd-service' \
-'./src/templates/poetry2nix-basic-flask' \
-'./src/templates/poetry2nix-basic' \
-'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker' \
-'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-flask' \
-'./src/templates/qemu-virtual-machine-xfce-copy-paste-k8s' \
-'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-podman-flask' \
-'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-python-script-and-package' \
-'./src/templates/minimal-busybox-sandbox-shell' \
-'./src/templates/nginx' \
-'./src/templates/flake-utils-godot4' \
-'./src/templates/nix-flakes-flake-utils-devShell' \
-'./src/templates/nix-flakes-flake-utils-devShell-home-manager#homeConfigurations.x86_64-linux.vagrant.activationPackage'
+for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}"; do
+    nix \
+    build \
+    --cores 6 \
+    --no-link \
+    --print-build-logs \
+    --print-out-paths \
+    --impure \
+    "$template" \
+    && nix \
+        flake \
+        check \
+        --impure \
+        "$template"
+done
 ```
-
---override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3'
-
 
 
 ```bash
 nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
---override-input nixpkgs 'github:NixOS/nixpkgs/95600680c021743fd87b3e2fe13be7c290e1cac4' \
+--override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
 './src/templates/redis-static' \
 './src/templates/nginx-static' \
 './src/templates/memcached-static' \
@@ -139,6 +150,14 @@ nix flake clone 'git+ssh://git@github.com/ES-Nix/es.git' --dest es \
 && cd es 1>/dev/null 2>/dev/null \
 && (direnv --version 1>/dev/null 2>/dev/null && direnv allow) \
 || nix develop $SHELL
+
+nix flake show '.#'
+nix flake metadata '.#'
+nix flake check '.#'
+```
+
+```bash
+nix flake show --json .# | jq '."templates"'
 ```
 
 ## Using 
@@ -149,30 +168,24 @@ nix flake clone 'git+ssh://git@github.com/ES-Nix/es.git' --dest es \
 command -v curl || (command -v apt && sudo apt-get update && sudo apt-get install -y curl)
 command -v curl || (command -v apk && sudo apk add --no-cache curl)
 
-
-NIX_RELEASE_VERSION=2.10.2 \
-&& time curl -L https://releases.nixos.org/nix/nix-"${NIX_RELEASE_VERSION}"/install | sh -s -- --no-daemon \
-&& . "$HOME"/.nix-profile/etc/profile.d/nix.sh
-
-export NIX_CONFIG='extra-experimental-features = nix-command flakes'
-
-nix -vv registry pin nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b
+(( test -d /nix/var/nix \
+|| test -w /nix \
+|| test 1735 -eq $(stat -c '%a' /nix/var/nix)
+) || sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix') \
+&& curl -L https://hydra.nixos.org/build/278148689/download-by-type/file/binary-dist > nix \
+&& echo 41ffe16f6119fbcf06f2e442d62cf7e051e272a9e2bac0cda754732652282134'  'nix \
+| sha256sum -c \
+&& chmod +x nix \
+&& ./nix --version \
+&& ./nix \
+--extra-experimental-features nix-command \
+--extra-experimental-features flakes \
+run \
+github:ES-nix/es#installStartConfigTemplate \
+&& exec ~/.nix-profile/bin/zsh
 
 # command -v ssh-keygen || nix profile install nixpkgs#openssh
 # command -v git || nix profile install nixpkgs#git
-
-time \
-nix \
---refresh \
-run \
-github:ES-nix/es#installStartConfigTemplate
-
-zsh
-```
-
-
-```bash
-nix flake show --json .# | jq '."templates"'
 ```
 
 
@@ -253,12 +266,6 @@ github:ES-nix/es#"$(nix eval --impure --raw --expr 'builtins.currentSystem')".st
 nix shell nixpkgs#git -c sh -c 'git init && git add .'
 ```
 
-```bash
-checks.suportedSystem = self.packages.suportedSystem;
-
-
-mkdir -pv hosts/minimal-example-nixos
-```
 
 
 ```bash
@@ -358,25 +365,4 @@ bash <<-EOF
           "$DUMMY_USER"
     
 EOF
-```
-
-
-TODO: 
-```bash
-templates = import ./src/templates { system = "x86_64-linux"; } ;
-templates.default = import ./src/templates;
-
-packages.checkNixFormat = pkgsAllowUnfree.runCommand "check-nix-format" { } ''
-    ${pkgsAllowUnfree.nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
-    
-    # For fix
-    # find . -type f -iname '*.nix' -exec nixpkgs-fmt {} \;
-    
-    mkdir $out #sucess
-'';
-
-apps.${name} = flake-utils.lib.mkApp {
-    inherit name;
-    drv = packages.${name};
-};
 ```

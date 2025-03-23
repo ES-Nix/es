@@ -1,5 +1,5 @@
 {
-  description = " ";
+  description = "It is an nix flake example of a devShell and uses flake-utils support multiple architectures";
   /*
     nix \
     flake \
@@ -22,7 +22,7 @@
     let
       suportedSystems = [
         "x86_64-linux"
-        # "aarch64-linux"
+        "aarch64-linux"
         "aarch64-darwin"
         "x86_64-darwin"
       ];
