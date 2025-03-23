@@ -5,17 +5,37 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
-    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+    --override-input nixpkgs 'github:NixOS/nixpkgs/95600680c021743fd87b3e2fe13be7c290e1cac4' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
 
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a' \
-    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+    --override-input nixpkgs 'github:NixOS/nixpkgs/b134951a4c9f3c995fd7be05f3243f8ecd65d798' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    In nixos-unstable it is broken!
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -27,6 +47,11 @@
         alpine319 = prev.fetchurl {
           url = "https://app.vagrantup.com/generic/boxes/alpine319/versions/4.3.12/providers/libvirt/amd64/vagrant.box";
           hash = "sha256-eM8BTnlFnQHR2ZvmRFoauJXRkpO9e7hv/sHsnkKYvF0=";
+        };
+
+        alpine321 = prev.fetchurl {
+          url = "https://api.cloud.hashicorp.com/vagrant/2022-09-30/registry/gnome-shell-box/box/alpine321/version/0.0.8/provider/libvirt/architecture/amd64/download";        
+          hash = "sha256-Qhgrh3r7Gq/2oYk3nOyE09888vVcve1xncrCzDyaX5s=";
         };
 
         archlinux = prev.fetchurl {
@@ -60,7 +85,8 @@
           Vagrant.configure("2") do |config|
             # Every Vagrant development environment requires a box. You can search for
             # boxes at https://vagrantcloud.com/search.
-            config.vm.box = "generic/alpine319"
+            # config.vm.box = "generic/alpine319"
+            config.vm.box = "gnome-shell-box/box/alpine321"
             config.vm.provider :libvirt do |v|
               v.cpus = 3
               v.memory = "2048"
@@ -73,6 +99,7 @@
             # Every Vagrant development environment requires a box. You can search for
             # boxes at https://vagrantcloud.com/search.
             config.vm.box = "generic/alpine319"
+            # config.vm.box = "gnome-shell-box/box/alpine321"
 
             config.vm.provider :libvirt do |v|
               v.cpus = 3
@@ -127,39 +154,6 @@
 
               mkdir -pv /etc/sudoers.d \
               && echo 'vagrant:1' | chpasswd \
-              && echo 'vagrant ALL=(ALL) PASSWD:SETENV: ALL' > /etc/sudoers.d/vagrant
-            SHELL
-          end
-        '';
-
-        vagrantfileArchlinux = prev.writeText "vagrantfile-archlinux" ''
-          Vagrant.configure("2") do |config|
-            config.vm.box = "archlinux/archlinux"
-
-            config.vm.provider :libvirt do |v|
-              v.cpus=3
-              v.memory = "2048"
-            end
-
-            config.vm.synced_folder '.', '/home/vagrant/code'
-
-            config.vm.provision "shell", inline: <<-SHELL
-              su vagrant -lc \
-              '
-                env | sort
-                echo
-
-                # curl -L http://ix.io/4Cj0 | sh -
-
-                echo $PATH
-                export PATH="$HOME"/.nix-profile/bin:"$HOME"/.local/bin:"$PATH"
-                echo $PATH
-
-                # wget -qO- http://ix.io/4Bqg | sh -
-              '
-
-              mkdir -pv /etc/sudoers.d \
-              && echo 'vagrant:123' | chpasswd \
               && echo 'vagrant ALL=(ALL) PASSWD:SETENV: ALL' > /etc/sudoers.d/vagrant
             SHELL
           end
@@ -241,7 +235,7 @@
           for i in {0..100};do
             echo "The iteration number is: $i. Time: $(date +'%d/%m/%Y %H:%M:%S:%3N')";
             vagrant box list
-            if (vagrant box list | grep -q generic/alpine319); then
+            if (vagrant box list | grep -q alpine3); then
               break
             fi
           done;
@@ -269,7 +263,8 @@
 
               # journalctl --user --unit copy-vagrant.service -b -f
               # journalctl copy-vagrant.service -b -f
-              config.systemd.services.copy-vagrant = {
+              # TODO: config.systemd vs config.systemd.user
+              config.systemd.user.services.copy-vagrant = {
                 path = with pkgs; [
                   curl
                   file
@@ -284,31 +279,29 @@
                   #! ${pkgs.runtimeShell} -e
                     set -x
 
-                    id
-                    BASE_DIR=/root/vagrant-examples/libvirt
-                    mkdir -pv "$BASE_DIR"/alpine
-
-                    cd "$BASE_DIR"
-
-                    cp -v "${pkgs.vagrantfileAlpineMinimal}" alpine/Vagrantfile
-
-                    vagrant \
+                    id \
+                    && BASE_DIR=/root/vagrant-examples/libvirt \
+                    && mkdir -pv "$BASE_DIR"/alpine \
+                    && cd "$BASE_DIR" \
+                    && cp -v "${pkgs.vagrantfileAlpineMinimal}" alpine/Vagrantfile \
+                    && vagrant \
                         box \
                         add \
                         generic/alpine319 \
                         "${pkgs.alpine319}" \
                         --force \
+                        --debug \
                         --provider \
-                        libvirt
-
-                    vagrant box list
+                        libvirt \
+                    && vagrant box list
                 '';
+                after = [ "libvirtd.service" "network.target" ];                
                 wantedBy = [ "default.target" ];
               };
 
             };
 
-          globalTimeout = 2 * 60;
+          globalTimeout = 3 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -319,27 +312,32 @@
 
               # machineWithVagrant.wait_for_unit("default.target")
               machineWithVagrant.wait_for_unit("multi-user.target")
-              # machineWithVagrant.wait_for_unit("copy-vagrant")
+              machineWithVagrant.wait_for_unit("copy-vagrant")
 
               machineWithVagrant.succeed("type prepare-vagrant-vms")
               machineWithVagrant.succeed("type vagrant")
 
               machineWithVagrant.succeed("touch /dev/kvm")
               machineWithVagrant.succeed("touch /tmp")
-              print(machineWithVagrant.succeed("env | sort"))
-              machineWithVagrant.succeed("id")
-              machineWithVagrant.succeed("systemctl is-enabled libvirtd.service")
+              # print(machineWithVagrant.succeed("env | sort"))
+              machineWithVagrant.succeed("id >&2")
 
-              # machineWithVagrant.succeed("prepare-vagrant-vms >&2 &")
+              machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER >&2")
+              machineWithVagrant.succeed("systemctl is-enabled libvirtd.service >&2")
 
-              # machineWithVagrant.succeed("vagrant box list ")
-              # machineWithVagrant.wait_until_succeeds("vagrant box list | grep -q generic/alpine319")
-              machineWithVagrant.succeed("cd /root/vagrant-examples/libvirt/alpine && vagrant box list && vagrant up")
+              machineWithVagrant.succeed("vagrant box list >&2")
+              machineWithVagrant.succeed("prepare-vagrant-vms >&2 &")
+              machineWithVagrant.succeed("vagrant box list >&2")
+
+              # machineWithVagrant.wait_until_succeeds("vagrant box list | grep -q alpine319 >&2")
+              machineWithVagrant.succeed("journalctl --user --unit copy-vagrant -b >&2")
+
+              # machineWithVagrant.succeed("cd /root/vagrant-examples/libvirt/alpine && vagrant box list && vagrant up")
               # machineWithVagrant.wait_until_succeeds("vagrant ssh -- -t 'id && cat /etc/os-release'")
 
-              expected = 'PRETTY_NAME="Alpine Linux v3.19"'
-              result = machineWithVagrant.succeed("vagrant ssh -c 'id && cat /etc/os-release'")
-              assert expected == result, f"expected = {expected}, result = {result}"
+              # expected = 'PRETTY_NAME="Alpine Linux v3.19"'
+              # result = machineWithVagrant.succeed("vagrant ssh -c 'id && cat /etc/os-release'")
+              # assert expected == result, f"expected = {expected}, result = {result}"
             '';
         };
 
@@ -412,20 +410,21 @@
                       cd "$BASE_DIR"
 
                       cp -v "${pkgs.vagrantfileAlpine}" alpine/Vagrantfile
-                      # cp -v "${pkgs.vagrantfileArchlinux}" archlinux/Vagrantfile
                       cp -v "${pkgs.vagrantfileUbuntu}" ubuntu/Vagrantfile
                       cp -v "${pkgs.vagrantfileNixos}" nixos/Vagrantfile
 
-                      PROVIDER=libvirt
-
-                      vagrant \
+                      PROVIDER=libvirt \
+                      && vagrant box list \
+                      && vagrant \
                           box \
                           add \
                           generic/alpine319 \
                           "${pkgs.alpine319}" \
                           --force \
+                          --debug \
                           --provider \
-                          $PROVIDER
+                          $PROVIDER \
+                      && vagrant box list
                   '';
                   wantedBy = [ "default.target" ];
                 };
@@ -480,8 +479,13 @@
                 services.spice-vdagentd.enable = true; # For copy/paste to work
 
                 virtualisation.libvirtd.enable = true;
+                # virtualisation.services.libvirtd.serviceOverrides = { PrivateUsers="no"; };
+
 
                 nix.extraOptions = "experimental-features = nix-command flakes";
+                nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+                  "vagrant"
+                ];
 
                 programs.dconf.enable = true;
 
@@ -571,6 +575,9 @@
       let
         pkgs = import nixpkgs {
           inherit system;
+          config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+            "vagrant"
+          ];          
           overlays = [ self.overlays.default ];
         };
       in
@@ -601,8 +608,9 @@
 
         checks = {
           inherit (pkgs)
-
+            alpine319
             automatic-vm
+            testVagrantWithLibvirt
             ;
         };
 

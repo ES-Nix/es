@@ -62,7 +62,7 @@ nix \
 flake \
 init \
 --template \
-github:ES-nix/es#startConfig
+github:ES-nix/es#startConfigNixFlakesHomeManagerZsh
 
 
 

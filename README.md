@@ -163,6 +163,14 @@ nix flake show --json .# | jq '."templates"'
 ## Using 
 
 
+
+```bash
+nix flake show github:ES-Nix/es
+nix flake metadata github:ES-Nix/es
+nix flake check github:ES-Nix/es
+```
+
+
 ```bash
 # https://xkcd.com/1654/
 command -v curl || (command -v apt && sudo apt-get update && sudo apt-get install -y curl)
@@ -189,11 +197,6 @@ github:ES-nix/es#installStartConfigTemplate \
 ```
 
 
-```bash
-nix flake show github:ES-Nix/es
-nix flake metadata github:ES-Nix/es
-nix flake check github:ES-Nix/es
-```
 
 
 

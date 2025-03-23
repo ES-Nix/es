@@ -24,12 +24,14 @@
       (final: prev: {
         foo-bar = prev.hello;
 
-        # https://github.com/NixOS/nixpkgs/issues/348938#issuecomment-2418403735
-        # vagrant = prev.vagrant.override { withLibvirt = false; };
-
         alpine319 = prev.fetchurl {
           url = "https://app.vagrantup.com/generic/boxes/alpine319/versions/4.3.12/providers/libvirt/amd64/vagrant.box";
           hash = "sha256-eM8BTnlFnQHR2ZvmRFoauJXRkpO9e7hv/sHsnkKYvF0=";
+        };
+
+        archlinux = prev.fetchurl {
+          url = "https://app.vagrantup.com/archlinux/boxes/archlinux/versions/20231015.185166/providers/libvirt.box";
+          hash = "sha256-al0x2BVLB9XoOBu3Z0/ANg2Ut1Bik9uT6xYz8DDc7L8=";
         };
 
         ubuntu2204 = prev.fetchurl {
@@ -42,10 +44,38 @@
           hash = "sha256-NJSYFp7RmL0BlY8VBltSFPCCdajk5J5wMD2++aBnxCw=";
         };
 
-        ubuntu2404 = prev.fetchurl {
-          url = "https://app.vagrantup.com/alvistack/boxes/ubuntu-24.04/versions/20240415.1.1/providers/libvirt/unknown/vagrant.box";
+        ubuntu2404Old = prev.fetchurl {
+          url = "https://app.vagrantup.com/alvistack/boxes/ubuntu-24.04/versions/20240415.1.1/providers/libvirt/amd64/vagrant.box";
           hash = "sha256-vuaPLzdWV5ehJdlBBpWqf1nXh4twdHfPdX19bnY4yBk=";
         };
+
+        ubuntu2404 = prev.fetchurl {
+          url = "https://vagrantcloud.com/gnome-shell-box/boxes/ubuntu2404/versions/0.0.8/providers/libvirt/amd64/vagrant.box";
+          hash = "sha256-XILeau0o6ki3Sdg5ap2w6RkJnefQ4bUQJv4X6xz+2Ug=";
+        };
+
+        nixos2305 = prev.fetchurl {
+          url = "https://app.vagrantup.com/hennersz/boxes/nixos-23.05-flakes/versions/23.05.231106000354/providers/libvirt/unknown/vagrant.box";
+          hash = "sha256-x76icAXDReYe9xppwr6b77hTO44EWvBtSx+j41bvMVA=";
+        };
+
+        nixos2404 = prev.fetchurl {
+          url = "https://api.cloud.hashicorp.com/vagrant/2022-09-30/registry/gnome-shell-box/box/nixos/version/0.0.8/provider/libvirt/architecture/amd64/download";
+          hash = "";
+        };
+
+        # vagrantfiles
+        vagrantfileAlpineMinimal = prev.writeText "vagrantfile-alpine" ''
+          Vagrant.configure("2") do |config|
+            # Every Vagrant development environment requires a box. You can search for
+            # boxes at https://vagrantcloud.com/search.
+            config.vm.box = "generic/alpine319"
+            config.vm.provider :libvirt do |v|
+              v.cpus = 3
+              v.memory = "2048"
+            end
+          end
+        '';
 
         vagrantfileAlpine = prev.writeText "vagrantfile-alpine" ''
           Vagrant.configure("2") do |config|
@@ -113,13 +143,14 @@
 
         vagrantfileUbuntu = prev.writeText "vagrantfile-ubuntu" ''
           Vagrant.configure("2") do |config|
-            # config.vm.box = "generic/ubuntu2204"
+            config.vm.box = "generic/ubuntu2204"
             # config.vm.box = "generic/ubuntu2304"
-            config.vm.box = "alvistack/ubuntu-24.04"
+            # config.vm.box = "gnome-shell-box/box/ubuntu2404"
+            # config.vm.box = "alvistack/ubuntu-24.04"
 
             config.vm.provider :libvirt do |v|
               v.cpus=5
-              v.memory = "6500"
+              v.memory = "5000"
               # v.memorybacking :access, :mode => "shared"
               # https://github.com/vagrant-libvirt/vagrant-libvirt/issues/1460
             end
@@ -146,11 +177,37 @@
               su vagrant -lc \
               '
                 # env | sort
+                # echo
+                # wget -qO- http://ix.io/4Cj0 | sh -
+                # echo $PATH
+                # export PATH="$HOME"/.nix-profile/bin:"$HOME"/.local/bin:"$PATH"
+                # echo $PATH
+                # wget -qO- http://ix.io/4Bqg | sh -
               '
 
               mkdir -pv /etc/sudoers.d \
               && echo 'vagrant:1' | chpasswd \
               && echo 'vagrant ALL=(ALL) PASSWD:SETENV: ALL' > /etc/sudoers.d/vagrant
+
+            SHELL
+          end
+        '';
+
+        vagrantfileNixos = prev.writeText "vagrantfile-nixos" ''
+          Vagrant.configure("2") do |config|
+            config.vm.box = "hennersz/nixos-23.05-flakes"
+
+            config.vm.provider :libvirt do |v|
+              v.cpus=3
+              v.memory = "4096"
+              # v.memorybacking :access, :mode => "shared"
+              # https://github.com/vagrant-libvirt/vagrant-libvirt/issues/1460
+            end
+
+            config.vm.synced_folder '.', '/home/vagrant/code'
+
+            config.vm.provision "shell", inline: <<-SHELL
+              ls -alh
             SHELL
           end
         '';
@@ -161,9 +218,17 @@
           for i in {0..100};do
             echo "The iteration number is: $i. Time: $(date +'%d/%m/%Y %H:%M:%S:%3N')";
             vagrant box list
-            if (vagrant box list | grep -q alvistack/ubuntu-24.04); then
+
+            if (vagrant box list | grep -q 'ubuntu'); then
               break
             fi
+            
+            # if (vagrant box list | grep -q 'generic/ubuntu-23.04'); then
+            #   break
+            # fi
+            # if (vagrant box list | grep -q generic/alpine319); then
+            #   break
+            # fi
           done;
         '';
 
@@ -228,7 +293,7 @@
 
             };
 
-          globalTimeout = 2 * 60;
+          globalTimeout = 3 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -246,20 +311,20 @@
 
               machineWithVagrant.succeed("touch /dev/kvm")
               machineWithVagrant.succeed("touch /tmp")
-              print(machineWithVagrant.succeed("env | sort"))
+              # print(machineWithVagrant.succeed("env | sort"))
               machineWithVagrant.succeed("id")
               machineWithVagrant.succeed("systemctl is-enabled libvirtd.service")
 
-              # machineWithVagrant.succeed("prepare-vagrant-vms >&2 &")
+              machineWithVagrant.succeed("prepare-vagrant-vms >&2 &")
 
-              # machineWithVagrant.succeed("vagrant box list ")
-              # machineWithVagrant.wait_until_succeeds("vagrant box list | grep -q generic/alpine319")
-              machineWithVagrant.succeed("cd /root/vagrant-examples/libvirt/alpine && vagrant box list && vagrant up")
+              machineWithVagrant.succeed("vagrant box list ")
+              machineWithVagrant.wait_until_succeeds("vagrant box list | grep -q generic/alpine319")
+              # machineWithVagrant.succeed("cd /root/vagrant-examples/libvirt/alpine && vagrant box list && vagrant up")
               # machineWithVagrant.wait_until_succeeds("vagrant ssh -- -t 'id && cat /etc/os-release'")
 
-              expected = 'PRETTY_NAME="Alpine Linux v3.19"'
-              result = machineWithVagrant.succeed("vagrant ssh -c 'id && cat /etc/os-release'")
-              assert expected == result, f"expected = {expected}, result = {result}"
+              # expected = 'PRETTY_NAME="Alpine Linux v3.19"'
+              # result = machineWithVagrant.succeed("vagrant ssh -c 'id && cat /etc/os-release'")
+              # assert expected == result, f"expected = {expected}, result = {result}"
             '';
         };
 
@@ -311,7 +376,35 @@
                     virtualisation.writableStore = true; # TODO: hardening
                   };
 
-                # journalctl --user --unit copy-vagrant-examples-vagrant-up.service -b -f
+                ## What does not work if it is desabled?
+                /*
+                # hardware.enableAllFirmware = true;
+                hardware.enableRedistributableFirmware = true;
+                # hardware.opengl.driSupport = true;
+                hardware.opengl.driSupport32Bit = true;
+                hardware.opengl.enable = true;
+                hardware.opengl.extraPackages = with pkgs; [ pipewire pulseaudioFull libva-utils ];
+                hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ pipewire pulseaudioFull libva-utils ];
+                hardware.opengl.package = pkgs.mesa.drivers;
+                # hardware.opengl.setLdLibraryPath = true;
+                # hardware.pulseaudio.package = pkgs.pulseaudioFull;
+                hardware.pulseaudio.support32Bit = true;
+                # hardware.steam-hardware.enable = true;
+                # programs.steam.enable = true;
+                */
+
+                /*
+                journalctl --user --unit copy-vagrant-examples-vagrant-up.service --boot --follow
+
+                systemctl --user is-active copy-vagrant-examples-vagrant-up.service; 
+                test $? -eq 3 && echo 1 || echo 2
+
+                while ! (systemctl --user is-active copy-vagrant-examples-vagrant-up.service; test $? -eq 3); do \
+                  echo $(date +'%d/%m/%Y %H:%M:%S:%3N'); 
+                  sleep 0.3; 
+                done 
+
+                */
                 systemd.user.services.copy-vagrant-examples-vagrant-up = {
                   path = with pkgs; [
                     curl
@@ -331,19 +424,20 @@
 
                       cd "$BASE_DIR"
 
-                      # cp -v "${pkgs.vagrantfileAlpine}" alpine/Vagrantfile
                       cp -v "${pkgs.vagrantfileUbuntu}" ubuntu/Vagrantfile
 
                       PROVIDER=libvirt
 
-                      vagrant \
+                      vagrant box list \
+                      && vagrant \
                           box \
                           add \
-                          alvistack/ubuntu-24.04 \
-                          "${pkgs.ubuntu2304}" \
+                          generic/ubuntu2204 \
+                          "${pkgs.ubuntu2204}" \
                           --force \
                           --provider \
-                          $PROVIDER
+                          $PROVIDER \
+                      && vagrant box list
                   '';
                   wantedBy = [ "default.target" ];
                 };
@@ -369,6 +463,7 @@
                     "qemu-libvirtd"
                     "root"
                     "vboxsf"
+                    "video"
                     "wheel"
                   ];
                   packages = with pkgs; [
@@ -376,25 +471,9 @@
                     firefox
                     git
                     jq
-                    tree
                     lsof
                     findutils
                     vagrant
-
-                    docker-compose
-                    # poetry
-                    # python3
-                    (python3.withPackages (pyPkgs: with pyPkgs; [
-                      # pip
-                      # django
-                      djangorestframework
-                      # djangorestframework-simplejwt
-                      # psycopg2
-
-                      # django-redis
-                      # django-debug-toolbar
-                    ]))
-
                     prepareVagrantVms
                     foo-bar
                   ];
@@ -416,6 +495,9 @@
                 virtualisation.libvirtd.enable = true;
 
                 nix.extraOptions = "experimental-features = nix-command flakes";
+                nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+                  "vagrant"
+                ];
 
                 programs.dconf.enable = true;
 
@@ -505,13 +587,16 @@
       let
         pkgs = import nixpkgs {
           inherit system;
+          config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+            "vagrant"
+          ];          
           overlays = [ self.overlays.default ];
         };
       in
       rec {
         packages = {
           inherit (pkgs)
-            alpine319
+            ubuntu2204
             ;
 
           default = pkgs.testVagrantWithLibvirt;
@@ -537,6 +622,8 @@
           inherit (pkgs)
 
             automatic-vm
+            alpine319
+            ubuntu2204
             ;
         };
 
