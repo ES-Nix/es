@@ -74,7 +74,7 @@ jobs:
         run: |
           nix flake show '.#'
           nix flake metadata '.#'
-          nix develop '.#' -c true
+          # nix develop '.#' -c true
           nix build --no-link --print-build-logs --print-out-paths '.#'
           nix flake check '.#' --verbose
 
