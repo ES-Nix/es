@@ -28,7 +28,7 @@
 
   devShellHello = {
     description = "It is an nix flake example of a devShell and uses flake-utils support multiple architectures";
-    path = ./nix-flakes-flake-utils-devShell;
+    path = ./nix-flakes-flake-utils-dev-shell;
   };
 
   poetry2nixBasic = {
