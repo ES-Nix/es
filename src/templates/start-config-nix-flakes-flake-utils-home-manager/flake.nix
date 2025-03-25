@@ -44,8 +44,9 @@
 
       suportedSystems = [
         "x86_64-linux"
-        # "aarch64-linux"
-        # "aarch64-darwin"
+        "aarch64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
       ];
 
       f = { system, username, arg-pkgs, home ? "", stateVersion ? "24.05" }:
