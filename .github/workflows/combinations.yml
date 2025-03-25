@@ -70,6 +70,14 @@ jobs:
           # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
           # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.ffmpeg
 
+      - name: Metadata and build the checked out local flake
+        run: |
+          nix flake show '.#'
+          nix flake metadata '.#'
+          nix develop '.#' -c true
+          nix build --no-link --print-build-logs --print-out-paths '.#'
+          nix flake check '.#' --verbose
+
       - name: Build checked out local flake
         run: |
           nix flake metadata './src/templates/start-config-nix-flakes-flake-utils-home-manager'
@@ -77,9 +85,3 @@ jobs:
           nix develop './src/templates/start-config-nix-flakes-flake-utils-home-manager' --command true
           nix flake check './src/templates/start-config-nix-flakes-flake-utils-home-manager'
           nix build './src/templates/start-config-nix-flakes-flake-utils-home-manager'
-
-      - name: Build
-        run: |
-          nix build --no-link --print-out-paths --impure \
-          './src/templates/pandoc-latex' \
-          './src/templates/nginx'
