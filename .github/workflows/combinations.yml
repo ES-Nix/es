@@ -72,11 +72,11 @@ jobs:
 
       - name: Build checked out local flake
         run: |
-          nix flake metadata './src/templates/nix-flakes-flake-utils-devShell'
-          nix flake show './src/templates/nix-flakes-flake-utils-devShell'
-          nix develop './src/templates/nix-flakes-flake-utils-devShell' --command true
-          nix flake check './src/templates/nix-flakes-flake-utils-devShell'
-          nix build './src/templates/nix-flakes-flake-utils-devShell'
+          nix flake metadata './src/templates/start-config-nix-flakes-flake-utils-home-manager'
+          nix flake show './src/templates/start-config-nix-flakes-flake-utils-home-manager'
+          nix develop './src/templates/start-config-nix-flakes-flake-utils-home-manager' --command true
+          nix flake check './src/templates/start-config-nix-flakes-flake-utils-home-manager'
+          nix build './src/templates/start-config-nix-flakes-flake-utils-home-manager'
 
       - name: Build
         run: |
