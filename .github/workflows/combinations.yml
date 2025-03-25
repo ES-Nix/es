@@ -24,7 +24,7 @@ jobs:
           # - macos-15
           # - macos-14
           - macos-13
-        nix-version: [2.26.3]
+        nix-version: [2.27.0]
 
     steps:
       - name: Metadata about the runs-on machine before everything
