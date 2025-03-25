@@ -120,11 +120,11 @@
         };
     } // {
 
-      nixosConfigurations = (import ./src/nixos-configurations {
-        inherit lib;
-        path = pkgsAllowUnfree.path;
-        # my-overlays = my-overlays;
-      });
+      # nixosConfigurations = (import ./src/nixos-configurations {
+      #   inherit lib;
+      #   path = pkgsAllowUnfree.path;
+      #   # my-overlays = my-overlays;
+      # });
 
       checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
