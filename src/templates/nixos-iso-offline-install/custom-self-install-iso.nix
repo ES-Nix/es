@@ -28,23 +28,43 @@ let
     # to see what we have in the installer nix store, so copy everything
     # needed over.
 
-    parted --list \
-    && fdisk --list \
+    # dmesg | grep sda \
+    # && fdisk -l \
+    # && parted --script /dev/sda -- mklabel gpt \
+    # && partprobe /dev/sda \
+    # && parted --script /dev/sda print \
+    # && exit 1 
+
+    # parted --list \
+    # && fdisk --list \
+    # && wipefs --all --force --json /dev/sda \
+    # && parted --list \
+    # && 
+    
+    fdisk --list \
     && wipefs --all --force --json /dev/sda \
-    && parted --list \
-    && fdisk --list \
     && parted --script /dev/sda -- mklabel gpt \
-    && parted --script /dev/sda -- mkpart primary 512MiB -1GiB \
+    && partprobe /dev/sda \
+    && parted --script /dev/sda -- mkpart primary 512MiB 10GiB \
+    && partprobe /dev/sda \
     && parted --script /dev/sda -- mkpart primary linux-swap -1GiB -500MiB \
+    && partprobe /dev/sda \
     && parted --script /dev/sda -- mkpart ESP fat32 1MiB 512MiB \
+    && partprobe /dev/sda \
     && parted --script /dev/sda -- set 3 boot on \
+    && partprobe /dev/sda \
     && mkfs.ext4 -F -L nixos /dev/sda1 \
+    && partprobe /dev/sda \
     && mkswap --label swap /dev/sda2 \
+    && partprobe /dev/sda \
     && swapon /dev/sda2 \
+    && partprobe /dev/sda \
     && mkfs.fat -F 32 -n boot -I /dev/sda3 \
+    && partprobe /dev/sda \
     && parted --list \
     && fdisk --list \
-    && sleep 6 \
+    && exit 1 \
+    && sleep 1 \
     && parted --list \
     && fdisk --list \
     && mount /dev/disk/by-label/nixos /mnt \
@@ -68,7 +88,7 @@ let
     && date --rfc-3339=ns --utc \
     && ls -al /nix/var/nix/profiles/per-user/root/channels \
     && date --rfc-3339=ns --utc \
-    && (${installBuild.nixos-install}/bin/nixos-install --no-root-password || true) \
+    && (${installBuild.nixos-install}/bin/nixos-install --no-root-password --no-channel-copy || true) \
     && date --rfc-3339=ns --utc \
     && shutdown --poweroff
   '';
@@ -81,7 +101,7 @@ in
     # "${modulesPath}/profiles/all-hardware.nix"
     "${modulesPath}/profiles/base.nix"
     "${modulesPath}/profiles/installation-device.nix"
-    "${modulesPath}/installer/cd-dvd/channel.nix"
+    # "${modulesPath}/installer/cd-dvd/channel.nix"
     "${modulesPath}/installer/tools/tools.nix"
   ];
 
@@ -155,7 +175,8 @@ in
   # nix eval '.#nixosConfigurations.nixos-offline-install-iso-in-qcow2.config.system.build.isoImage.override.__functionArgs'
   #isoImage.compressImage = false;
   isoImage.squashfsCompression = "gzip -Xcompression-level 1";
-  # isoImage.squashfsCompression = "zstd -Xcompression-level 7";
+  # isoImage.squashfsCompression = "zstd -Xcompression-level 1";
+  # isoImage.squashfsCompression = "zstd -Xcompression-level 22";
   isoImage.isoBaseName = "nixos-offline-installer";
   isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
   isoImage.makeEfiBootable = true;

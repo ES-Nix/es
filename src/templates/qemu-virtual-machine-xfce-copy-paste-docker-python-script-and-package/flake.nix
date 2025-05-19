@@ -685,6 +685,11 @@
           ];
 
           shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true
+
             # echo ${pkgs.OCIImagePythonWithPackage}
           '';
         };

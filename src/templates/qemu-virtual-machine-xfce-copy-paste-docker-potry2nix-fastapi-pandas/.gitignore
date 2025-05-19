@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.idea/
+.env
+.direnv/
+.profiles/
+*.qcow2
+.nixos-test-history

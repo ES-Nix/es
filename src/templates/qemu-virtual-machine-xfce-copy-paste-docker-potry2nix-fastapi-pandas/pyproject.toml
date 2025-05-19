@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "app"
+version = "0.0.1"
+description = ""
+authors = ["Your Name"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = {extras = ["standard"], version = "^0.115.12"}
+uvicorn = "^0.34.2"
+pydantic-core = "^2.34.1"
+pandas = "2.2.3"
+
+[tool.poetry.scripts]
+start-app = "app.main:start"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

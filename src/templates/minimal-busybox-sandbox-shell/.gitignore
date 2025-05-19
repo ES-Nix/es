@@ -9,3 +9,4 @@ secrets/*.yaml
 .direnv/
 .profiles/
 *.qcow2
+*.nixos-test-history

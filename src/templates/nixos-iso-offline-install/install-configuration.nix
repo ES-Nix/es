@@ -70,9 +70,9 @@
   nixpkgs.config = {
     allowUnfree = true;
   };
-  environment.etc."channels/nixpkgs".source = pkgs.path;
+  # environment.etc."channels/nixpkgs".source = pkgs.path;
   nix = {
-    package = pkgs.nix;
+    package = pkgs.nixVersions.nix_2_26;
     extraOptions = ''
       experimental-features = nix-command flakes
     '';

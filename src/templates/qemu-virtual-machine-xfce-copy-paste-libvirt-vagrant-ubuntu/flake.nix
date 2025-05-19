@@ -13,6 +13,12 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/c505ebf777526041d792a49d5f6dd4095ea391a' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/b134951a4c9f3c995fd7be05f3243f8ecd65d798' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -23,16 +29,6 @@
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
         foo-bar = prev.hello;
-
-        alpine319 = prev.fetchurl {
-          url = "https://app.vagrantup.com/generic/boxes/alpine319/versions/4.3.12/providers/libvirt/amd64/vagrant.box";
-          hash = "sha256-eM8BTnlFnQHR2ZvmRFoauJXRkpO9e7hv/sHsnkKYvF0=";
-        };
-
-        archlinux = prev.fetchurl {
-          url = "https://app.vagrantup.com/archlinux/boxes/archlinux/versions/20231015.185166/providers/libvirt.box";
-          hash = "sha256-al0x2BVLB9XoOBu3Z0/ANg2Ut1Bik9uT6xYz8DDc7L8=";
-        };
 
         ubuntu2204 = prev.fetchurl {
           url = "https://app.vagrantup.com/generic/boxes/ubuntu2204/versions/4.3.8/providers/libvirt.box";
@@ -50,102 +46,16 @@
         };
 
         ubuntu2404 = prev.fetchurl {
-          url = "https://vagrantcloud.com/gnome-shell-box/boxes/ubuntu2404/versions/0.0.8/providers/libvirt/amd64/vagrant.box";
-          hash = "sha256-XILeau0o6ki3Sdg5ap2w6RkJnefQ4bUQJv4X6xz+2Ug=";
-        };
-
-        nixos2305 = prev.fetchurl {
-          url = "https://app.vagrantup.com/hennersz/boxes/nixos-23.05-flakes/versions/23.05.231106000354/providers/libvirt/unknown/vagrant.box";
-          hash = "sha256-x76icAXDReYe9xppwr6b77hTO44EWvBtSx+j41bvMVA=";
-        };
-
-        nixos2404 = prev.fetchurl {
-          url = "https://api.cloud.hashicorp.com/vagrant/2022-09-30/registry/gnome-shell-box/box/nixos/version/0.0.8/provider/libvirt/architecture/amd64/download";
-          hash = "";
+          url = "https://vagrantcloud.com/gnome-shell-box/boxes/ubuntu2404/versions/0.0.10/providers/libvirt/amd64/vagrant.box";
+          hash = "sha256-iDLWXvO3tmCPxlarGzVzlBHRRKsvKZrjQW8JiiVUM1Q=";
         };
 
         # vagrantfiles
-        vagrantfileAlpineMinimal = prev.writeText "vagrantfile-alpine" ''
-          Vagrant.configure("2") do |config|
-            # Every Vagrant development environment requires a box. You can search for
-            # boxes at https://vagrantcloud.com/search.
-            config.vm.box = "generic/alpine319"
-            config.vm.provider :libvirt do |v|
-              v.cpus = 3
-              v.memory = "2048"
-            end
-          end
-        '';
-
-        vagrantfileAlpine = prev.writeText "vagrantfile-alpine" ''
-          Vagrant.configure("2") do |config|
-            # Every Vagrant development environment requires a box. You can search for
-            # boxes at https://vagrantcloud.com/search.
-            config.vm.box = "generic/alpine319"
-
-            config.vm.provider :libvirt do |v|
-              v.cpus = 3
-              v.memory = "2048"
-            end
-
-            #
-            # https://stackoverflow.com/a/77347166
-            # config.vm.network "forwarded_port", guest: 5000, host: 5000
-            # https://stackoverflow.com/questions/16244601/vagrant-reverse-port-forwarding#comment23723088_16420720
-            # https://stackoverflow.com/a/77347166
-            # config.ssh.extra_args = ["-L", "5001:localhost:5000"]
-            # config.ssh.extra_args = ["-R", "5001:localhost:5000"]
-            # config.vm.synced_folder '.', '/home/vagrant/code'
-
-            config.vm.provision "shell", inline: <<-SHELL
-
-              # xz-utils -> xz-dev
-              apk add --no-cache shadow sudo \
-              && addgroup vagrant wheel \
-              && addgroup vagrant kvm \
-              && chown -v root:kvm /dev/kvm \
-              && usermod --append --groups kvm vagrant
-
-              # https://stackoverflow.com/a/59103173
-              echo 'Start tzdata stuff' \
-              && apk add --no-cache tzdata \
-              && (test -d /etc || mkdir -pv /etc) \
-              && cp -v /usr/share/zoneinfo/America/Recife /etc/localtime \
-              && echo America/Recife > /etc/timezone \
-              && apk del tzdata \
-              && echo 'End tzdata stuff!'
-
-              # https://unix.stackexchange.com/a/400140
-              echo
-              df -h /tmp && sudo mount -o remount,size=9G /tmp/ && df -h /tmp
-              echo
-
-              #su vagrant -lc \
-              #'
-              #  env | sort
-              #  echo
-              #
-              #  wget -qO- http://ix.io/4Cj0 | sh -
-              #
-              #  echo $PATH
-              #  export PATH="$HOME"/.nix-profile/bin:"$HOME"/.local/bin:"$PATH"
-              #  echo $PATH
-              #
-              #  # wget -qO- http://ix.io/4Bqg | sh -
-              #'
-
-              mkdir -pv /etc/sudoers.d \
-              && echo 'vagrant:1' | chpasswd \
-              && echo 'vagrant ALL=(ALL) PASSWD:SETENV: ALL' > /etc/sudoers.d/vagrant
-            SHELL
-          end
-        '';
-
         vagrantfileUbuntu = prev.writeText "vagrantfile-ubuntu" ''
           Vagrant.configure("2") do |config|
             config.vm.box = "generic/ubuntu2204"
             # config.vm.box = "generic/ubuntu2304"
-            # config.vm.box = "gnome-shell-box/box/ubuntu2404"
+            # config.vm.box = "gnome-shell-box/ubuntu2404"
             # config.vm.box = "alvistack/ubuntu-24.04"
 
             config.vm.provider :libvirt do |v|
@@ -154,6 +64,9 @@
               # v.memorybacking :access, :mode => "shared"
               # https://github.com/vagrant-libvirt/vagrant-libvirt/issues/1460
             end
+
+            # 
+            # config.vm.network :public_network, :bridge => 'br0', :dev => 'br0'
 
             config.vm.synced_folder '.', '/home/vagrant/code'
 
@@ -193,24 +106,6 @@
           end
         '';
 
-        vagrantfileNixos = prev.writeText "vagrantfile-nixos" ''
-          Vagrant.configure("2") do |config|
-            config.vm.box = "hennersz/nixos-23.05-flakes"
-
-            config.vm.provider :libvirt do |v|
-              v.cpus=3
-              v.memory = "4096"
-              # v.memorybacking :access, :mode => "shared"
-              # https://github.com/vagrant-libvirt/vagrant-libvirt/issues/1460
-            end
-
-            config.vm.synced_folder '.', '/home/vagrant/code'
-
-            config.vm.provision "shell", inline: <<-SHELL
-              ls -alh
-            SHELL
-          end
-        '';
 
         prepareVagrantVms = prev.writeScriptBin "prepare-vagrant-vms" ''
           #! ${prev.runtimeShell} -e
@@ -222,111 +117,17 @@
             if (vagrant box list | grep -q 'ubuntu'); then
               break
             fi
-            
-            # if (vagrant box list | grep -q 'generic/ubuntu-23.04'); then
-            #   break
-            # fi
-            # if (vagrant box list | grep -q generic/alpine319); then
-            #   break
-            # fi
           done;
         '';
 
-        testVagrantWithLibvirt = prev.testers.runNixOSTest {
-          name = "test-vagrant-libvirt-alpine";
-          nodes.machineWithVagrant =
-            { config, pkgs, lib, modulesPath, ... }:
-            {
-              config.environment.systemPackages = with final; [
-                # virt-manager
-                prepareVagrantVms
-                vagrant
-              ];
-
-              config.virtualisation.libvirtd.enable = true;
-              # config.virtualisation.libvirtd.nss.enable = true;
-              # config.programs.dconf.enable = true;
-
-              config.environment.variables = {
-                VAGRANT_DEFAULT_PROVIDER = "libvirt";
-                # HOME = "root";
-              };
-
-              # journalctl --user --unit copy-vagrant.service -b -f
-              # journalctl copy-vagrant.service -b -f
-              config.systemd.services.copy-vagrant = {
-                path = with pkgs; [
-                  curl
-                  file
-                  gnutar
-                  gzip
-                  procps
-                  vagrant
-                  xz
-                ];
-
-                script = ''
-                  #! ${pkgs.runtimeShell} -e
-                    set -x
-
-                    id
-                    BASE_DIR=/root/vagrant-examples/libvirt
-                    mkdir -pv "$BASE_DIR"/alpine
-
-                    cd "$BASE_DIR"
-
-                    cp -v "${pkgs.vagrantfileAlpineMinimal}" alpine/Vagrantfile
-
-                    vagrant \
-                        box \
-                        add \
-                        generic/alpine319 \
-                        "${pkgs.alpine319}" \
-                        --force \
-                        --provider \
-                        libvirt
-
-                    vagrant box list
-                '';
-                wantedBy = [ "default.target" ];
-              };
-
-            };
-
-          globalTimeout = 3 * 60;
-
-          testScript = { nodes, ... }:
-            let
-              apiPort = "${ toString 8080}";
-            in
-            ''
-              start_all()
-
-              # machineWithVagrant.wait_for_unit("default.target")
-              machineWithVagrant.wait_for_unit("multi-user.target")
-              # machineWithVagrant.wait_for_unit("copy-vagrant")
-
-              machineWithVagrant.succeed("type prepare-vagrant-vms")
-              machineWithVagrant.succeed("type vagrant")
-
-              machineWithVagrant.succeed("touch /dev/kvm")
-              machineWithVagrant.succeed("touch /tmp")
-              # print(machineWithVagrant.succeed("env | sort"))
-              machineWithVagrant.succeed("id")
-              machineWithVagrant.succeed("systemctl is-enabled libvirtd.service")
-
-              machineWithVagrant.succeed("prepare-vagrant-vms >&2 &")
-
-              machineWithVagrant.succeed("vagrant box list ")
-              machineWithVagrant.wait_until_succeeds("vagrant box list | grep -q generic/alpine319")
-              # machineWithVagrant.succeed("cd /root/vagrant-examples/libvirt/alpine && vagrant box list && vagrant up")
-              # machineWithVagrant.wait_until_succeeds("vagrant ssh -- -t 'id && cat /etc/os-release'")
-
-              # expected = 'PRETTY_NAME="Alpine Linux v3.19"'
-              # result = machineWithVagrant.succeed("vagrant ssh -c 'id && cat /etc/os-release'")
-              # assert expected == result, f"expected = {expected}, result = {result}"
-            '';
-        };
+        runVagrantUbuntu = prev.writeScriptBin "run-vagrant-ubuntu" ''
+          #! ${prev.runtimeShell} -e
+          # set -x
+          prepare-vagrant-vms \
+          && cd "$HOME"/vagrant-examples/libvirt/ubuntu/ \
+          && vagrant up \
+          && vagrant ssh
+        '';
 
         nixos-vm = nixpkgs.lib.nixosSystem {
           system = prev.system;
@@ -349,8 +150,8 @@
 
                 virtualisation.vmVariant =
                   {
-                    virtualisation.docker.enable = true;
-                    virtualisation.podman.enable = true;
+                    # virtualisation.docker.enable = true;
+                    # virtualisation.podman.enable = true;
 
                     virtualisation.memorySize = 1024 * 9; # Use MiB memory.
                     virtualisation.diskSize = 1024 * 50; # Use MiB memory.
@@ -426,9 +227,8 @@
 
                       cp -v "${pkgs.vagrantfileUbuntu}" ubuntu/Vagrantfile
 
-                      PROVIDER=libvirt
-
-                      vagrant box list \
+                      PROVIDER=libvirt \
+                      && vagrant box list \
                       && vagrant \
                           box \
                           add \
@@ -441,7 +241,6 @@
                   '';
                   wantedBy = [ "default.target" ];
                 };
-
 
                 security.sudo.wheelNeedsPassword = false; # TODO: hardening
                 # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
@@ -473,8 +272,10 @@
                     jq
                     lsof
                     findutils
+                    xdotool
                     vagrant
                     prepareVagrantVms
+                    runVagrantUbuntu
                     foo-bar
                   ];
                   shell = pkgs.bash;
@@ -516,6 +317,27 @@
                   # '';
                 };
 
+                # displayManager.job.logToJournal
+                # journalctl -t xsession -b -f
+                # journalctl -u display-manager.service -b
+                # https://askubuntu.com/a/1434433
+                services.xserver.displayManager.sessionCommands = ''
+                  exo-open \
+                    --launch TerminalEmulator \
+                    --zoom=-3 \
+                    --geometry 154x40
+
+                  for i in {1..100}; do
+                    xdotool getactivewindow
+                    $? && break
+                    sleep 0.1
+                  done
+                  # Race condition. Why?
+                  # sleep 3
+                  xdotool type run-vagrant-ubuntu \
+                  && xdotool key Return
+                '';
+
                 environment.systemPackages = with pkgs; [
                   vagrant
                 ];
@@ -555,13 +377,13 @@
 
               export VNC_PORT=3001
 
-              for _ in web{0..50}; do
+              for _ in web{0..100}; do
                 if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
                 then
                   break
                 fi
                 # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.2
+                sleep 0.1
               done;
 
               remote-viewer spice://localhost:"$VNC_PORT"
@@ -589,50 +411,45 @@
           inherit system;
           config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
             "vagrant"
-          ];          
+          ];
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
             ubuntu2204
+            # ubuntu2404
+            myvm
             ;
-
-          default = pkgs.testVagrantWithLibvirt;
+          default = pkgs.automatic-vm;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
         };
 
-        apps.testVagrantWithLibvirt = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.testVagrantWithLibvirt.driverInteractive}";
-        };
-
-
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-
             automatic-vm
-            alpine319
-            ubuntu2204
+            # ubuntu2204
             ;
         };
 
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             foo-bar
+            automatic-vm
+            # ubuntu2204
           ];
 
           shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
 

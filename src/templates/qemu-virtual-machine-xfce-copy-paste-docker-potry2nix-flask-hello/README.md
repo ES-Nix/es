@@ -65,6 +65,7 @@ nix flake check '.#'
 
 ### TODO: django rest with poetry
 
+https://discourse.nixos.org/t/python-packaging-with-poetry-and-nix/26602
 
 ```bash
 mkdir -v app-drf \

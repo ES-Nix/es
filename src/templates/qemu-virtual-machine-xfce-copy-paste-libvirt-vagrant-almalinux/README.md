@@ -1,0 +1,119 @@
+
+
+
+
+```bash
+nix flake show '.#' \
+&& nix flake metadata '.#' \
+&& nix build --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop '.#' --command sh -c 'true' \
+&& nix flake check --verbose '.#'
+```
+
+
+1)
+```bash
+rm -fv nixos.qcow2; 
+nix \
+run \
+--impure \
+--verbose \
+'.#'
+```
+
+
+2)
+```bash
+prepare-vagrant-vms \
+&& cd "$HOME"/vagrant-examples/libvirt/nixos/ \
+&& vagrant up \
+&& vagrant ssh
+
+
+vagrant ssh -- -t 'id && cat /etc/os-release'
+vagrant ssh -c 'id && cat /etc/os-release'
+
+
+ANSI_COLOR="1;34"
+BUG_REPORT_URL="https://github.com/NixOS/nixpkgs/issues"
+BUILD_ID="24.05.20240530.d24e7fd"
+DOCUMENTATION_URL="https://nixos.org/learn.html"
+HOME_URL="https://nixos.org/"
+ID=nixos
+IMAGE_ID=""
+IMAGE_VERSION=""
+LOGO="nix-snowflake"
+NAME=NixOS
+PRETTY_NAME="NixOS 24.05 (Uakari)"
+SUPPORT_END="2024-12-31"
+SUPPORT_URL="https://nixos.org/community.html"
+VERSION="24.05 (Uakari)"
+VERSION_CODENAME=uakari
+VERSION_ID="24.05"
+```
+
+
+```bash
+vagrant destroy --force; vagrant destroy --force && vagrant up && vagrant ssh
+```
+
+
+
+### 
+
+```bash
+cd /etc/nixos \
+&& cat << 'EOF' | sudo tee custom-configuration.nix
+{ config, nixpkgs, pkgs, lib, modulesPath, ... }:
+let
+  cfg = config;
+in
+{
+    environment.systemPackages = with pkgs; [
+        kubectl
+        kubernetes
+
+        (
+          writeScriptBin "wk8s-sudo" ''
+            #! ${pkgs.runtimeShell} -e
+                while true; do
+                  sudo -E kubectl get pod --all-namespaces -o wide \
+                  && echo \
+                  && sudo -E kubectl get services --all-namespaces -o wide \
+                  && echo \
+                  && sudo -E kubectl get deployments.apps --all-namespaces -o wide \
+                  && echo \
+                  && sudo -E kubectl get nodes --all-namespaces -o wide;
+                  sleep 1;
+                  clear;
+                done
+          ''
+        )
+      ];
+
+  services.kubernetes.roles = [ "master" "node" ];
+  services.kubernetes.masterAddress = "${cfg.networking.hostName}";
+  environment.variables.KUBECONFIG = "/etc/${cfg.services.kubernetes.pki.etcClusterAdminKubeconfig}";
+}
+EOF
+
+sudo \
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8 \
+&& sudo nixos-rebuild switch -L
+
+sudo reboot
+```
+
+```bash
+sudo \
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0 \
+&& sudo nixos-rebuild switch -L
+
+sudo reboot
+```

@@ -4,9 +4,14 @@
 ## Remote using this flake
 
 
+### Example: nginx in an NixOS QEMU VM
+
 ```bash
 nix run --impure 'github:ES-Nix/es/?dir=src/templates/nginx'
+```
 
+
+```bash
 nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
 'github:ES-Nix/es/?dir=src/templates/pandoc-latex'
 
@@ -92,11 +97,12 @@ Only in unstable it has the binfmt needed:
 ```bash
 nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
 --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
-'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-ubuntu' \
 './src/templates/binfmt-emulated-systems-hello' \
 './src/templates/binfmt-emulated-systems-docker' \
 './src/templates/binfmt-emulated-riscv64-python-alpine-wheels-via-pip-and-docker'
 ```
+
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-ubuntu' \
 
 
 TODO: It takes too long to build. 
@@ -182,7 +188,7 @@ command -v curl || (command -v apk && sudo apk add --no-cache curl)
 ) || sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix') \
 && curl -L https://hydra.nixos.org/build/278148689/download-by-type/file/binary-dist > nix \
 && echo 41ffe16f6119fbcf06f2e442d62cf7e051e272a9e2bac0cda754732652282134'  'nix \
-| sha256sum -c \
+ | sha256sum -c \
 && chmod +x nix \
 && ./nix --version \
 && ./nix \

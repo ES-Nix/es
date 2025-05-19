@@ -50,22 +50,46 @@
         };
 
         vagrantfileNixos = prev.writeText "vagrantfile-nixos" ''
-          Vagrant.configure("2") do |config|
-            config.vm.box = "hennersz/nixos-23.05-flakes"
+                    Vagrant.configure("2") do |config|
+                      config.vm.box = "hennersz/nixos-23.05-flakes"
 
-            config.vm.provider :libvirt do |v|
-              v.cpus=4
-              v.memory = "4096"
-              # v.memorybacking :access, :mode => "shared"
-              # https://github.com/vagrant-libvirt/vagrant-libvirt/issues/1460
-            end
+                      config.vm.provider :libvirt do |v|
+                        v.cpus=4
+                        v.memory = "4096"
+                        # v.memorybacking :access, :mode => "shared"
+                        # https://github.com/vagrant-libvirt/vagrant-libvirt/issues/1460
+                      end
 
-            config.vm.synced_folder '.', '/home/vagrant/code'
+                      config.vm.synced_folder '.', '/home/vagrant/code'
 
-            config.vm.provision "shell", inline: <<-SHELL
-              ls -alh
-            SHELL
-          end
+                      config.vm.provision "shell", inline: <<-SHELL
+                        ls -alh
+
+                        cd /etc/nixos \
+                        && cat > custom-configuration.nix << '_EOF'
+                          { config, nixpkgs, pkgs, lib, modulesPath, ... }:
+                          let
+                            cfg = config;
+                          in
+                          {
+                            environment.systemPackages = with pkgs; [
+                                kubectl
+                                kubernetes
+                            ];
+
+                            services.kubernetes.roles = [ "master" "node" ];
+                            services.kubernetes.masterAddress = "''${cfg.networking.hostName}";
+                            environment.variables.KUBECONFIG = "/etc/''${cfg.services.kubernetes.pki.etcClusterAdminKubeconfig}";
+                          }
+          _EOF
+
+                        # nix \
+                        # flake \
+                        # lock \
+                        # --override-input nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8 \
+                        # && sudo nixos-rebuild switch -L
+                      SHELL
+                    end
         '';
 
         prepareVagrantVms = prev.writeScriptBin "prepare-vagrant-vms" ''
@@ -80,105 +104,14 @@
           done;
         '';
 
-        testVagrantWithLibvirt = prev.testers.runNixOSTest {
-          name = "test-vagrant-libvirt-nixos";
-          nodes.machineWithVagrant =
-            { config, pkgs, lib, modulesPath, ... }:
-            {
-              config.environment.systemPackages = with final; [
-                # virt-manager
-                prepareVagrantVms
-                vagrant
-              ];
-
-              config.virtualisation.libvirtd.enable = true;
-              # config.virtualisation.libvirtd.nss.enable = true;
-              # config.programs.dconf.enable = true;
-
-              config.environment.variables = {
-                VAGRANT_DEFAULT_PROVIDER = "libvirt";
-                # HOME = "root";
-              };
-
-              # journalctl --user --unit copy-vagrant.service -b -f
-              # journalctl copy-vagrant.service -b -f
-              # TODO: config.systemd vs config.systemd.user
-              config.systemd.user.services.copy-vagrant = {
-                path = with pkgs; [
-                  curl
-                  file
-                  gnutar
-                  gzip
-                  procps
-                  vagrant
-                  xz
-                ];
-
-                script = ''
-                  #! ${pkgs.runtimeShell} -e
-                    set -x
-
-                    id \
-                    && BASE_DIR=/root/vagrant-examples/libvirt \
-                    && mkdir -pv "$BASE_DIR"/alpine \
-                    && cd "$BASE_DIR" \
-                    && cp -v "${pkgs.vagrantfileNixos}" nixos/Vagrantfile \
-                    && vagrant \
-                        box \
-                        add \
-                        hennersz/nixos-23.05-flakes \
-                        "${pkgs.nixos2305}" \
-                        --force \
-                        --debug \
-                        --provider \
-                        libvirt \
-                    && vagrant box list
-                '';
-                after = [ "libvirtd.service" "network.target" ];                
-                wantedBy = [ "default.target" ];
-              };
-
-            };
-
-          globalTimeout = 3 * 60;
-
-          testScript = { nodes, ... }:
-            let
-              apiPort = "${ toString 8080}";
-            in
-            ''
-              start_all()
-
-              # machineWithVagrant.wait_for_unit("default.target")
-              machineWithVagrant.wait_for_unit("multi-user.target")
-              machineWithVagrant.wait_for_unit("copy-vagrant")
-
-              machineWithVagrant.succeed("type prepare-vagrant-vms")
-              machineWithVagrant.succeed("type vagrant")
-
-              machineWithVagrant.succeed("touch /dev/kvm")
-              machineWithVagrant.succeed("touch /tmp")
-              # print(machineWithVagrant.succeed("env | sort"))
-              machineWithVagrant.succeed("id >&2")
-
-              machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER >&2")
-              machineWithVagrant.succeed("systemctl is-enabled libvirtd.service >&2")
-
-              machineWithVagrant.succeed("vagrant box list >&2")
-              machineWithVagrant.succeed("prepare-vagrant-vms >&2 &")
-              machineWithVagrant.succeed("vagrant box list >&2")
-
-              # machineWithVagrant.wait_until_succeeds("vagrant box list | grep -q alpine319 >&2")
-              machineWithVagrant.succeed("journalctl --user --unit copy-vagrant -b >&2")
-
-              # machineWithVagrant.succeed("cd /root/vagrant-examples/libvirt/alpine && vagrant box list && vagrant up")
-              # machineWithVagrant.wait_until_succeeds("vagrant ssh -- -t 'id && cat /etc/os-release'")
-
-              # expected = 'PRETTY_NAME="Alpine Linux v3.19"'
-              # result = machineWithVagrant.succeed("vagrant ssh -c 'id && cat /etc/os-release'")
-              # assert expected == result, f"expected = {expected}, result = {result}"
-            '';
-        };
+        runVagrantNixOS = prev.writeScriptBin "run-vagrant-nixos" ''
+          #! ${prev.runtimeShell} -e
+          # set -x
+          prepare-vagrant-vms \
+          && cd "$HOME"/vagrant-examples/libvirt/nixos/ \
+          && vagrant up \
+          && vagrant ssh
+        '';
 
         nixos-vm = nixpkgs.lib.nixosSystem {
           system = prev.system;
@@ -294,8 +227,10 @@
                     jq
                     lsof
                     findutils
+                    xdotool
                     vagrant
                     prepareVagrantVms
+                    runVagrantNixOS
                     foo-bar
                   ];
                   shell = pkgs.bash;
@@ -315,7 +250,6 @@
 
                 virtualisation.libvirtd.enable = true;
                 # virtualisation.services.libvirtd.serviceOverrides = { PrivateUsers="no"; };
-
 
                 nix.extraOptions = "experimental-features = nix-command flakes";
                 nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
@@ -338,6 +272,27 @@
                   #  uris = ["qemu:///system"];
                   # '';
                 };
+
+                # displayManager.job.logToJournal
+                # journalctl -t xsession -b -f
+                # journalctl -u display-manager.service -b
+                # https://askubuntu.com/a/1434433
+                services.xserver.displayManager.sessionCommands = ''
+                  exo-open \
+                    --launch TerminalEmulator \
+                    --zoom=-3 \
+                    --geometry 154x40
+
+                  for i in {1..100}; do
+                    xdotool getactivewindow
+                    $? && break
+                    sleep 0.1
+                  done
+                  # Race condition. Why?
+                  # sleep 3
+                  xdotool type run-vagrant-nixos \
+                  && xdotool key Return
+                '';
 
                 environment.systemPackages = with pkgs; [
                   vagrant
@@ -378,13 +333,13 @@
 
               export VNC_PORT=3001
 
-              for _ in web{0..50}; do
+              for _ in web{0..100}; do
                 if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
                 then
                   break
                 fi
                 # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.2
+                sleep 0.1
               done;
 
               remote-viewer spice://localhost:"$VNC_PORT"
@@ -412,32 +367,23 @@
           inherit system;
           config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
             "vagrant"
-          ];          
+          ];
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
             nixos2305
+            myvm
             ;
-
-          default = pkgs.testVagrantWithLibvirt;
+          default = pkgs.automatic-vm;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
         };
-
-        apps.testVagrantWithLibvirt = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.testVagrantWithLibvirt.driverInteractive}";
-        };
-
 
         formatter = pkgs.nixpkgs-fmt;
 
@@ -445,19 +391,20 @@
           inherit (pkgs)
             nixos2305
             automatic-vm
-            testVagrantWithLibvirt
             ;
         };
 
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             foo-bar
+            automatic-vm
           ];
-
           shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
-
       }
     )
   );
