@@ -163,7 +163,23 @@
               # break if it does not exists?
               # Use systemd boot (EFI only)
               boot.loader.systemd-boot.enable = true;
+              boot.loader.efi.canTouchEfiVariables = true;
+              boot.loader.grub.efiSupport = true;
+              boot.loader.grub.efiInstallAsRemovable = true; # in case canTouchEfiVariables doesn't work for your system
+              boot.loader.grub.device = "/dev/sda";
+              boot.loader.grub.devices = "nodev";
+              boot.loader.grub.version = 2;
+
               fileSystems."/" = { device = "/dev/hda1"; };
+
+              # fileSystems."/" = {
+              #   device = "/dev/disk/by-label/nixos";
+              #   fsType = "ext4";
+              # };
+
+              # https://github.com/NixOS/nixpkgs/issues/23912#issuecomment-1462770738
+              # boot.tmpOnTmpfs = true;
+              # boot.tmpOnTmpfsSize = "95%";
 
               virtualisation.vmVariant =
                 {

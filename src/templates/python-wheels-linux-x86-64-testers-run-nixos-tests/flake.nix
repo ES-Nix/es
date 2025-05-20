@@ -63,11 +63,11 @@
           asttokens
           async-timeout
           attrs
-          #          awswrangler
-          #          azure-common
-          #          azure-core
-          #          azure-identity
-          #          azure-storage-blob
+          # awswrangler
+          # azure-common
+          # azure-core
+          # azure-identity
+          # azure-storage-blob
           babel
           backoff
           bcrypt
@@ -248,7 +248,7 @@
           openai
           opencv4
           openpyxl
-          #          # opensearch-py
+          # opensearch-py
           opentelemetry-api
           opentelemetry-sdk
           opentelemetry-semantic-conventions
@@ -311,10 +311,10 @@
           pyrsistent
           pysocks
           pyspark
-          #          # pytest
-          #          # pytest-cov
-          #          # pytest-runner
-          #          # pytest-xdist
+          # pytest
+          # pytest-cov
+          # pytest-runner
+          # pytest-xdist
           python-dateutil
           python-dotenv
           python-json-logger
@@ -458,7 +458,6 @@
           '';
         };
 
-
         nixos-vm = nixpkgs.lib.nixosSystem {
           system = prev.system;
           modules = [
@@ -518,6 +517,7 @@
                     virtualisation.writableStore = true; # TODO: hardening
                   };
 
+                /*
                 # journalctl --unit docker-custom-bootstrap-1.service -b -f
                 systemd.services.docker-custom-bootstrap-1 = {
                   description = "Docker Custom Bootstrap 1";
@@ -527,12 +527,13 @@
                   script = ''
                     echo "Loading OCI Images in docker..."
 
-                    docker load <"${final.OCIImageAlpineRiscv64}"
+                    # docker load <"${final.}"
                   '';
                   serviceConfig = {
                     Type = "oneshot";
                   };
                 };
+                */
 
                 security.sudo.wheelNeedsPassword = false; # TODO: hardening
                 # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
@@ -634,14 +635,13 @@
       rec {
         packages = {
           inherit (pkgs)
+            automatic-vm
             testBinfmtMany
+            myvm
             ;
 
           default = pkgs.testBinfmtMany;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";

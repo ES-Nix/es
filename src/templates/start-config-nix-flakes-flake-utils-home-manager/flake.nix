@@ -49,7 +49,7 @@
         "x86_64-darwin"
       ];
 
-      f = { system, username, arg-pkgs, home ? "", stateVersion ? "24.05" }:
+      f = { system, username, arg-pkgs, home ? "", stateVersion ? "24.11" }:
         let
           pkgs = arg-pkgs;
           baseHomeDirectory = "${if pkgs.stdenv.isLinux then "/home/" else "${if pkgs.stdenv.isDarwin then "/User/" else builtins.throw "Unsuported system!"}"}";

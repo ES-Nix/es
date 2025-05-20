@@ -16,12 +16,12 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
-    nixgl.url = "github:guibou/nixGL";
-    nixgl.inputs.nixpkgs.follows = "nixpkgs";
-    nixgl.inputs.flake-utils.follows = "flake-utils";
+    nixGL.url = "github:guibou/nixGL";
+    nixGL.inputs.nixpkgs.follows = "nixpkgs";
+    nixGL.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = allAttrs@{ self, nixpkgs, flake-utils, nixgl, ... }:
+  outputs = allAttrs@{ self, nixpkgs, flake-utils, nixGL, ... }:
     let
       suportedSystems = [
         "x86_64-linux"
@@ -73,7 +73,8 @@
               godot_4
 
               # The support for OpenGL in Nix
-              nixgl.defaultPackage."${suportedSystem}".nixGLDefault
+              # TODO: this breaks direnv because it uses currentTime, no clue why.
+              nixGL.defaultPackage."${suportedSystem}".nixGLDefault
             ];
 
             FONTCONFIG_FILE = "${pkgsAllowUnfree.fontconfig.out}/etc/fonts/fonts.conf";

@@ -446,7 +446,7 @@
           inherit (pkgs)
             myapp
             myappOCIImage
-            testMyappOCIImage
+            # testMyappOCIImage
             automatic-vm
             ;
         };
@@ -454,11 +454,14 @@
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             poetry
+            automatic-vm
             foo-bar
             myapp
           ];
-
           shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
 

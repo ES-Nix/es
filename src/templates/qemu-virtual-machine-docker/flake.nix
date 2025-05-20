@@ -57,6 +57,17 @@
 
               };
 
+              fileSystems."/" = {
+                device = "/dev/disk/by-label/nixos";
+                fsType = "ext4";
+              };
+
+              boot.loader.systemd-boot.enable = true;
+
+              # # https://github.com/NixOS/nixpkgs/issues/23912#issuecomment-1462770738
+              boot.tmpOnTmpfs = true;
+              boot.tmpOnTmpfsSize = "95%";
+
               users.users.root = {
                 password = "root";
                 initialPassword = "root";
@@ -158,6 +169,13 @@
         program = "${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm";
       };
 
+      apps.x86_64-linux.default = {
+        type = "app";
+        program = "${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm";
+      };
+
+      packages.x86_64-linux.default = self.nixosConfigurations.vm.config.system.build.vm;
+
       devShells.x86_64-linux.default = pkgsAllowUnfree.mkShell {
         buildInputs = with pkgsAllowUnfree; [
           bashInteractive
@@ -174,6 +192,11 @@
 
           # Too much hardcoded?
           export DOCKER_HOST=ssh://nixuser@localhost:10022
+
+          test -d .profiles || mkdir -v .profiles
+
+          test -L .profiles/dev \
+          || nix develop --impure .# --profile .profiles/dev --command true             
         '';
       };
     };

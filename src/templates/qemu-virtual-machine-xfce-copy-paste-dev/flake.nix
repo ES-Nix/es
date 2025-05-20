@@ -5,11 +5,19 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/e2605d0744c2417b09f8bf850dfca42fcf537d34' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    107d5ef05c0b1119749e381451389eded30fb0d5
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -25,6 +33,31 @@
           imageName = "docker.io/library/postgres";
           name = "docker.io/library/postgres";
           sha256 = "sha256-jUmnIMmbfxQB8hJtxpz1U3wwrHCwAaCs2lPo5VuaDQU=";
+          os = "linux";
+          arch = "amd64";
+        };
+
+        # docker manifest inspect postgres:16.6-bookworm
+        OCIImagePosgres16Amd64 = prev.dockerTools.pullImage {
+          # finalImageTag = "16.6-bookworm";
+          finalImageTag = "16";
+          finalImageName = "postgres";
+          imageDigest = "sha256:ecff22ff52f839699525a5b2806a9f83704fabc938e909346db5120c41e5538c";
+          imageName = "docker.io/library/postgres";
+          name = "docker.io/library/postgres";
+          sha256 = "sha256-5gNRHUC3hQaNKOqwW2zbdVnZuWTEQ/+fNllI1Af01CM=";
+          os = "linux";
+          arch = "amd64";
+        };
+
+        # docker manifest inspect postgres:14.2
+        OCIImagePosgres14Amd64 = prev.dockerTools.pullImage {
+          finalImageTag = "14.2";
+          finalImageName = "postgres";
+          imageDigest = "sha256:d6809f4833ca6caf11a4969a7f41420d3e5fcf26b8c9ca4253c34d5a5fa377cc";
+          imageName = "docker.io/library/postgres";
+          name = "docker.io/library/postgres";
+          sha256 = "sha256-5H+rLDgxkCCJVTYaMf3gE38K2yM1hNu4IhTnF89kiLE=";
           os = "linux";
           arch = "amd64";
         };
@@ -51,6 +84,17 @@
           arch = "amd64";
         };
 
+        OCIImagePython311Amd64 = prev.dockerTools.pullImage {
+          finalImageTag = "3.11-slim";
+          finalImageName = "python";
+          imageDigest = "sha256:ed31f1a790f88f4c32de74a4bd6a9331c46b9bd70c9943aa92a6a24bff6c8a79";
+          imageName = "docker.io/library/python";
+          name = "docker.io/library/python";
+          sha256 = "sha256-Rphv8SYAuI0W9EwjziN2iOV4SJZI2dhizXZdgl25wO0=";
+          os = "linux";
+          arch = "amd64";
+        };
+
         OCIImageUbuntu2404Amd64 = prev.dockerTools.pullImage {
           finalImageTag = "24.04";
           imageDigest = "sha256:36fa0c7153804946e17ee951fdeffa6a1c67e5088438e5b90de077de5c600d4c";
@@ -69,9 +113,38 @@
           arch = "amd64";
         };
 
+        OCIImageRedisBookwormAmd64 = prev.dockerTools.pullImage {
+          # finalImageTag = "7.4.2-bookworm";
+          finalImageTag = "latest";
+          imageDigest = "sha256:415652fd6fe63c7a6b6775044101aee354b657dfa2546a590b410a7076c3c5c3";
+          imageName = "docker.io/library/redis";
+          name = "docker.io/library/redis";
+          sha256 = "sha256-kyTT0vR0euFmWUBnYh6hO3f5wh6KYxhIJkjgaK+efKI=";
+          os = "linux";
+          arch = "amd64";
+        };
+
+        OCIImageKeycloak2003Amd64 = prev.dockerTools.pullImage {
+          finalImageTag = "20.0.3";
+          imageDigest = "sha256:c167807890ff63fd10dacef2ab6fd2242487a940ce290a9417a373da66e862e9";
+          imageName = "docker.io/keycloak/keycloak";
+          name = "docker.io/keycloak/keycloak";
+          sha256 = "sha256-3M9VpD3RIQLs8s3+9wBkAcU+eoboalB2p0SOMB1dUrc=";
+          os = "linux";
+          arch = "amd64";
+        };
+
         nixos-vm = nixpkgs.lib.nixosSystem {
           system = prev.system;
           modules = [
+
+            # Allows for not have to download nixpkgs and syncs source code of nixpkgs.
+            # TODO: explain it better
+            ({ ... }: {
+              nix.registry.nixpkgs.flake = nixpkgs;
+              # nix.registry = lib.mapAttrs (_: value: {flake = value;}) inputs;
+            })
+
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
                 # Internationalisation options
@@ -93,7 +166,7 @@
                     virtualisation.docker.enable = true;
                     virtualisation.podman.enable = true;
 
-                    virtualisation.memorySize = 1024 * 9; # Use MiB memory.
+                    virtualisation.memorySize = 1024 * 14; # Use MiB memory.
                     virtualisation.diskSize = 1024 * 50; # Use MiB memory.
                     virtualisation.cores = 7; # Number of cores.
                     virtualisation.graphics = true;
@@ -126,16 +199,27 @@
                   script = ''
                     echo "Loading OCI Images in docker..."
 
+                    docker load <"${pkgs.OCIImageRedisBookwormAmd64}"
+                    docker load <"${pkgs.OCIImagePosgres16Amd64}"
+                    docker load <"${pkgs.OCIImagePosgres14Amd64}"
+                    docker load <"${pkgs.OCIImagePython311Amd64}"
+                    docker load <"${pkgs.OCIImageKeycloak2003Amd64}"
+
                     docker load <"${pkgs.OCIImageAlpine320Amd64}"
-                    docker load <"${pkgs.OCIImageUbuntu2404Amd64}"
-                    docker load <"${pkgs.OCIImagePosgresAmd64}"
-                    docker load <"${pkgs.OCIImageRedisAmd64}"
-                    docker load <"${pkgs.OCIImagePythonAmd64}"
+                    # docker load <"${pkgs.OCIImageUbuntu2404Amd64}"
+                    # docker load <"${pkgs.OCIImagePosgresAmd64}"
+                    # docker load <"${pkgs.OCIImageRedisAmd64}"
+                    # docker load <"${pkgs.OCIImagePythonAmd64}"                    
                   '';
                   serviceConfig = {
                     Type = "oneshot";
                   };
                 };
+
+                # ollama run deepseek-r1:1.5b
+                # ollama run deepseek-r1:14b <<<'Faça uma receita de lasanha vegetariana.'
+                # ollama run deepseek-r1:14b <<<'Need an MINLP global solver solution written in Julia to the TSP problem.'
+                services.ollama.enable = true;
 
                 security.sudo.wheelNeedsPassword = false; # TODO: hardening
                 # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
@@ -182,30 +266,255 @@
                     openssl
                     tree
                     xorg.xhost
+                    qbittorrent
+                    graphviz
+
+                    nettools
+                    iproute2
+
+                    ffmpeg
+                    okular
+                    gnome-font-viewer
+
+                    # julia
+                    # julia-bin
+                    /*
+                      (julia.withPackages.override {
+                        precompile = false; # Turn off precompilation
+                      }) ["Plots"]
+                    */
+                    # (julia.withPackages [
+                    ((julia.withPackages.override {
+                      precompile = false; # Turn off precompilation
+                    }) [
+                      /*
+                          # Begin (MI)NLP Solvers
+                          "Alpine"
+                          "Couenne_jll"
+                          "GLPK"
+                          "HiGHS"
+                          "Ipopt"
+                          "JuMP"
+                          "Juniper"
+                          "Pajarito"
+                          "Pavito"
+                          "SCIP"
+                          # "EAGO"
+                          # "Minotaur"
+                          # "Octeract"
+                          # "SHOT"
+                          # End (MI)NLP Solvers
+
+                          # MIT 
+                          # "Juniper" # (MI)SOCP, (MI)NLP
+                          # "SCS" # LP, QP, SOCP, SDP
+                          # "DAQP" # (Mixed-binary) QP
+                          */
+
+                      # "KNITRO"
+                      # "AmplNLWriter"
+                      # "PolyJuMP"
+                      # "SCS"
+                      # "CDDLib"
+                      # "MosekTools"
+                      # "EAGO_jll"
+                      # "PATHSolver.jl"
+                      "DAQP"
+
+                      /*
+                          # Other tools
+                          "ArgParse" 
+                          # "Arpack"          
+                          "BenchmarkProfiles"
+                          "BenchmarkTools"
+                          "Catalyst"
+                          "CategoricalArrays"
+                          "Chain"
+                          "Clustering"      
+                          "Colors"
+                          "ComponentArrays"
+                          "Crayons" # Needed for OhMyREPL color scheme
+                          "CSV"          
+                          "Dagitty"
+                          "DataFrames"   
+                          "DataStructures"  
+                          "Dates"
+                          "DiffEqFlux"
+                          "DifferentialEquations"
+                          "Distances"       
+                          "Distributions"
+                          "FFTW"
+                          "FileIO"
+                          "FourierTools"
+                          "Graphs"
+                          "Gurobi"          
+                          "HDF5"            
+                          "IJulia"
+                          "ImageShow"
+                          "IndexFunArrays"
+                          "InteractiveUtils"
+                          "IterativeSolvers"
+                          "JuliaFormatter"
+                          "Juno"            
+                          "LanguageServer"
+                          "LaTeXStrings"    
+                          "LazySets"
+                          "LightGraphs"     
+                          "LinearAlgebra" 
+                          "LinearMaps"      
+                          "Markdown"
+                          "Measures"
+                          "Metaheuristics"
+                          "MethodOfLines"
+                          "ModelingToolkit"
+                          "NDTools"
+                          "NonlinearSolve"
+                          "OhMyREPL"
+                          "Optim"
+                          "Optimization"
+                          "OptimizationPolyalgorithms"
+                          "OrdinaryDiffEq"
+                          "Parameters"
+                          "Plots"         
+                          "PlotThemes"
+                          "Pluto"
+                          "PlutoUI"
+                          "PrettyTables"
+                          "Printf"
+                          "PyCall"
+                          "PyPlot"          
+                          "Random"                                          
+                          "Roots"
+                          "ScikitLearn"
+                          "SpecialFunctions"
+                          "SQLite"
+                          "StatsPlots"
+                          "TestImages"
+                          "TimeZones"
+                          "TypedPolynomials" 
+                          "UrlDownload"
+                          "VegaLite"  # to make some nice plots
+                          "XLSX"
+                          "ZipFile"
+                          */
+                      # "Atom"            
+                      # "Flux.Losses"
+                      # "Flux"
+                      # "GraphViz"
+                      # "ImageMagick"
+                      # "IntervalArithmetic"
+                      # "JLD"             
+                      # "JLD2"
+                      # "MathOptInterface"
+                      # "UnicodePlots"
+                    ])
+                    # # 
+                    # bonmin
+                    # cbc
+                    # clp
+                    # CoinMP
+                    # csdp
+                    # ecos
+                    # glpk
+                    # ipopt
+                    # nlopt
+                    # opensmt
+                    # picosat
+                    # scip
+                    # z3
 
                     yarn
                     nodejs
+                    # nodejs_23
+                    vscode
                     bun
                     nest-cli
                     nodePackages.typescript
+                    nodePackages."@angular/cli" # https://discourse.nixos.org/t/how-do-i-install-scoped-packages-via-nix/47343/4
 
+                    glib
 
                     jetbrains.pycharm-community
-                    (python3.withPackages (pyPkgs: with pyPkgs; [
-                      # pip
-                      # django
-                      djangorestframework
-                      # djangorestframework-simplejwt
-                      psycopg2
+                    # python39
+                    # cbc
+                    # z3
+                    # (python311.withPackages (pyPkgs: with pyPkgs; [
+                    #     numpy
+                    #     deep-translator
+                    #     docplex
+                    #     # cbc
+                    #     z3-solver
+                    #   ]
+                    # ))
+                    jupyter
+                    gfortran
 
-                      # django-redis
-                      # django-debug-toolbar
-                    ]))
+                    nixpkgs-review
+
+                    # ollama
+                    pciutils
+
+                    azure-cli
+                    openjdk17
+
+                    python311
+                    # (python311.withPackages (pyPkgs: with pyPkgs; [
+                    #     fastapi
+                    #     pydantic
+                    #     pytest
+                    #     httpx
+                    #   ]
+                    # ))                    
+                    uv
+                    #(python311.withPackages (pyPkgs: with pyPkgs; [
+                    #  pip
+                    #  # django
+                    #  djangorestframework
+                    #  # djangorestframework-simplejwt
+                    #  psycopg2
+                    #  weasyprint
+
+                    # django-redis
+                    # django-debug-toolbar
+                    # ]))
+                    gtk4
+                    gobject-introspection
+                    pango
+
                     starship
                     sudo
                     which
 
+                    beekeeper-studio
+                    dbeaver-bin
+                    pgcli
+
                     foo-bar
+
+                    xclip
+                    xsel
+                    xorg.xev
+
+                    (writeShellApplication {
+                      name = "get-rsa-keys"; # TODO: bad name?
+                      runtimeInputs = with final; [ bash openssh xclip ];
+                      text = ''
+                        test -d ~/.ssh || mkdir -v -m 0700 ~/.ssh
+                        test "$(stat -c %a ~/.ssh)" -eq 0700 || chmod -v 0700 ~/.ssh
+
+                        echo 'Press enter when you copied the public key: ' \
+                        && read -r \
+                        && xclip -selection clipboard -out > ~/.ssh/id_rsa.pub \
+                        && echo 'Press enter when you copied the private key: ' \
+                        && read -r \
+                        && xclip -selection clipboard -out > ~/.ssh/id_rsa \
+                        && chmod -v 0600 ~/.ssh/id_rsa
+
+                        ssh-keygen -F ssh.dev.azure.com > /dev/null 2>&1 \
+                        || ssh-keyscan -H ssh.dev.azure.com >> ~/.ssh/known_hosts
+                        ssh -T git@ssh.dev.azure.com > /dev/null 2>&1 || true
+                      '';
+                    })
                   ];
                   shell = pkgs.zsh;
                   uid = 1234;
@@ -218,8 +527,8 @@
                 services.xserver.displayManager.sessionCommands = ''
                   exo-open \
                     --launch TerminalEmulator \
-                    --zoom=-3 \
-                    --geometry 154x40
+                    --zoom=-1 \
+                    --geometry 100x20
                 '';
 
                 # https://nixos.org/manual/nixos/stable/#sec-xfce
@@ -227,6 +536,13 @@
                 services.xserver.desktopManager.xfce.enableScreensaver = false;
                 services.xserver.videoDrivers = [ "qxl" ];
                 services.spice-vdagentd.enable = true; # For copy/paste to work
+
+                /*
+                  To test it:
+                  curl http://localhost:5000/nix-cache-info
+                  nix store info --store http://localhost:5000
+                */
+                services.nix-serve.enable = true;
 
                 /*
               https://github.com/vimjoyer/sops-nix-video/tree/25e5698044e60841a14dcd64955da0b1b66957a2
@@ -291,11 +607,228 @@
                 fonts = {
                   fontDir.enable = true;
                   packages = with pkgs; [
+
+                    # https://github.com/360ied/my-dotfiles/blob/45c7c15dbd525a589b0eddcda3cc4dcb3215ece9/fonts-configuration.nix#L5-L301
+                    # 
+                    # emacsPackages.unicode-fonts
+                    # 
+                    # last-resort
+                    # iosevka-term-curly-slab
+                    # undefined-medium
+                    # last-resort
+                    # vistafonts-chs
+                    # hackgen-font
+                    # hackgen-nf-font
+                    # julia-mono
+                    # udev-gothic
+                    # udev-gothic-nf
+                    # uiua386
+                    # rounded-mgenplus
+                    # maple-mono-SC-NF
+                    # unscii
+                    # camingo-code
+                    # cascadia-code
+                    # corefonts
+                    # cozette
+                    # dina-font
+                    # font-awesome_4
+                    # gohufont
+                    # go-font
+                    # hack-font
+                    # hermit
+                    # ibm-plex
+                    # iosevka
+                    # jetbrains-mono
+                    # julia-mono
+                    # liberation_ttf
+                    # libertine
+                    # lmodern
+                    # noto-fonts-emoji
+                    # proggyfonts
+                    # recursive
+                    # siji
+                    # source-code-pro
+                    # spleen
+                    # sudo-font
+                    # tamsyn
+                    # tamzen
+                    # terminus_font
+                    # uw-ttyp0
+                    # vistafonts
+                    # bqn386
+                    # font-awesome
+                    # uw-ttyp0
+                    # gohufont
+                    # terminus_font_ttf
+                    # profont
+                    # efont-unicode
+                    # noto-fonts-emoji
+                    # dina-font    
+                    #noto-fonts
+                    #noto-fonts-cjk-sans
+                    #google-fonts
+                    #meslo-lgs-nf
+                    #noto-fonts-cjk-serif
+                    #source-han-sans-vf-ttf
+                    #source-han-serif-vf-ttf
+                    #source-han-serif
+                    ##ark-pixel-font
+                    ##zpix-pixel-font
+                    #wqy_microhei
+                    #helvetica-neue-lt-std
+                    #aileron
+                    #ubuntu_font_family
+                    #fira
+                    ##maple-mono
+                    #julia-mono
+                    #jetbrains-mono
+                    #paratype-pt-sans
+                    ##tamsyn
+                    #vistafonts
+                    ##unscii
+                    #xorg.xbitmaps
+                    ##ucs-fonts
+                    #cozette
+                    #terminus_font
+                    #roboto
+                    #unscii
+                    #tamzen
+                    #envypn-font
+                    #spleen
+                    #ucs-fonts
+                    #corefonts
+
+                    agave
+                    anonymousPro
+                    arkpandora_ttf # Font, metrically identical to Arial and Times New Roman
+                    # assyrian
+                    atkinson-hyperlegible
+                    aurulent-sans
+                    awesome
+                    bakoma_ttf
+                    cantarell-fonts
+                    clearlyU
+                    cm_unicode
+                    comfortaa
+                    comic-relief
+                    corefonts
+                    cozette
+                    dejavu_fonts
+                    dina-font
+                    dosemu_fonts
+                    emacs-all-the-icons-fonts
+                    emacsPackages.unicode-fonts
+                    emojione
+                    fantasque-sans-mono
+                    fira
+                    fira-code
+                    fira-code-nerdfont
+                    fira-code-symbols
+                    fira-mono
+                    font-awesome
+                    font-awesome_4
+                    font-awesome_5
+                    freefont_ttf
+                    gentium
+                    gyre-fonts
+                    hannom
+                    hasklig
+                    helvetica-neue-lt-std
+                    ibm-plex
+                    icu76
+                    inconsolata
+                    inconsolata-nerdfont
+                    inter
+                    iosevka
+                    iosevka
+                    iosevka-comfy.comfy
+                    iosevka-comfy.comfy-motion
+                    iosevka-comfy.comfy-wide
+                    iosevka-comfy.comfy-wide-motion
+                    ipaexfont
+                    ipafont
+                    jetbrains-mono
+                    joypixels
+                    julia-mono
+                    lato
+                    liberation_ttf
+                    libertine
+                    libre-caslon
+                    lmmath
+                    maple-mono
+                    maple-mono-NF
+                    material-design-icons
+                    material-icons
+                    meslo-lg
+                    meslo-lgs-nf
+                    monaspace
+                    monoid
+                    mononoki
+                    montserrat
+                    mplus-outline-fonts.githubRelease
+                    mro-unicode
+                    nerdfonts
+                    noto-fonts
+                    noto-fonts-cjk-sans
+                    noto-fonts-color-emoji
+                    noto-fonts-emoji
+                    noto-fonts-extra
+                    noto-fonts-lgc-plus
+                    noto-fonts-monochrome-emoji
+                    oldstandard
+                    open-fonts
+                    openmoji-color
+                    openttd-ttf
+                    oxygenfonts
                     powerline
                     powerline-fonts
+                    recursive
+                    redhat-official-fonts
+                    roboto-mono
+                    roboto-slab
+                    sarasa-gothic
+                    scientifica
+                    shabnam-fonts
+                    sketchybar-app-font
+                    source-code-pro
+                    source-han-mono
+                    source-han-sans
+                    source-han-sans-japanese
+                    source-han-sans-korean
+                    source-han-sans-simplified-chinese
+                    source-han-sans-traditional-chinese
+                    source-han-serif
+                    source-sans
+                    stix-otf
+                    stix-two
+                    sudo-font
+                    symbola
+                    terminus-nerdfont
+                    textfonts
+                    ttf-indic
+                    ttf_bitstream_vera
+                    twemoji-color-font
+                    twitter-color-emoji
+                    ubuntu_font_family
+                    ultimate-oldschool-pc-font-pack
+                    unicode-emoji
+                    unidings
+                    unifont_upper
+                    vazir-code-font
+                    vazir-fonts
+                    victor-mono
+                    vistafonts
+                    # whatsapp-emoji-font
+                    wqy_microhei
+                    wqy_zenhei
+                    xkcd-font
+                    xmoji
+                    xorg.fontbitstream100dpi
+                    xorg.fontbitstream75dpi
+                    xorg.fontbitstreamtype1
                   ];
-                  enableDefaultPackages = true;
-                  enableGhostscriptFonts = true;
+                  # enableDefaultPackages = true;
+                  # enableGhostscriptFonts = true;
                 };
 
                 # Hack to fix annoying zsh warning, too overkill probably
@@ -308,12 +841,57 @@
                   wantedBy = [ "default.target" ];
                 };
 
-                nix.extraOptions = "experimental-features = nix-command flakes";
+                nix.extraOptions = ''
+                  bash-prompt-prefix = (nix-develop:$name)\040
+                  experimental-features = nix-command flakes
+                  keep-build-log = true
+                  keep-derivations = true
+                  keep-env-derivations = true
+                  keep-failed = true
+                  keep-going = true
+                  keep-outputs = true
+                '';
+
+                # nix.channel.enable = false;
+                # nix.settings.nix-path = "nixpkgs=flake:nixpkgs";
+                # nix.nixPath = [ "nixpkgs=${pkgs.path}" ];
+
+                # TODO: It does not work! I must be the module
+                # nix.registry.nixpkgs.flake = nixpkgs;
+                nix.channel.enable = false; # remove nix-channel related tools & configs, we use flakes instead.
+
+                # but NIX_PATH is still used by many useful tools, so we set it to the same value as the one used by this flake.
+                # Make `nix repl '<nixpkgs>'` use the same nixpkgs as the one used by this flake.
+                environment.etc."nix/inputs/nixpkgs".source = "${nixpkgs}";
+                # https://github.com/NixOS/nix/issues/9574
+                nix.settings.nix-path = lib.mkForce "nixpkgs=/etc/nix/inputs/nixpkgs";
+
+                # nixpkgs.hostPlatform = { system = "x86_64-linux";  config = "x86_64-unknown-linux-gnu"; qemuArch = "aarch64"; };
+                nixpkgs.config.allowUnfree = true;
+                nixpkgs.config.allowUnfreePredicate = pkg:
+                  builtins.elem (lib.getName pkg) [
+                    "vscode"
+                    "vagrant"
+
+                    "assyrian"
+                    "corefonts"
+                    "hannom"
+                    "helvetica-neue-lt-std"
+                    "joypixels"
+                    "symbola"
+                    "textfonts"
+                    "unidings"
+                    "vista-fonts"
+                    "xkcd-font"
+                    # "whatsapp-emoji-linux"
+                  ];
+                nixpkgs.config.joypixels.acceptLicense = true;
 
                 # environment.variables.STATIC_NIX = "${pkgs.lib.getExe pkgs.pkgsStatic.nixVersions.nix_2_23}";
 
                 environment.systemPackages = with pkgs; [
-
+                  # pipenv
+                  gcc
                 ];
 
                 system.stateVersion = "24.05";
@@ -413,11 +991,20 @@
         };
 
         devShells.default = with pkgs; mkShell {
+          # nix eval --json nixpkgs#mkShell.__functionArgs
           buildInputs = [
             foo-bar
+            automatic-vm
           ];
 
           shellHook = ''
+            export TMPDIR=/tmp
+
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true
+
           '';
         };
 

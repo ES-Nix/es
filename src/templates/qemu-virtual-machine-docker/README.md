@@ -37,7 +37,7 @@ for i in {1..500}; do
 done
 
 
-direnv allow
+direnv allow || true
 nix develop .# --command docker images
 ```
 

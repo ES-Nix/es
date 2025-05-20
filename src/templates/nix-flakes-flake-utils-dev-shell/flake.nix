@@ -85,7 +85,7 @@
             inherit (pkgsAllowUnfree)
               f00Bar
               ;
-              default = self.packages."${suportedSystem}".default;
+            default = self.packages."${suportedSystem}".default;
           };
         }
       )
