@@ -26,7 +26,7 @@
 
         # docker manifest inspect arm64v8/python:3.9.19-alpine3.20 | jq -r '.manifests.[0].digest' | cut -d':' -f 2
         # docker inspect arm64v8/python:3.9.19-alpine3.20
-        OCIImagePythonArm64 = prev.dockerTools.pullImage {
+        OCIImageAlpinePythonArm64 = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-alpine3.20";
           finalImageName = "arm64v8/python";
           imageDigest = "sha256:f4ea62bac1c88afff3a1f7636b07f6ec7b88b2dac4700eab67a780b9d58e6b85";
@@ -37,7 +37,7 @@
           arch = "arm64";
         };
 
-        OCIImageAlpineArm32v7 = prev.dockerTools.pullImage {
+        OCIImageAlpinePythonArm32v7 = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-alpine3.20";
           finalImageName = "arm32v7/python";
           imageDigest = "sha256:4e0a03de7fef5f3c869f38e9007589b89d307eb01fe97d82598bf66775e005a1";
@@ -48,7 +48,7 @@
           arch = "arm32v7";
         };
 
-        OCIImageAlpineArm32v6 = prev.dockerTools.pullImage {
+        OCIImageAlpinePythonArm32v6 = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-alpine3.20";
           finalImageName = "arm32v6/python";
           imageDigest = "sha256:82611729afdd581bc0e05ef5ecc1634799ef0ee673e7296a586aef38b106a8bc";
@@ -59,7 +59,7 @@
           arch = "arm32v6";
         };
 
-        OCIImageAlpineArm32v5 = prev.dockerTools.pullImage {
+        OCIImageAlpinePythonArm32v5 = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-bookworm";
           finalImageName = "arm32v5/python";
           imageDigest = "sha256:247fe8a580eae523aee81504c20aeca9323114afdbcb9fba2c5229fc4c0c4903";
@@ -70,7 +70,7 @@
           arch = "arm32v5";
         };
 
-        OCIImageAlpineS390x = prev.dockerTools.pullImage {
+        OCIImageAlpinePythonS390x = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-alpine3.20";
           finalImageName = "s390x/python";
           imageDigest = "sha256:21324df35e10d53f79b9587ad0d91bd89181df9f6d022e0229b4291cb65a4fc0";
@@ -81,7 +81,7 @@
           arch = "s390x";
         };
         # docker manifest inspect riscv64/python:3.9.19-alpine | jq -r '.manifests.[0].digest' | cut -d':' -f2
-        OCIImageAlpineRiscv64 = prev.dockerTools.pullImage {
+        OCIImageAlpinePythonRiscv64 = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-alpine3.20";
           finalImageName = "riscv64/python";
           imageDigest = "sha256:36a1c88eab2ff9f68e268eb5de75131805273d98e357dda5d924540f1796de7d";
@@ -92,7 +92,7 @@
           arch = "riscv64";
         };
 
-        OCIImageAlpinePpc64le = prev.dockerTools.pullImage {
+        OCIImageAlpinePythonPpc64le = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-alpine3.20";
           finalImageName = "ppc64le/python";
           imageDigest = "sha256:f56318bbaa479265e03493c5bf402e26f1a51692f6661e1ec7e07be89d104ebf";
@@ -103,7 +103,7 @@
           arch = "ppc64le";
         };
 
-        OCIImageAlpineI386 = prev.dockerTools.pullImage {
+        OCIImageAlpinePythonI386 = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-alpine3.20";
           finalImageName = "i386/python";
           imageDigest = "sha256:2533bb5bc9d63eb0252c4d5902a7308ac850e8ef98e3412eec33332d6ad56c99";
@@ -114,7 +114,7 @@
           arch = "386";
         };
 
-        OCIImageAlpineAmd64 = prev.dockerTools.pullImage {
+        OCIImageAlpinePythonAmd64 = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-alpine3.20";
           finalImageName = "amd64/python";
           imageDigest = "sha256:08c95d38ed6f5291c4c213d3d89738cdfd439ddb3f1833649b012650b41597e3";
@@ -126,7 +126,7 @@
         };
 
         #
-        OCIImageAlpineMips64el = prev.dockerTools.pullImage {
+        OCIImageAlpineBookwormMips64el = prev.dockerTools.pullImage {
           finalImageTag = "3.9.19-slim-bookworm";
           finalImageName = "mips64le/python";
           imageDigest = "sha256:bfaf671636651d1a449fc586e1b5875d73f47e47d7be7b35d9550191d0030320";
@@ -146,7 +146,7 @@
           sha256 = "sha256-Fax1Xf7OUch5hnFaW4SarIfkHJPNyoNoQfhsCw6f2NM=";
         };
 
-        testBinfmtMany = prev.testers.runNixOSTest {
+        testBinfmtManyEmulatedSystems = prev.testers.runNixOSTest {
           name = "test-binfmt-many";
           nodes.machine =
             { config, pkgs, lib, modulesPath, ... }:
@@ -160,55 +160,55 @@
 
               config.virtualisation.docker.enable = true;
 
-              #              config.boot.binfmt.emulatedSystems = [
-              #                "aarch64-linux"
-              #                # "armv6l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
-              #                "armv7l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
-              #                # "i386-linux"
-              #                # "i686-linux"
-              #                "mips64el-linux"
-              #                "powerpc64le-linux"
-              #                "riscv64-linux"
-              #                "s390x-linux"
-              #              ];
-              #
-              #              config.boot.binfmt.registrations = {
-              #                aarch64-linux = {
-              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
-              #                  fixBinary = true;
-              #                };
-              #                armv7l-linux = {
-              #                  # TODO: why armv6l-linux gives the same result?
-              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-arm";
-              #                  # interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-armeb";
-              #                  fixBinary = true;
-              #                };
-              #                #i686-linux = {
-              #                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-i386";
-              #                #  fixBinary = true;
-              #                #};
-              #                #
-              #                #i686-linux = {
-              #                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-x86_64";
-              #                #  fixBinary = true;
-              #                #};
-              #                mips64el-linux = {
-              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-mips64el";
-              #                  fixBinary = true;
-              #                };
-              #                powerpc64le-linux = {
-              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-ppc64le";
-              #                  fixBinary = true;
-              #                };
-              #                riscv64-linux = {
-              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-riscv64";
-              #                  fixBinary = true;
-              #                };
-              #                s390x-linux = {
-              #                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-s390x";
-              #                  fixBinary = true;
-              #                };
-              #              };
+              config.boot.binfmt.emulatedSystems = [
+                "aarch64-linux"
+                # "armv6l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
+                "armv7l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
+                # "i386-linux"
+                # "i686-linux"
+                "mips64el-linux"
+                "powerpc64le-linux"
+                "riscv64-linux"
+                "s390x-linux"
+              ];
+
+              config.boot.binfmt.registrations = {
+                aarch64-linux = {
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
+                  fixBinary = true;
+                };
+                armv7l-linux = {
+                  # TODO: why armv6l-linux gives the same result?
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-arm";
+                  # interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-armeb";
+                  fixBinary = true;
+                };
+                #i686-linux = {
+                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-i386";
+                #  fixBinary = true;
+                #};
+                #
+                #i686-linux = {
+                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-x86_64";
+                #  fixBinary = true;
+                #};
+                mips64el-linux = {
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-mips64el";
+                  fixBinary = true;
+                };
+                powerpc64le-linux = {
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-ppc64le";
+                  fixBinary = true;
+                };
+                riscv64-linux = {
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-riscv64";
+                  fixBinary = true;
+                };
+                s390x-linux = {
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-s390x";
+                  fixBinary = true;
+                };
+              };
             };
 
           globalTimeout = 4 * 60;
@@ -217,22 +217,22 @@
             start_all()
             machine.wait_for_unit("default.target")
 
-            machine.succeed("docker load <${final.OCIImageAlpineI386}")
-            machine.succeed("docker load <${final.OCIImageAlpineMips64el}")
-            machine.succeed("docker load <${final.OCIImageAlpineAmd64}")
-            machine.succeed("docker load <${final.OCIImageAlpinePpc64le}")
-            machine.succeed("docker load <${final.OCIImageAlpineRiscv64}")
-            machine.succeed("docker load <${final.OCIImageAlpineS390x}")
-            machine.succeed("docker load <${final.OCIImageAlpineArm32v5}")
-            machine.succeed("docker load <${final.OCIImageAlpineArm32v6}")
-            machine.succeed("docker load <${final.OCIImageAlpineArm32v7}")
-            machine.succeed("docker load <${final.OCIImagePythonArm64}")
+            machine.succeed("docker load <${final.OCIImageAlpinePythonArm64}")
+            machine.succeed("docker load <${final.OCIImageAlpinePythonArm32v7}")
+            machine.succeed("docker load <${final.OCIImageAlpinePythonArm32v6}")
+            machine.succeed("docker load <${final.OCIImageAlpinePythonArm32v5}")
+            machine.succeed("docker load <${final.OCIImageAlpinePythonS390x}")
+            machine.succeed("docker load <${final.OCIImageAlpinePythonRiscv64}")
+            machine.succeed("docker load <${final.OCIImageAlpinePythonPpc64le}")
+            machine.succeed("docker load <${final.OCIImageAlpinePythonI386}")
+            machine.succeed("docker load <${final.OCIImageAlpinePythonAmd64}")
+            machine.succeed("docker load <${final.OCIImageAlpineBookwormMips64el}")
 
-            machine.succeed("docker load <${final.OCIImageTonistiigiBinfmt}")
+            # machine.succeed("docker load <${final.OCIImageTonistiigiBinfmt}")
 
             print(machine.succeed("docker images"))
 
-            machine.succeed("docker run --privileged --rm tonistiigi/binfmt --install all")
+            # machine.succeed("docker run --privileged --rm tonistiigi/binfmt --install all")
             # machine.succeed("docker run --privileged --rm tonistiigi/binfmt --install arm64,riscv64,arm,s390x,ppc64le,mips64le")
 
             with subtest("arm32v5"):
@@ -482,9 +482,9 @@
                   script = ''
                     echo "Loading OCI Images in docker..."
 
-                    docker load <"${final.cachedOCIImageTonistiigiBinfmt}"
+                    docker load <"${final.OCIImageTonistiigiBinfmt}"
 
-                    docker load <"${final.OCIImagePythonArm64}"
+                    docker load <"${final.OCIImageAlpinePythonArm64}"
                   '';
                   serviceConfig = {
                     Type = "oneshot";
@@ -597,14 +597,13 @@
       rec {
         packages = {
           inherit (pkgs)
-            testBinfmtMany
+            myvm
+            automatic-vm
+            testBinfmtManyEmulatedSystems
             ;
 
-          default = pkgs.testBinfmtMany;
+          default = pkgs.testBinfmtManyEmulatedSystems;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
@@ -615,8 +614,21 @@
 
         checks = {
           inherit (pkgs)
-            # testBinfmtMany
-            # automatic-vm
+            OCIImageAlpinePythonArm64
+            OCIImageAlpinePythonArm32v7
+            OCIImageAlpinePythonArm32v6
+            OCIImageAlpinePythonArm32v5
+            OCIImageAlpinePythonS390x
+            OCIImageAlpinePythonRiscv64
+            OCIImageAlpinePythonPpc64le
+            OCIImageAlpinePythonI386
+            OCIImageAlpinePythonAmd64
+            OCIImageAlpineBookwormMips64el
+            OCIImageTonistiigiBinfmt
+
+            myvm
+            automatic-vm
+            testBinfmtManyEmulatedSystems
             ;
         };
 
@@ -624,6 +636,13 @@
           buildInputs = [
             foo-bar
           ];
+
+          shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
+          '';
         };
 
       }

@@ -280,13 +280,12 @@
         packages = {
           inherit (pkgs)
             testMemcachedStatic
+            myvm
+            automatic-vm
             ;
 
           default = pkgs.testMemcachedStatic;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
@@ -305,7 +304,15 @@
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             foo-bar
+            testMemcachedStatic
+            automatic-vm
           ];
+          shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
+          '';
         };
 
       }

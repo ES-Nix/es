@@ -34,10 +34,10 @@
         # docker manifest inspect alpine:3.20.3
         cachedOCIImageAlpineArm64 = prev.dockerTools.pullImage {
           finalImageTag = "3.20.3-arm64";
-          imageDigest = "sha256:9cee2b382fe2412cd77d5d437d15a93da8de373813621f2e4d406e3df0cf0e7c";
+          imageDigest = "sha256:1e42bbe2508154c9126d48c2b8a75420c3544343bf86fd041fb7527e017a4b4a";
           imageName = "docker.io/library/alpine";
           name = "docker.io/library/alpine";
-          sha256 = "sha256-UslbIYjEyuCaRJPY5KbfndUtoEFhmNvP5/iPahqW7BI=";
+          sha256 = "sha256-wbWnRyjk+m6ubuoNVKjKLf+3yWGl15FnedmDJXGg3tg=";
           os = "linux";
           arch = "arm64";
         };
@@ -64,10 +64,10 @@
 
         cachedOCIImageAlpineS390x = prev.dockerTools.pullImage {
           finalImageTag = "3.20.3-s390x";
-          imageDigest = "sha256:2b5b26e09ca2856f50ac88312348d26c1ac4b8af1df9f580e5cf465fd76e3d4d";
+          imageDigest = "sha256:1e42bbe2508154c9126d48c2b8a75420c3544343bf86fd041fb7527e017a4b4a";
           imageName = "docker.io/library/alpine";
           name = "docker.io/library/alpine";
-          sha256 = "sha256-iJ1Eg130MxPxe9exjduhvjpqjBDfO2MCYhPijw6Y5Vc=";
+          sha256 = "sha256-uMvsrlddjj42wYzYAYSyUt/tEF8U08Bx5lJWCnPTIG0=";
           os = "linux";
           arch = "s390x";
         };
@@ -94,10 +94,10 @@
 
         cachedOCIImageAlpineI386 = prev.dockerTools.pullImage {
           finalImageTag = "3.20.3-i386";
-          imageDigest = "sha256:b3e87f642f5c48cdc7556c3e03a0d63916bd0055ba6edba7773df3cb1a76f224";
+          imageDigest = "sha256:1e42bbe2508154c9126d48c2b8a75420c3544343bf86fd041fb7527e017a4b4a";
           imageName = "docker.io/library/alpine";
           name = "docker.io/library/alpine";
-          sha256 = "sha256-bVEGcj0A+fnYBktDp7hHgTnc4G+qW0XpiisTzpG5pFA=";
+          sha256 = "sha256-1H1hklpGglmZ9pn+nPVjM9GhvsYVbrLSLdWINKlt/ZM=";
           os = "linux";
           arch = "386";
         };
@@ -132,7 +132,7 @@
           sha256 = "sha256-Fax1Xf7OUch5hnFaW4SarIfkHJPNyoNoQfhsCw6f2NM=";
         };
 
-        testBinfmtMany = prev.testers.runNixOSTest {
+        testBinfmtManyEmulatedSystems = prev.testers.runNixOSTest {
           name = "test-binfmt-many";
           nodes.machine =
             { config, pkgs, lib, modulesPath, ... }:
@@ -193,6 +193,7 @@
             start_all()
             machine.wait_for_unit("default.target")
 
+            # TODO: use bash arrays and an for loop?
             machine.succeed("docker load <${final.cachedOCIImageAlpineAmd64}")
             machine.succeed("docker load <${final.cachedOCIImageAlpineArm32v6}")
             machine.succeed("docker load <${final.cachedOCIImageAlpineArm32v7}")
@@ -480,14 +481,24 @@
       rec {
         packages = {
           inherit (pkgs)
-            testBinfmtMany
+            cachedOCIImageAlpineAmd64
+            cachedOCIImageAlpineArm32v6
+            cachedOCIImageAlpineArm32v7
+            cachedOCIImageAlpineArm64
+            cachedOCIImageAlpineI386
+            cachedOCIImageAlpineMips64el
+            cachedOCIImageAlpinePpc64le
+            cachedOCIImageAlpineRiscv64
+            cachedOCIImageAlpineS390x
+            cachedOCIImageTonistiigiBinfmt
+
+            myvm
+            automatic-vm
+            testBinfmtManyEmulatedSystems
             ;
 
-          default = pkgs.testBinfmtMany;
+          default = pkgs.testBinfmtManyEmulatedSystems;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
@@ -498,15 +509,35 @@
 
         checks = {
           inherit (pkgs)
-            # testBinfmtMany
-            # automatic-vm
+            cachedOCIImageAlpineAmd64
+            cachedOCIImageAlpineArm32v6
+            cachedOCIImageAlpineArm32v7
+            cachedOCIImageAlpineArm64
+            cachedOCIImageAlpineI386
+            cachedOCIImageAlpineMips64el
+            cachedOCIImageAlpinePpc64le
+            cachedOCIImageAlpineRiscv64
+            cachedOCIImageAlpineS390x
+            cachedOCIImageTonistiigiBinfmt
+
+            myvm
+            automatic-vm
+            testBinfmtManyEmulatedSystems
             ;
         };
 
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             foo-bar
+            testBinfmtManyEmulatedSystems
           ];
+
+          shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
+          '';
         };
 
       }

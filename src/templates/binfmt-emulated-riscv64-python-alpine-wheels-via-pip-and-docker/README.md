@@ -14,8 +14,6 @@ nix fmt '.#'
 ```
 
 
-
-
 ```bash
 cffi
 cryptography

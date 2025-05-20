@@ -12,6 +12,15 @@ nix build --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.
 
 
 ```bash
+nix flake show '.#' \
+&& nix flake metadata '.#' \
+&& nix build --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop '.#' --command sh -c 'true' \
+&& nix flake check --verbose '.#'
+```
+
+
+```bash
 nix run '.#checks.x86_64-linux.helloNixosTest.driverInteractive'
 ```
 

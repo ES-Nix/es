@@ -11,10 +11,11 @@ github:ES-nix/es#pandocLaTeX
 
 (direnv allow || true)
 
-# nix build --impure --print-out-paths '.#'
-# nix run '.#'
-# nix build --print-build-logs --print-out-paths '.#checks.x86_64-linux.test-nixos'
-nix flake check '.#' --verbose
+nix flake show '.#' \
+&& nix flake metadata '.#' \
+&& nix build --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop '.#' --command sh -c 'true' \
+&& nix flake check --verbose '.#'
 ```
 Refs.:
 - 

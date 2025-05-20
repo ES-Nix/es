@@ -36,6 +36,18 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
 
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/e2605d0744c2417b09f8bf850dfca42fcf537d34' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/11415c7ae8539d6292f2928317ee7a8410b28bb9' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -203,11 +215,25 @@
           testScript = { nodes, ... }: ''
             start_all()
             machine.wait_for_unit("default.target")
+
             machine.succeed("docker load <${final.OCIImageNginxStatic}")
             print(machine.succeed("docker images"))
-            machine.fail("ldd $(readlink -f $(which nginx))")
-            print(machine.succeed("du -chs $(readlink -f $(which nginx))"))
-            print(machine.succeed("nginx -V"))
+
+            expected = 'not a dynamic executable'
+            result = machine.fail("ldd $(readlink -f $(which nginx)) 2>&1")
+            assert expected in result, f"expected = {expected}, result = {result}"
+
+            expected = '10M'
+            result = machine.succeed('docker images --format "{{.Size}}"')
+            assert expected in result, f"expected = {expected}, result = {result}"
+
+            expected = '9.6M'
+            result = machine.succeed("du -chs $(readlink -f $(which nginx))") 
+            assert expected in result, f"expected = {expected}, result = {result}"
+            
+            expected = 'nginx version: nginx/1.26.3'
+            result = machine.succeed("nginx -V 2>&1")
+            assert expected in result, f"expected = {expected}, result = {result}"
 
             machine.execute("docker run --name=container-nginx -d --rm -p=8000:80 joshrosso:1.4")
             machine.wait_for_open_port(8000)

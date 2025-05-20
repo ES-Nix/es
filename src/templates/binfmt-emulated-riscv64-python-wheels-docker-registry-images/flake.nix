@@ -31,6 +31,18 @@
       (final: prev: {
         foo-bar = prev.hello;
 
+        # docker manifest inspect riscv64/python:3.9.19-alpine | jq -r '.manifests.[0].digest' | cut -d':' -f2
+        OCIImageAlpineRiscv64 = prev.dockerTools.pullImage {
+          finalImageTag = "3.9.19-alpine3.20";
+          finalImageName = "riscv64/python";
+          imageDigest = "sha256:36a1c88eab2ff9f68e268eb5de75131805273d98e357dda5d924540f1796de7d";
+          imageName = "docker.io/library/python";
+          name = "docker.io/library/python";
+          sha256 = "sha256-DZ5lJffpW2BML5vTSIUkqnrzV9oni86elb0urLjBsns=";
+          os = "linux";
+          arch = "riscv64";
+        };
+
         distRiscv64 = prev.pkgsCross.riscv64.python312Packages.mmh3.dist;
 
         riscv64Python312 = prev.pkgsCross.riscv64.python312.withPackages (pyPkgs: with pyPkgs; [
@@ -226,7 +238,7 @@
                   script = ''
                     echo "Loading OCI Images in docker..."
 
-                    docker load <"${final.OCIImageAlpineRiscv64}"
+                    docker load <"${pkgs.OCIImageAlpineRiscv64}"
                   '';
                   serviceConfig = {
                     Type = "oneshot";

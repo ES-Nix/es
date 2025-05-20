@@ -68,7 +68,7 @@
             machine1.wait_for_unit("default.target")
             machine1.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_6_6"):
-                expected = '6.6.47'
+                expected = '6.6.82'
                 result_1 = machine1.succeed("uname -r")
                 result_2 = machine1.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -79,7 +79,7 @@
             machine2.wait_for_unit("default.target")
             machine2.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_latest"):
-                expected = '6.10.6'
+                expected = '6.13.6'
                 result_1 = machine2.succeed("uname -r")
                 result_2 = machine2.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -90,7 +90,7 @@
             machine3.wait_for_unit("default.target")
             machine3.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_latest"):
-                expected = '6.11.0-rc5'
+                expected = '6.14.0-rc6'
                 result_1 = machine3.succeed("uname -r")
                 result_2 = machine3.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -101,7 +101,7 @@
             machine4.wait_for_unit("default.target")
             machine4.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_latest"):
-                expected = '6.6.32-hardened1'
+                expected = '6.6.73-hardened1'
                 result_1 = machine4.succeed("uname -r")
                 result_2 = machine4.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -144,14 +144,22 @@
 
         checks = {
           inherit (pkgs)
-            # testDockerAndMultiKernels
+            testDockerAndMultiKernels
             ;
         };
 
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             foo-bar
+            testDockerAndMultiKernels
           ];
+
+          shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
+          '';
         };
 
       }

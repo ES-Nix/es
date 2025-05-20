@@ -19,9 +19,15 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/8c4dc69b9732f6bbe826b5fbb32184987520ff26' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -42,7 +48,7 @@
           arch = "riscv64";
         };
 
-        distRiscv64 = prev.pkgsCross.riscv64.pkgsMusl.python312Packages.mmh3.dist;
+        distRiscv64MusPython312PackageslMmh3 = prev.pkgsCross.riscv64.pkgsMusl.python312Packages.mmh3.dist;
         riscv64MuslPython312 = prev.pkgsCross.riscv64.pkgsMusl.python312;
 
         testBinfmtMany = prev.testers.runNixOSTest {
@@ -74,7 +80,7 @@
           globalTimeout = 2 * 60;
 
           /*
-            print(machine.succeed("ls -alh ${final.distRiscv64.pname + "-" + final.distRiscv64.version + "-" +
+            print(machine.succeed("ls -alh ${final.distRiscv64MusPython312PackageslMmh3.pname + "-" + final.distRiscv64MusPython312PackageslMmh3.version + "-" +
               "cp" + final.riscv64MuslPython39.sourceVersion.major + final.riscv64MuslPython39.sourceVersion.minor + "-" +
               "cp" + final.riscv64MuslPython39.sourceVersion.major + final.riscv64MuslPython39.sourceVersion.minor + "-" +
               final.stdenv.hostPlatform.parsed.kernel.name + "_" + final.pkgsCross.riscv64.stdenv.hostPlatform.parsed.cpu.name + ".whl"}"))
@@ -86,8 +92,7 @@
             machine.succeed("docker load <${final.OCIImageAlpineRiscv64}")
             print(machine.succeed("docker images"))
 
-            print(machine.succeed("cp -v ${final.distRiscv64}/*.whl ."))
-
+            print(machine.succeed("cp -v ${final.distRiscv64MusPython312PackageslMmh3}/*.whl ."))
 
             print(machine.succeed("""
                     python3 -m venv .venv \
@@ -187,7 +192,7 @@
                   script = ''
                     echo "Loading OCI Images in docker..."
 
-                    docker load <"${final.OCIImageAlpineRiscv64}"
+                    docker load <"${pkgs.OCIImageAlpineRiscv64}"
                   '';
                   serviceConfig = {
                     Type = "oneshot";
@@ -217,7 +222,8 @@
                     lsof
                     findutils
                     foo-bar
-                    riscv64MuslPython39
+                    # riscv64MuslPython39
+                    riscv64MuslPython312
                   ];
                   shell = pkgs.bash;
                   uid = 1234;
@@ -313,8 +319,9 @@
 
         checks = {
           inherit (pkgs)
-            # testBinfmtMany
-            # automatic-vm
+            OCIImageAlpineRiscv64
+            testBinfmtMany
+            automatic-vm
             ;
         };
 

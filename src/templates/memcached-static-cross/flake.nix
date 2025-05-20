@@ -13,6 +13,12 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/aa4e34969baa92fcc227f880d82b1f5a6cc1d343' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/11415c7ae8539d6292f2928317ee7a8410b28bb9' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -812,15 +818,29 @@
       rec {
         packages = {
           inherit (pkgs)
-            testBinfmtMany
+            OCIImageStaticMemcachedServerMips64el
+            OCIImageStaticMemcachedServerX86_64
+            OCIImageStaticMemcachedServerArm64
+            OCIImageStaticMemcachedServerGnu32
+            OCIImageStaticMemcachedServerGnu64
+            OCIImageStaticMemcachedServerPpc64
+            OCIImageStaticMemcachedServerRiscv64
+            OCIImageStaticMemcachedServerS390x
+            staticMemcachedServerGnu32
+            staticMemcachedServerGnu64
+            staticMemcachedServerMips64el
+            staticMemcachedServerPpc64
+            staticMemcachedServerRiscv64
+            staticMemcachedServerS390x
+            staticMemcachedServerX86_64
             staticMemcachedServerArm64
+            testBinfmtMany
+            myvm
+            automatic-vm
             ;
 
           default = pkgs.testBinfmtMany;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
@@ -832,14 +852,21 @@
         checks = {
           inherit (pkgs)
             testBinfmtMany
-            # automatic-vm
+            automatic-vm
             ;
         };
 
         devShells.default = with pkgs; mkShell {
           buildInputs = [
-
+            testBinfmtMany
+            automatic-vm
           ];
+          shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
+          '';
         };
 
       }
