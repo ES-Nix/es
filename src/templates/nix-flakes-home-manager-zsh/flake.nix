@@ -16,7 +16,7 @@
     };
   };
 
-  outputs = { nixpkgs, home-manager, ... }:
+  outputs = { self, nixpkgs, home-manager, ... }:
     let
       userName = "vagrant";
       homeDirectory = "/home/${userName}";
@@ -25,6 +25,19 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
+      formatter."${system}" = pkgs.nixpkgs-fmt;
+      devShells."${system}".default = pkgs.mkShell {
+        buildInputs = [
+        ];
+        shellHook = ''
+          test -d .profiles || mkdir -v .profiles
+          test -L .profiles/dev \
+          || nix develop .# --impure --profile .profiles/dev --command true        
+        '';
+      };
+
+      packages."${system}".default = self.homeConfigurations."${userName}".activationPackage;
+
       homeConfigurations."${userName}" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = [
@@ -55,7 +68,7 @@
                   bash-prompt-prefix = "(nix:$name)\\040";
                   keep-derivations = true;
                   keep-env-derivations = true;
-                  keep-failed = false;
+                  keep-failed = true;
                   keep-going = true;
                   keep-outputs = true;
                   nix-path = "nixpkgs=flake:nixpkgs";

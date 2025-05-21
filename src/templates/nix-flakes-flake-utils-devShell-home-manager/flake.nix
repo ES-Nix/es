@@ -60,7 +60,7 @@
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
-          # packages.default = self.homeConfigurations."${suportedSystem}"."${userName}";
+          packages.default = self.homeConfigurations."${suportedSystem}"."${userName}".activationPackage;
 
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [

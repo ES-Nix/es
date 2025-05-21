@@ -105,12 +105,10 @@
           ];
 
           shellHook = ''
-            # echo -e 'X' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
-
             test -d .profiles || mkdir -v .profiles
 
             test -L .profiles/dev \
-            || nix develop .# --profile .profiles/dev --command id
+            || nix develop .# --profile .profiles/dev --command true
 
             test -L .profiles/dev-shell-default \
             || nix build $(nix eval --impure --raw .#devShells."$system".default.drvPath) --out-link .profiles/dev-shell-"$system"-default
@@ -118,17 +116,20 @@
         };
     } // {
 
-      nixosConfigurations = (import ./src/nixos-configurations {
-        inherit lib;
-        path = pkgsAllowUnfree.path;
-        # my-overlays = my-overlays;
-      });
+      # nixosConfigurations = (import ./src/nixos-configurations {
+      #   inherit lib;
+      #   path = pkgsAllowUnfree.path;
+      #   # my-overlays = my-overlays;
+      # });
 
       checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
-      packages.hello = pkgsAllowUnfree.hello;
-      packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
+      formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
+      packages.hello = pkgsAllowUnfree.hello;
+      packages.default = pkgsAllowUnfree.hello;
+      packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
+      # packages.hmsystem = self.homeConfigurations."${suportedSystem}"."vagrant-alpine316.localdomain".activationPackage;
 
       /*
       > Unfortunately, homeConfigurations doesn’t really support multi-arch outputs like the other flake attrs do.

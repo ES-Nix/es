@@ -639,7 +639,6 @@
             testBinfmtMany
             myvm
             ;
-
           default = pkgs.testBinfmtMany;
         };
 
@@ -663,7 +662,6 @@
             python3WithPackages
           ];
         };
-
       }
     )
   );

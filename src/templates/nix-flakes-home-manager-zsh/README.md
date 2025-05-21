@@ -46,7 +46,7 @@ Refs.:
 
 
 Reflection: even nix is a program so, it has many 
-flavored ways to be configured and ofcourse tunned for 
+flavored ways to be configured and of course tunned for 
 probably multiple different and probably conflicting goals. 
 Two cases/examples/flavors:
 a remote builder, a developer machine.
@@ -220,15 +220,12 @@ nix eval "$HOME"/.config/home-manager#homeConfigurations.vagrant.config.nixpkgs.
 export NIXPKGS_ALLOW_UNFREE=1; nix run --impure nixpkgs#unrar
 ```
 
-```bash
+```nix
 {
   description = "Your new nix config";
 
   inputs = {
-    # Nixpkgs
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
-
-    # Home manager
     home-manager.url = "github:nix-community/home-manager/release-23.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -291,8 +288,8 @@ export NIXPKGS_ALLOW_UNFREE=1; nix run --impure nixpkgs#unrar
             programs.home-manager.enable = true;
 
             home.packages = with pkgs; [
-              gitMinimal
-              nixStatic
+              git
+              nix
               zsh
             ];
 
@@ -338,117 +335,9 @@ export NIXPKGS_ALLOW_UNFREE=1; nix run --impure nixpkgs#unrar
   };
 }
 
-
 nix \
 flake \
 lock \
 --override-input nixpkgs github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
 --override-input home-manager github:nix-community/home-manager/f33900124c23c4eca5831b9b5eb32ea5894375ce
-
 ```
-
-
-
-Used to test it:
-```bash
-cat > Containerfile << 'EOF'
-FROM docker.io/library/alpine:3.19.1 as alpine-with-ca-certificates-tzdata
-
-# https://stackoverflow.com/a/69918107
-# https://serverfault.com/a/1133538
-# https://wiki.alpinelinux.org/wiki/Setting_the_timezone
-# https://bobcares.com/blog/change-time-in-docker-container/
-# https://github.com/containers/podman/issues/9450#issuecomment-783597549
-# https://www.redhat.com/sysadmin/tick-tock-container-time
-ENV TZ=America/Recife
-
-RUN apk update \
- && apk \
-        add \
-        --no-cache \
-        ca-certificates \
-        tzdata \
-        shadow \
- && mkdir -pv /home/nixuser \
- && addgroup nixgroup --gid 4455 \
- && adduser \
-        -g '"An unprivileged user with an group"' \
-        -D \
-        -h /home/nixuser \
-        -G nixgroup \
-        -u 3322 \
-        nixuser \
- && echo \
- && echo 'Start kvm stuff...' \
- && getent group kvm || groupadd kvm \
- && usermod --append --groups kvm nixuser \
- && echo 'End kvm stuff!' \
- && echo 'Start tzdata stuff' \
- && (test -d /etc || mkdir -pv /etc) \
- && cp -v /usr/share/zoneinfo/$TZ /etc/localtime \
- && echo $TZ > /etc/timezone \
- && apk del tzdata shadow \
- && echo 'End tzdata stuff!' 
-
-# sudo sh -c 'mkdir -pv /nix/var/nix && chmod -v 0777 /nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix'
-RUN mkdir -pv /nix/var/nix && chmod -v 0777 /nix && chown -Rv nixuser:nixgroup /nix
-
-USER nixuser
-WORKDIR /home/nixuser
-ENV USER="nixuser"
-
-RUN CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 || $(wget -q &> /dev/null; test $? -eq 1) && echo 'wget -O-' && exit 0 || echo no-curl-or-wget) \
- && $CURL_OR_WGET_OR_ERROR https://hydra.nixos.org/build/237228729/download/2/nix > nix \
- && chmod -v +x nix \
- && echo \
- && export NO_EXEC=1 \
- && ./nix \
-    --extra-experimental-features nix-command \
-    --extra-experimental-features flakes \
-    --extra-experimental-features auto-allocate-uids \
-    --option auto-allocate-uids false \    
-    run \
-    --override-flake \
-    nixpkgs \
-    github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
-    --refresh \
-    github:ES-Nix/es#installTemplateNixFlakesHomeManagerZsh \
- && echo
- 
-ENTRYPOINT [ "/home/nixuser/.nix-profile/bin/zsh" ]
-CMD [ "--login" ]
-
-EOF
-
-
-podman \
-build \
---cap-add=SYS_ADMIN \
---tag alpine-with-ca-certificates-tzdata \
---target alpine-with-ca-certificates-tzdata \
-. \
-&& podman kill container-alpine-with-ca-certificates-tzdata &> /dev/null || true \
-&& podman rm --force container-alpine-with-ca-certificates-tzdata || true \
-&& echo
-
-xhost + || nix run nixpkgs#xorg.xhost -- +
-podman \
-run \
---annotation=run.oci.keep_original_groups=1 \
---device=/dev/kvm:rw \
---device /dev/dri:rw \
---env="DISPLAY=${DISPLAY:-:0}" \
---hostname=container-nix \
---interactive=true \
---name=container-alpine-with-ca-certificates-tzdata \
---privileged=true \
---security-opt seccomp=unconfined \
---shm-size=2G \
---tty=true \
---rm=true \
---volume=/tmp/.X11-unix:/tmp/.X11-unix:ro \
---volume=/etc/localtime:/etc/localtime:ro \
-localhost/alpine-with-ca-certificates-tzdata:latest
-```
-Refs.:
-- 

@@ -147,7 +147,7 @@ with legacyPackages.x86_64-linux;
                                         opencv4
                                         numpy
                                       ]
-                         )
+                        )
   )
 ]
 )' \
@@ -268,6 +268,7 @@ Refs.:
 
 ## jupyter nbconvert
 
+jupyter-pdflatex-okular-ocr
 
 ```bash
 git clone https://github.com/jupyter/nbconvert-examples.git \

@@ -156,24 +156,22 @@ nix flake clone 'git+ssh://git@github.com/ES-Nix/es.git' --dest es \
 && cd es 1>/dev/null 2>/dev/null \
 && (direnv --version 1>/dev/null 2>/dev/null && direnv allow) \
 || nix develop $SHELL
-
-nix flake show '.#'
-nix flake metadata '.#'
-nix flake check '.#'
 ```
 
-```bash
-nix flake show --json .# | jq '."templates"'
-```
 
 ## Using 
 
 
+```bash
+nix flake show '.#' \
+&& nix flake metadata '.#' \
+&& nix build --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop '.#' --command sh -c 'true' \
+&& nix flake check --verbose '.#'
+```
 
 ```bash
-nix flake show github:ES-Nix/es
-nix flake metadata github:ES-Nix/es
-nix flake check github:ES-Nix/es
+nix flake show --json .# | jq '."templates"'
 ```
 
 

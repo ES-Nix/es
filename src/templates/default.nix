@@ -1,16 +1,4 @@
 {
-
-  /*
-    welcomeText = ''
-      # A
-      ## B
-      C
-        ## More D
-      - [Rust on the NixOS Wiki](https://nixos.wiki/wiki/Rust)
-      - ...
-    '';
-  */
-
   # TODO: better name it.
   startConfigNixFlakesHomeManagerZsh = {
     description = "Base configuration: nix + flakes + home-manager + zsh + vscodium + neovim";
@@ -23,11 +11,11 @@
         ## More D
       - [nixos.wiki](https://nixos.wiki/wiki/)
       - ...
-    '';    
+    '';
   };
 
   devShellHello = {
-    description = "It is an nix flake example of a devShell and uses flake-utils support multiple architectures";
+    description = "It is an nix flake example of a devShell and uses flake-utils to support multiple architectures";
     path = ./nix-flakes-flake-utils-dev-shell;
   };
 
@@ -56,19 +44,19 @@
     path = ./pandoc-latex;
   };
 
-  QEMUVirtualMachineXfceCopyPaste = {
-    description = "QEMU Virtual Machine with xfce and copy/paste working";
-    path = ./qemu-virtual-machine-xfce-copy-paste;
-  };
+  # QEMUVirtualMachineXfceCopyPaste = {
+  #   description = "QEMU Virtual Machine with xfce and copy/paste working";
+  #   path = ./qemu-virtual-machine-xfce-copy-paste;
+  # };
 
-  QEMUVirtualMachineXfceCopyPasteK8s = {
-    description = "QEMU Virtual Machine with xfce and copy/paste and k8s";
-    path = ./qemu-virtual-machine-xfce-copy-paste-k8s;
-  };
+  # QEMUVirtualMachineXfceCopyPasteK8s = {
+  #   description = "QEMU Virtual Machine with xfce and copy/paste and k8s";
+  #   path = ./qemu-virtual-machine-xfce-copy-paste-k8s;
+  # };
 
-  QEMUVirtualMachineDocker = {
-    description = "QEMU Virtual Machine with docker";
-    path = ./qemu-virtual-machine-docker;
-  };
+  # QEMUVirtualMachineDocker = {
+  #   description = "QEMU Virtual Machine with docker";
+  #   path = ./qemu-virtual-machine-docker;
+  # };
 
 }

@@ -25,3 +25,14 @@ home-manager switch --flake .#$USER
 Refs.:
 - https://github.com/Misterio77/nix-starter-configs/issues/3#issuecomment-1312809082
 - https://github.com/nix-community/home-manager/issues/2942#issuecomment-1378627909
+
+
+```bash
+nix fmt \
+&& nix flake show '.#' \
+&& nix flake metadata '.#' \
+&& nix build --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop '.#' --command sh -c 'true' \
+&& nix flake check --verbose '.#' \
+&& git add .
+```

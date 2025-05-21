@@ -37,6 +37,39 @@
     {
       # Your custom packages and modifications, exported as overlays
       overlays = import ./overlays { inherit inputs; };
+      
+      # formatter = forAllSystems (system: {
+      #   # A simple formatter that formats the code in this flake
+      #   default = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
+      # });
+
+      packages = forAllSystems (system: {
+        # default = nixpkgs.legacyPackages.${system}.hello;
+        default = self.homeConfigurations.vagrant.activationPackage;
+      });
+
+      checks = forAllSystems (system: {
+        # A simple check that runs 'hello' and checks the output
+        default = self.homeConfigurations.vagrant.activationPackage;
+      });
+
+      # A shell that can be used to test your configuration
+      # and run commands in the context of your system
+      devShells = forAllSystems (system: {
+        # A shell that can be used to test your configuration
+        # and run commands in the context of your system
+        default = nixpkgs.legacyPackages.${system}.mkShell {
+          buildInputs = with nixpkgs.legacyPackages.${system}; [
+            git
+            hello
+          ];
+          shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
+          '';
+        };
+      });
 
       # Standalone home-manager configuration entrypoint
       # Available through 'home-manager --flake .#your-username@your-hostname'
