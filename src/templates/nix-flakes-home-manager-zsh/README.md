@@ -99,12 +99,12 @@ nix eval --impure '.#homeConfigurations.vagrant.activation-script'
 ```
 
 
-
-
 ```bash
 nix \
 --option keep-failed false \
-develop nixpkgs#hello --command \
+develop \
+nixpkgs#hello \
+--command \
 sh \
 -c \
 'cd "$TMPDIR" && touch foo-bar.txt && pwd && exit 1'
@@ -162,6 +162,7 @@ https://github.com/nix-community/NUR/issues/485#issuecomment-1858815728
 It is an joke, April 1. [Top 6 Best NixOS Tips & Tricks](https://www.youtube.com/embed/cH9HGs2AxuA?start=120&end=164&version=3), start=120&end=164
 
 
+```nix
       homeDirectory = "${if pkgsConfigured.stdenvNoCC.isLinux then
                            "/home/"
                          else "${if pkgsConfigured.stdenvNoCC.isDarwin then
@@ -214,6 +215,7 @@ It is an joke, April 1. [Top 6 Best NixOS Tips & Tricks](https://www.youtube.com
             #    vimAlias = true;
             #    vimdiffAlias = true;
             #  };
+```
 
 ```bash
 nix eval "$HOME"/.config/home-manager#homeConfigurations.vagrant.config.nixpkgs.config.allowUnfree

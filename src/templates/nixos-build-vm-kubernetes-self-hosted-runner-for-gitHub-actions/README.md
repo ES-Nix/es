@@ -1,12 +1,22 @@
 # github self-hosted runner using kubernetes in NixOS QEMU
 
 
-0) Generating a token:
+Passo 1: 
+Generating a token:
 - https://github.com/settings/tokens
 - with these checks: https://github.com/myoung34/docker-github-actions-runner/wiki/Usage#token-scope
 
 
-1)
+Passo 2:
+```bash
+test -f .env || cp -v .env.example .env
+test -f .env && source .env
+```
+
+Passo 3:
+Adicione o PAT no .env!
+
+Passo 4:
 ```bash
 rm -fv nixos.qcow2; 
 nix run --impure --refresh --verbose '.#'
@@ -15,7 +25,7 @@ nix run --impure --refresh --verbose '.#'
 
 2) Copie e cole no terminal da VM e EDITE com seu PAT gerado no passo anterior:
 ```bash
-GITHUB_PAT=ghp_yyyyyyyyyyyyyyy
+GITHUB_PAT=ghp_yyyyyy
 ```
 
 3) Copie e cole no terminal da VM:
@@ -41,7 +51,7 @@ install \
 --namespace "${NAMESPACE}" \
 --create-namespace \
 --set githubConfigUrl="${GITHUB_CONFIG_URL}" \
---set githubConfigSecret.github_token="${GITHUB_PAT}" \
+--set githubConfigSecret.github_token="$(cat /run/secrets/github-runner/nixos.token)" \
 oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
 --set image.tag="0.9.3" \
 --version "0.9.3"

@@ -13,6 +13,18 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/72841a4a8761d1aed92ef6169a636872c986c76d' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -187,7 +199,7 @@
 
               # Why
               # nix flake show --impure .#
-              # break if it does not exists?
+              # breaks if it does not exists?
               # Use systemd boot (EFI only)
               boot.loader.systemd-boot.enable = true;
               fileSystems."/" = { device = "/dev/hda1"; };
@@ -246,7 +258,7 @@
 
               users.users.root = {
                 password = "root";
-                initialPassword = "root";
+                # initialPassword = "root";
                 openssh.authorizedKeys.keyFiles = [
                   "${ pkgs.writeText "nixuser-keys.pub" "${toString nixuserKeys}" }"
                 ];
@@ -293,6 +305,7 @@
                   starship
                   sudo
                   which
+                  xdotool
                 ];
 
                 shell = pkgs.zsh;
@@ -562,8 +575,10 @@
 
                   # TODO: remover hardcoded
                   mkdir -pv -m 0700 /run/secrets/github-runner
-                  chown nixuser:nixgroup /run/secrets/github-runner
+                  
                   echo "${GH_TOKEN}" > /run/secrets/github-runner/nixos.token
+                  chown nixuser:nixgroup -Rv /run/secrets/github-runner
+                  chmod 0600 /run/secrets/github-runner/nixos.token
 
                   echo End
                 '';
@@ -674,14 +689,24 @@
 
               # X configuration
               services.xserver.enable = true;
-              services.xserver.layout = "br";
+              services.xserver.xkb.layout = "br";
 
-              services.xserver.displayManager.autoLogin.user = "nixuser";
+              services.displayManager.autoLogin.user = "nixuser";
               services.xserver.displayManager.sessionCommands = ''
                 exo-open \
                   --launch TerminalEmulator \
                   --zoom=-3 \
                   --geometry 154x40
+
+                  for i in {1..100}; do
+                    xdotool getactivewindow
+                    $? && break
+                    sleep 0.1
+                  done
+                  # Race condition. Why?
+                  # sleep 3
+                  xdotool type 'journalctl -xeu github-runner-runner1.service' \
+                  && xdotool key Return
               '';
 
               # https://nixos.org/manual/nixos/stable/#sec-xfce

@@ -7,6 +7,12 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/72841a4a8761d1aed92ef6169a636872c986c76d' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -207,6 +213,9 @@
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
             let
               nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExR+PSB/jBwJYKfpLN+MMXs3miRn70oELTV3sXdgzpr";
+
+              GH_HOSTNAME = builtins.getEnv "HOSTNAME";
+              GH_TOKEN = builtins.getEnv "GH_TOKEN";
             in
             {
               # Internationalisation options
@@ -258,7 +267,7 @@
 
               users.users.root = {
                 password = "root";
-                initialPassword = "root";
+                # initialPassword = "root";
                 openssh.authorizedKeys.keyFiles = [
                   "${ pkgs.writeText "nixuser-keys.pub" "${toString nixuserKeys}" }"
                 ];
@@ -305,7 +314,7 @@
                   starship
                   which
                   foo-bar
-
+                  xdotool
                 ];
                 shell = pkgs.zsh;
                 uid = 1234;
@@ -334,6 +343,23 @@
                   echo "Ended"
                 '';
                 wantedBy = [ "default.target" ];
+              };
+
+              # journalctl -u prepare-secrets -b -f
+              systemd.services.prepare-secrets = {
+                script = ''
+                  echo "starting prepare-secrets script"
+
+                  # TODO: remover hardcoded
+                  mkdir -pv -m 0700 /run/secrets/github-runner
+                  
+                  echo "${GH_TOKEN}" > /run/secrets/github-runner/nixos.token
+                  chown nixuser:nixgroup -Rv /run/secrets/github-runner
+                  chmod 0600 /run/secrets/github-runner/nixos.token
+
+                  echo End
+                '';
+                wantedBy = [ "multi-user.target" ];
               };
 
               /*
@@ -456,14 +482,24 @@
 
               # X configuration
               services.xserver.enable = true;
-              services.xserver.layout = "br";
+              services.xserver.xkb.layout = "br";
 
-              services.xserver.displayManager.autoLogin.user = "nixuser";
+              services.displayManager.autoLogin.user = "nixuser";
               services.xserver.displayManager.sessionCommands = ''
                 exo-open \
                   --launch TerminalEmulator \
                   --zoom=-3 \
                   --geometry 154x40
+
+                  for i in {1..100}; do
+                    xdotool getactivewindow
+                    $? && break
+                    sleep 0.1
+                  done
+                  # Race condition. Why?
+                  # sleep 3
+                  xdotool type 'run-github-runner' \
+                  && xdotool key Return
               '';
 
               # https://nixos.org/manual/nixos/stable/#sec-xfce
@@ -544,6 +580,47 @@
                           sleep 1;
                           clear;
                         done
+                  ''
+                )
+
+                (
+                  writeScriptBin "run-github-runner" ''
+                    #! ${pkgs.runtimeShell} -e
+
+                      while true; do
+                        sudo -E kubectl get pods --namespace kube-system --field-selector status.phase=Running | grep Running && break;
+                        sleep 0.1;
+                        sudo -E kubectl get pod --all-namespaces -o wide;
+                        clear;
+                      done
+
+                      NAMESPACE="arc-systems"
+
+                      helm \
+                      install \
+                      arc \
+                      --namespace "$NAMESPACE" \
+                      --create-namespace \
+                      oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller \
+                      --set image.tag="0.9.3" \
+                      --version "0.9.3"
+
+                      INSTALLATION_NAME="arc-runner-set"
+                      NAMESPACE="arc-runners"
+                      GITHUB_CONFIG_URL="https://github.com/ES-Nix/es"
+
+                      helm \
+                      install \
+                      "$INSTALLATION_NAME" \
+                      --namespace "$NAMESPACE" \
+                      --create-namespace \
+                      --set githubConfigUrl="$GITHUB_CONFIG_URL" \
+                      --set githubConfigSecret.github_token="$(cat /run/secrets/github-runner/nixos.token)" \
+                      oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
+                      --set image.tag="0.9.3" \
+                      --version "0.9.3"
+
+                      wk8s
                   ''
                 )
               ];

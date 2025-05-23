@@ -1,51 +1,51 @@
 # github self-hosted runner em uma máquina virtual NixOS usando systemd
 
 
+
+```bash
+nix fmt \
+&& nix flake show --allow-import-from-derivation --impure --refresh .# \
+&& nix flake metadata --impure '.#' \
+&& nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop --impure '.#' --command sh -c 'true' \
+&& nix flake check --impure --verbose '.#' \
+&& git add .
+```
+
+
+Passo 1: 
 Generating a token:
 - https://github.com/settings/tokens
 - with these checks: https://github.com/myoung34/docker-github-actions-runner/wiki/Usage#token-scope
 
 
-
+Passo 2:
 ```bash
-nix flake show '.#'
-
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
-
-nix flake check --verbose '.#'
+test -f .env || cp -v .env.example .env
+test -f .env && source .env
 ```
 
-```bash
-rm -fv nixos.qcow2;  
+Passo 3:
+Adicione o PAT no .env!
 
+
+Passo 4:
+```bash
+rm -fv nixos.qcow2; 
 nix run --impure --refresh --verbose .#
 ```
 
 
-```bash
-cp -v .env.example .env
-test -f .env && source .env
-```
-
-
-Passo 2: Injetando manualmente o PAT. No terminal da VM use 
-"seta para cima" (para acessar o histórico):
-```bash
-run-github-runner && sudo systemctl restart github-runner-nixos.service
-```
-
-
-Passo 3: Verifique que o runner aparece no link:
+Passo 5: Verifique que o runner aparece no link:
 https://github.com/ES-Nix/es/actions/runners?tab=self-hosted
 
 
-Passo 4: No terminal do clone local (apenas para testes manuais) do repositório:
+Passo 6: No terminal do clone local (apenas para testes manuais) do repositório:
 ```bash
-export GH_TOKEN=ghp_yyyyyyyyyyyyyyy
+export GH_TOKEN=ghp_yyyyyy
 ```
 
-
-Passo 5: Iniciando manualmente o workflow 
+Passo 7: Iniciando manualmente o workflow 
 Note: o remoto tenta iniciar a execução com o código que está no REMOTO, ou seja,
 modificações apenas locais não são executadas.
 ```bash

@@ -228,13 +228,13 @@
 
               export VNC_PORT=3001
 
-              for _ in web{0..50}; do
+              for _ in web{0..100}; do
                 if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
                 then
                   break
                 fi
                 # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.2
+                sleep 0.1
               done;
 
               remote-viewer spice://localhost:"$VNC_PORT"
@@ -415,6 +415,10 @@
             echo ${appFlaskAPI}
             echo ${packageFlaskAPI}
             echo ${python3WithFlask}
+
+            test -d .profiles || mkdir -v .profiles
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
 
@@ -424,7 +428,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );
