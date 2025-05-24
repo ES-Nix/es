@@ -1,0 +1,8 @@
+DB_HOST=db
+DB_PORT=5432
+POSTGRES_DB=drf_dev
+POSTGRES_PASSWORD=postgres
+POSTGRES_USER=postgres
+SECRET_KEY="django-insecure-i15pv7z0fz^%$6vyst(cgcyyl%((jpykl5@_l(*i*v4fb%o!r@"
+DEBUG=True
+ALLOWED_HOSTS="localhost 127.0.0.1 [::1]"

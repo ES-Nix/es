@@ -545,22 +545,22 @@
                 services.nix-serve.enable = true;
 
                 /*
-              https://github.com/vimjoyer/sops-nix-video/tree/25e5698044e60841a14dcd64955da0b1b66957a2
-              https://github.com/Mic92/sops-nix/issues/65#issuecomment-929082304
-              https://discourse.nixos.org/t/qmenu-secrets-sops-and-nixos/13621/8
-              https://www.youtube.com/watch?v=1BquzE3Yb4I
-              https://github.com/FiloSottile/age#encrypting-to-a-github-user
-              https://devops.datenkollektiv.de/using-sops-with-age-and-git-like-a-pro.html
+                https://github.com/vimjoyer/sops-nix-video/tree/25e5698044e60841a14dcd64955da0b1b66957a2
+                https://github.com/Mic92/sops-nix/issues/65#issuecomment-929082304
+                https://discourse.nixos.org/t/qmenu-secrets-sops-and-nixos/13621/8
+                https://www.youtube.com/watch?v=1BquzE3Yb4I
+                https://github.com/FiloSottile/age#encrypting-to-a-github-user
+                https://devops.datenkollektiv.de/using-sops-with-age-and-git-like-a-pro.html
 
-              sudo cat /run/secrets/example-key
+                sudo cat /run/secrets/example-key
                 */
                 /*
-              sops.defaultSopsFile = ./secrets/secrets.yaml.encrypted;
-              sops.defaultSopsFormat = "yaml";
-              sops.gnupg.sshKeyPaths = [];
-              sops.age.sshKeyPaths = [];
-              sops.age.keyFile = ./secrets/keys.txt;
-              sops.secrets.example-key = { };
+                sops.defaultSopsFile = ./secrets/secrets.yaml.encrypted;
+                sops.defaultSopsFormat = "yaml";
+                sops.gnupg.sshKeyPaths = [];
+                sops.age.sshKeyPaths = [];
+                sops.age.keyFile = ./secrets/keys.txt;
+                sops.secrets.example-key = { };
                 */
 
                 # https://github.com/NixOS/nixpkgs/blob/3a44e0112836b777b176870bb44155a2c1dbc226/nixos/modules/programs/zsh/oh-my-zsh.nix#L119
@@ -1001,10 +1001,8 @@
             export TMPDIR=/tmp
 
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true
-
           '';
         };
 
@@ -1014,7 +1012,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );

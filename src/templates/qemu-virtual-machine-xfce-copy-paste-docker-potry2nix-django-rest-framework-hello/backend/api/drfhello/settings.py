@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -69,14 +70,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'drfhello.wsgi.application'
 
+print("DB SETTINGS:")
+print("DB_HOST:", os.environ.get("DB_HOST"))
+print("POSTGRES_DB:", os.environ.get("POSTGRES_DB"))
+print("POSTGRES_PASSWORD:", os.environ.get("POSTGRES_PASSWORD"))
+print("DB_PORT:", os.environ.get("DB_PORT"))
+print("POSTGRES_USER:", os.environ.get("POSTGRES_USER"))
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        "HOST": os.environ.get("DB_HOST"),
+        "NAME": os.environ.get("POSTGRES_DB"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+        "PORT": os.environ.get("DB_PORT"),
+        "USER": os.environ.get("POSTGRES_USER"),
     }
 }
 

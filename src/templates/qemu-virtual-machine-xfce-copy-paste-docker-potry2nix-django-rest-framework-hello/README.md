@@ -1,4 +1,12 @@
 
+```bash
+nix flake show '.#' \
+&& nix flake metadata '.#' \
+&& nix build --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop '.#' --command sh -c 'true' \
+&& nix flake check --verbose '.#'
+```
+
 
 ```bash
 rm -fv nixos.qcow2
@@ -32,15 +40,6 @@ firefox http://127.0.0.1:8000
 
 TODO: missing checks that validate code formating, like black.
 
-
-```bash
-nix flake metadata '.#'
-nix flake show '.#'
-
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
-
-nix flake check --verbose '.#'
-```
 
 
 
@@ -83,6 +82,8 @@ mkdir -v xptoapp \
 && poetry run python manage.py migrate \
 && poetry run python manage.py runserver
 ```
+
+django = "^5.1.3"
 
 
 ```bash

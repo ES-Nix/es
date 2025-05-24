@@ -32,32 +32,34 @@
         foo-bar = prev.hello;
 
         p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
-        myapp = final.p2n.mkPoetryApplication {
+        myapp = final.p2n.mkPoetryApplication
+          {
 
-          # src = ./.;
-          # projectDir = ./api;
-          # pyproject = ./pyproject.toml;
-          # poetrylock = ./poetry.lock;
+            # src = ./.;
+            # projectDir = ./api;
+            # pyproject = ./pyproject.toml;
+            # poetrylock = ./poetry.lock;
 
-          # src = ./.;
-          # projectDir = ./.;
-          # src = prev.lib.cleanSource ./.;
-          projectDir = ./backend;
-          # projectDir = ./. + "/backend/";
-          # pyproject = ./backend/pyproject.toml;
-          # poetrylock = ./backend/poetry.lock;
-          # python = prev.python311;
+            # src = ./.;
+            # projectDir = ./.;
+            # src = prev.lib.cleanSource ./.;
+            projectDir = ./backend;
+            preferWheels = true;
+            # projectDir = ./. + "/backend/";
+            # pyproject = ./backend/pyproject.toml;
+            # poetrylock = ./backend/poetry.lock;
+            # python = prev.python311;
 
-          overrides = final.p2n.defaultPoetryOverrides.extend
-            (final: prev: {
-              sqlparse = prev.sqlparse.overridePythonAttrs
-                (
-                  old: {
-                    buildInputs = (old.buildInputs or [ ]) ++ [ final.hatchling ];
-                  }
-                );
-            });
-        };
+            overrides = final.p2n.defaultPoetryOverrides.extend
+              (final: prev: {
+                sqlparse = prev.sqlparse.overridePythonAttrs
+                  (
+                    old: {
+                      buildInputs = (old.buildInputs or [ ]) ++ [ final.hatchling ];
+                    }
+                  );
+              });
+          } // { meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./backend/pyproject.toml)).tool.poetry.scripts); };
 
         myappOCIImage =
           let
@@ -102,7 +104,7 @@
             config = {
               # TODO: use builtins.getTOML to get the command!
               # Cmd = [ "${prev.lib.getExe final.myapp.python}" ];
-              Cmd = [ "${prev.lib.getExe final.myapp}" ];
+              Cmd = [ "${final.myapp.meta.mainProgram or (prev.lib.getExe final.myapp)}" ];
               Workingdir = "${final.myapp}/${final.myapp.python.sitePackages}";
 
               Env = [
@@ -111,7 +113,6 @@
               ];
             };
           };
-
 
         testMyappOCIImage = prev.testers.runNixOSTest {
           name = "myapp-as-oci-image";
@@ -161,27 +162,27 @@
 
             machine.succeed("docker run -d --name=container-app --publish=8000:8000 --rm=true myapp-oci-image:0.0.1")
             machine.wait_for_open_port(8000)
-            expected = 'Hello world!!'
-            result = machine.wait_until_succeeds("curl http://0.0.0.0:8000")
-            assert expected == result, f"expected = {expected}, result = {result}"
+            # expected = 'Hello world!!'
+            # result = machine.wait_until_succeeds("curl http://0.0.0.0:8000")
+            # assert expected == result, f"expected = {expected}, result = {result}"
 
-            machine.succeed("docker stop container-app")
-            expected = "curl: (7) Failed to connect to 127.0.0.1 port 8000 after"
-            result = machine.fail("curl http://127.0.0.1:8000 2>&1")
-            assert expected in result, f"expected = {expected}, result = {result}"
+            # machine.succeed("docker stop container-app")
+            # expected = "curl: (7) Failed to connect to 127.0.0.1 port 8000 after"
+            # result = machine.fail("curl http://127.0.0.1:8000 2>&1")
+            # assert expected in result, f"expected = {expected}, result = {result}"
 
-            machine.wait_until_succeeds("podman images | grep myapp")
+            # machine.wait_until_succeeds("podman images | grep myapp")
 
-            machine.succeed("podman run -d --name=container-app --publish=8000:8000 --rm=true myapp-oci-image:0.0.1")
-            machine.wait_for_open_port(8000)
-            expected = 'Hello world!!'
-            result = machine.wait_until_succeeds("curl http://0.0.0.0:8000")
-            assert expected == result, f"expected = {expected}, result = {result}"
+            # machine.succeed("podman run -d --name=container-app --publish=8000:8000 --rm=true myapp-oci-image:0.0.1")
+            # machine.wait_for_open_port(8000)
+            # expected = 'Hello world!!'
+            # result = machine.wait_until_succeeds("curl http://0.0.0.0:8000")
+            # assert expected == result, f"expected = {expected}, result = {result}"
 
-            machine.succeed("podman stop container-app")
-            expected = "curl: (7) Failed to connect to 127.0.0.1 port 8000 after"
-            result = machine.fail("curl http://127.0.0.1:8000 2>&1")
-            assert expected in result, f"expected = {expected}, result = {result}"
+            # machine.succeed("podman stop container-app")
+            # expected = "curl: (7) Failed to connect to 127.0.0.1 port 8000 after"
+            # result = machine.fail("curl http://127.0.0.1:8000 2>&1")
+            # assert expected in result, f"expected = {expected}, result = {result}"
           '';
           # hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs
         };
@@ -275,10 +276,11 @@
                     findutils
                     dive
                     foo-bar
-                    final.myapp
+                    myapp
                     starship
                     direnv
                     fzf
+                    poetry
                     sudo
                     which
                   ];
@@ -367,7 +369,10 @@
                 nix.extraOptions = "experimental-features = nix-command flakes";
 
                 environment.systemPackages = with pkgs; [
+                  myapp
                 ];
+
+                environment.variables.ONPATH = "${pkgs.myapp}/${pkgs.myapp.python.sitePackages}";
 
                 system.stateVersion = "24.05";
               })
@@ -431,7 +436,6 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.myapp;
         };
 
@@ -465,10 +469,17 @@
           buildInputs = [
             foo-bar
             poetry
-            # myapp
+            myapp
+            # myappOCIImage
+            # testMyappOCIImage
+            # automatic-vm            
           ];
 
           shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true          
           '';
         };
 

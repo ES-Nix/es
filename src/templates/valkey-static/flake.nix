@@ -352,7 +352,16 @@
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             foo-bar
+            valkeyStatic
+            testvalkeyStatic
+            automatic-vm
           ];
+          shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
+          '';
         };
 
       }
