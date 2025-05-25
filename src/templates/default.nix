@@ -49,10 +49,10 @@
   #   path = ./qemu-virtual-machine-xfce-copy-paste;
   # };
 
-  # QEMUVirtualMachineXfceCopyPasteK8s = {
-  #   description = "QEMU Virtual Machine with xfce and copy/paste and k8s";
-  #   path = ./qemu-virtual-machine-xfce-copy-paste-k8s;
-  # };
+  QEMUVirtualMachineXfceCopyPasteK8s = {
+    description = "QEMU Virtual Machine with xfce and copy/paste and k8s";
+    path = ./qemu-virtual-machine-xfce-copy-paste-k8s;
+  };
 
   # QEMUVirtualMachineDocker = {
   #   description = "QEMU Virtual Machine with docker";
