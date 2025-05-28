@@ -27,6 +27,7 @@ run \
 github:ES-nix/es#installStartConfigTemplate
 ```
 
+```bash
 ./nix \
 --extra-experimental-features nix-command \
 --extra-experimental-features flakes \
@@ -38,13 +39,41 @@ run --impure 'github:ES-Nix/es/?dir=src/templates/nginx'
 --extra-experimental-features flakes \
 run \
 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0#nixosTests.docker-rootless.driverInteractive'
-
+```
 
 ```bash
 nix build --no-link --print-build-logs --print-out-paths \
 '.#homeConfigurations.x86_64-linux."vagrant-alpine319.localdomain".activationPackage'
 ```
 
+```bash
+sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix'
+
+# curl -s https://api.github.com/repos/NixOS/nix/tags | jq -r '.[0].name'
+NIX_RELEASE_VERSION=2.29.0 \
+&& curl -L https://releases.nixos.org/nix/nix-"${NIX_RELEASE_VERSION}"/install | sh -s -- --no-daemon \
+&& . "$HOME"/.nix-profile/etc/profile.d/nix.sh \
+&& export NIX_CONFIG='extra-experimental-features = nix-command flakes' \
+&& nix -vv registry pin nixpkgs github:NixOS/nixpkgs/7c43f080a7f28b2774f3b3f43234ca11661bf334
+```
+
+```bash
+git ls-remote --exit-code --tags --refs https://github.com/NixOS/nixpkgs.git \
+| cut -d'/' -f3 \
+| grep -v 'backups' \
+| grep -v 'black'
+```
+
+It usually points to "the firs commit in an branch":
+```bash
+git ls-remote --exit-code --tags --refs \
+https://github.com/NixOS/nixpkgs.git "refs/tags/22.11" | cut -f1
+```
+
+```bash
+nix derivation show /nix/store/r1fzphbbr0gs4ichvn2g4nlrq2cqghwc-user-environment.drv
+
+```
 
 ### Testing it
 

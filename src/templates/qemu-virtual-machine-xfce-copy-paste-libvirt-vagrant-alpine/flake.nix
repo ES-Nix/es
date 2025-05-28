@@ -94,7 +94,7 @@
             config.vm.provision "shell", inline: <<-SHELL
 
               # xz-utils -> xz-dev
-              apk add --no-cache shadow sudo \
+              apk add --no-cache shadow sudo xz-dev \
               && addgroup vagrant wheel \
               && addgroup vagrant kvm \
               && chown -v root:kvm /dev/kvm \

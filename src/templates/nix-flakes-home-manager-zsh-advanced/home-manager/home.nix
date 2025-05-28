@@ -72,7 +72,7 @@
     enable = true;
     enableCompletion = true;
     dotDir = ".config/zsh";
-    enableAutosuggestions = true;
+    autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     envExtra = ''
       if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then

@@ -43,7 +43,7 @@ init \
 github:ES-nix/es#nixFlakesHomeManagerZsh \
 --verbose
 
-test -f /home/"$USER"/.config/home-manager/flake.nix || echo not found flake.nix
+test -f /home/"$USER"/.config/home-manager/flake.nix || echo 'not found flake.nix'
 
 sed -i 's/.*userName = ".*";/userName = "'"$USER"'";/' /home/"$USER"/.config/home-manager/flake.nix
 
