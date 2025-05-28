@@ -315,13 +315,13 @@
 
               export VNC_PORT=3001
 
-              for _ in web{0..50}; do
+              for _ in {0..100}; do
                 if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
                 then
                   break
                 fi
                 # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.2
+                sleep 0.1
               done;
 
               remote-viewer spice://localhost:"$VNC_PORT"

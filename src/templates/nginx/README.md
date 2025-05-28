@@ -136,7 +136,8 @@ cd \
 && wget -qO- http://nginx.org/download/nginx-1.9.9.tar.gz | tar zx --strip-components=1 \
 && ./configure --without-http_rewrite_module --without-http_gzip_module --with-cc-opt="-O2" --with-ld-opt="-s -static" \
 && make CFLAGS="-O2 -s" LDFLAGS="-static" -j$(nproc) \
-&& ldd ./objs/nginx
+&& file ./objs/nginx \
+&& ! ldd ./objs/nginx
 ```
 Refs.:
 - https://stackoverflow.com/questions/71847448/static-build-of-nginx

@@ -29,27 +29,32 @@ prepare-vagrant-vms \
 && vagrant up \
 && vagrant ssh
 
-
-vagrant ssh -- -t 'id && cat /etc/os-release'
+# vagrant ssh -- -t 'id && cat /etc/os-release'
 vagrant ssh -c 'id && cat /etc/os-release'
+```
 
+```bash
+uid=1000(vagrant) gid=1000(vagrant) groups=1000(vagrant) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+NAME="AlmaLinux"
+VERSION="9.5 (Teal Serval)"
+ID="almalinux"
+ID_LIKE="rhel centos fedora"
+VERSION_ID="9.5"
+PLATFORM_ID="platform:el9"
+PRETTY_NAME="AlmaLinux 9.5 (Teal Serval)"
+ANSI_COLOR="0;34"
+LOGO="fedora-logo-icon"
+CPE_NAME="cpe:/o:almalinux:almalinux:9::baseos"
+HOME_URL="https://almalinux.org/"
+DOCUMENTATION_URL="https://wiki.almalinux.org/"
+BUG_REPORT_URL="https://bugs.almalinux.org/"
 
-ANSI_COLOR="1;34"
-BUG_REPORT_URL="https://github.com/NixOS/nixpkgs/issues"
-BUILD_ID="24.05.20240530.d24e7fd"
-DOCUMENTATION_URL="https://nixos.org/learn.html"
-HOME_URL="https://nixos.org/"
-ID=nixos
-IMAGE_ID=""
-IMAGE_VERSION=""
-LOGO="nix-snowflake"
-NAME=NixOS
-PRETTY_NAME="NixOS 24.05 (Uakari)"
-SUPPORT_END="2024-12-31"
-SUPPORT_URL="https://nixos.org/community.html"
-VERSION="24.05 (Uakari)"
-VERSION_CODENAME=uakari
-VERSION_ID="24.05"
+ALMALINUX_MANTISBT_PROJECT="AlmaLinux-9"
+ALMALINUX_MANTISBT_PROJECT_VERSION="9.5"
+REDHAT_SUPPORT_PRODUCT="AlmaLinux"
+REDHAT_SUPPORT_PRODUCT_VERSION="9.5"
+SUPPORT_END=2032-06-01
+
 ```
 
 
@@ -57,63 +62,7 @@ VERSION_ID="24.05"
 vagrant destroy --force; vagrant destroy --force && vagrant up && vagrant ssh
 ```
 
-
-
-### 
-
 ```bash
-cd /etc/nixos \
-&& cat << 'EOF' | sudo tee custom-configuration.nix
-{ config, nixpkgs, pkgs, lib, modulesPath, ... }:
-let
-  cfg = config;
-in
-{
-    environment.systemPackages = with pkgs; [
-        kubectl
-        kubernetes
-
-        (
-          writeScriptBin "wk8s-sudo" ''
-            #! ${pkgs.runtimeShell} -e
-                while true; do
-                  sudo -E kubectl get pod --all-namespaces -o wide \
-                  && echo \
-                  && sudo -E kubectl get services --all-namespaces -o wide \
-                  && echo \
-                  && sudo -E kubectl get deployments.apps --all-namespaces -o wide \
-                  && echo \
-                  && sudo -E kubectl get nodes --all-namespaces -o wide;
-                  sleep 1;
-                  clear;
-                done
-          ''
-        )
-      ];
-
-  services.kubernetes.roles = [ "master" "node" ];
-  services.kubernetes.masterAddress = "${cfg.networking.hostName}";
-  environment.variables.KUBECONFIG = "/etc/${cfg.services.kubernetes.pki.etcClusterAdminKubeconfig}";
-}
-EOF
-
-sudo \
-nix \
-flake \
-lock \
---override-input nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8 \
-&& sudo nixos-rebuild switch -L
-
-sudo reboot
+vagrant ssh -c 'sudo dnf install -y python3 && python3 --version'
 ```
 
-```bash
-sudo \
-nix \
-flake \
-lock \
---override-input nixpkgs github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0 \
-&& sudo nixos-rebuild switch -L
-
-sudo reboot
-```

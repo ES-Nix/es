@@ -44,9 +44,12 @@
       (final: prev: {
         foo-bar = prev.hello;
 
+        # nix eval --apply builtins.attrNames nixpkgs#fetchurl.__functionArgs
         alpine319 = prev.fetchurl {
+          name = "alpine319";
           url = "https://app.vagrantup.com/generic/boxes/alpine319/versions/4.3.12/providers/libvirt/amd64/vagrant.box";
           hash = "sha256-eM8BTnlFnQHR2ZvmRFoauJXRkpO9e7hv/sHsnkKYvF0=";
+          meta.boxName = "generic/alpine319";
         };
 
         alpine321 = prev.fetchurl {
@@ -199,7 +202,7 @@
                     && vagrant \
                         box \
                         add \
-                        generic/alpine319 \
+                        "${pkgs.alpine319.meta.boxName}" \
                         "${pkgs.alpine319}" \
                         --force \
                         --debug \
@@ -479,7 +482,7 @@
               
             export VNC_PORT=3001
 
-            for _ in web{0..100}; do
+            for _ in {0..100}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
               then
                 break

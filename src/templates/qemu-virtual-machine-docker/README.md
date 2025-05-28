@@ -61,7 +61,7 @@ ssh-add -l 1> /dev/null 2> /dev/null || eval $(ssh-agent -s)
 (ssh-add -l | grep -q "$(cat id_ed25519.pub)") || ssh-add id_ed25519
 
 ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null;
-for i in web{0..60};do ssh -oStrictHostKeyChecking=accept-new -p 10022 nixuser@localhost -- sh -c 'true':
+for i in {0..60};do ssh -oStrictHostKeyChecking=accept-new -p 10022 nixuser@localhost -- sh -c 'true':
 sleep 1;
 echo $(date +'%d/%m/%Y %H:%M:%S:%3N');
 done;

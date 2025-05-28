@@ -12,8 +12,7 @@ init \
 github:ES-nix/es#QEMUVirtualMachineXfceCopyPasteK8s
 (direnv allow &> /dev/null ) || true
 
-nix profile install nixpkgs#git
-
+git --version || nix profile install nixpkgs#git
 git init && git add .
 
 rm -fv nixos.qcow2; 
@@ -28,11 +27,11 @@ Refs.:
 
 
 ```bash
-nix flake show '.#'
-
-nix build --cores 5 --no-link --print-build-logs --print-out-paths '.#'
-
-nix flake check --verbose '.#'
+nix flake show --impure '.#' \
+&& nix flake metadata --impure '.#' \
+&& nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop --impure '.#' --command sh -c 'true' \
+&& nix flake check --impure --verbose '.#'
 ```
 
 

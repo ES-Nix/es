@@ -61,6 +61,7 @@ man nix.conf
 
 ```bash
 man home-manager
+man home-configuration.nix
 ```
 
 ```bash

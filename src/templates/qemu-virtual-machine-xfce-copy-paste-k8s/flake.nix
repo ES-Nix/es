@@ -96,7 +96,7 @@
 
               export VNC_PORT=3001
 
-              for _ in web{0..100}; do
+              for _ in {0..100}; do
                 if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
                 then
                   break

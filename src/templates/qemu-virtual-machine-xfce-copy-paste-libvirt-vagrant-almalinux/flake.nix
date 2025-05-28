@@ -45,8 +45,10 @@
         foo-bar = prev.hello;
 
         almalinux9 = prev.fetchurl {
+          name = "almalinux9";
           url = "https://vagrantcloud.com/almalinux/boxes/9/versions/9.5.20241203/providers/libvirt/amd64/vagrant.box";
           hash = "sha256-KPZuLuMFaZzjpmxT8NQqRxTxY4n7EIv5PZQLbcPoLQU=";
+          meta.boxName = "almalinux/9";
         };
 
         vagrantfileAlmalinux = prev.writeText "vagrantfile-almalinux" ''
@@ -162,7 +164,7 @@
                       && vagrant \
                           box \
                           add \
-                          almalinux/9 \
+                           "${pkgs.almalinux9.meta.boxName}" \
                           "${pkgs.almalinux9}" \
                           --force \
                           --debug \
@@ -309,7 +311,7 @@
 
             export VNC_PORT=3001
 
-            for _ in web{0..100}; do
+            for _ in {0..100}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
               then
                 break
