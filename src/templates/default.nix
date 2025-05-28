@@ -19,6 +19,11 @@
     path = ./nix-flakes-flake-utils-dev-shell;
   };
 
+  devShellHomeManagerFlakeUtils = {
+    description = "Example of a devShell, uses flake-utils to support multiple architectures";
+    path = ./nix-flakes-flake-utils-devShell-home-manager;
+  };
+
   poetry2nixBasic = {
     description = "Basic poetry2nix pure python3 script example";
     path = ./poetry2nix-basic;

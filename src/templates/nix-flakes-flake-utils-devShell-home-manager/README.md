@@ -7,7 +7,7 @@ mkdir -pv devShellHello \
 flake \
 init \
 --template \
-github:ES-nix/es#devShellHello
+github:ES-nix/es#devShellHomeManagerFlakeUtils
 
 git --version || nix profile install nixpkgs#git
 git init && git add .
