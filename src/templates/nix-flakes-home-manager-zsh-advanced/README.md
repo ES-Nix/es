@@ -63,7 +63,7 @@ nix fmt \
 nix \
 flake \
 lock \
---override-input nixpkgs github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
---override-input nixpkgs-unstable github:NixOS/nixpkgs/a76c4553d7e741e17f289224eda135423de0491d \
---override-input home-manager github:nix-community/home-manager/f33900124c23c4eca5831b9b5eb32ea5894375ce
+--override-input nixpkgs github:NixOS/nixpkgs/7848cd8c982f7740edf76ddb3b43d234cb80fc4d \
+--override-input nixpkgs-unstable github:NixOS/nixpkgs/4faa5f5321320e49a78ae7848582f684d64783e9 \
+--override-input home-manager github:nix-community/home-manager/83665c39fa688bd6a1f7c43cf7997a70f6a109f9
 ```
