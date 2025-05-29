@@ -33,7 +33,7 @@ run \
 --refresh \
 --override-input \
 nixpkgs \
-github:NixOS/nixpkgs/d12251ef6e8e6a46e05689eeccd595bdbd3c9e60 \
+github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
 --no-update-lock-file \
 --no-write-lock-file \
 github:ES-Nix/es#installTemplateNixFlakesHomeManagerZsh

@@ -54,9 +54,26 @@
 
   home.packages = with pkgs; [
     direnv
+    fzf
     git
     nix
     zsh
+
+    hello
+    nano
+    file
+    which
+    (writeScriptBin "hms" ''
+        #! ${pkgs.runtimeShell} -e
+          nix \
+          build \
+          --no-link \
+          --print-build-logs \
+          --print-out-paths \
+          "$HOME"'/.config/home-manager#homeConfigurations.'"$(id -un)".activationPackage
+
+          home-manager switch --flake "$HOME/.config/home-manager"#"$(id -un)"
+    '')    
   ];
 
   nix = {
@@ -67,6 +84,34 @@
     '';
     registry.nixpkgs.flake = inputs.nixpkgs;
     # registry.nixpkgs.flake = outputs.homeConfigurations.vagrant.pkgs.unstable;
+    settings = {
+      bash-prompt-prefix = "(nix-devShell:$name)\\040";
+      keep-derivations = true;
+      keep-env-derivations = true;
+      keep-failed = true;
+      keep-going = true;
+      keep-outputs = true;
+      nix-path = "nixpkgs=flake:nixpkgs";
+      tarball-ttl = 2419200; # 60 * 60 * 24 * 7 * 4 = one month
+    };    
+  };
+
+  # https://nix-community.github.io/home-manager/options.html#opt-programs.direnv.config
+  programs.direnv = {
+    enable = true;
+    nix-direnv = {
+      enable = true;
+    };
+    enableZshIntegration = true;
+  };
+
+  sessionVariables = {
+    DIRENV_LOG_FORMAT = "";
+  };
+
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
   };
 
   programs.zsh = {

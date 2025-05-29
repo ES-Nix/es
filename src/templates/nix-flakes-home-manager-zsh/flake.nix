@@ -7,11 +7,16 @@
     --override-input nixpkgs github:NixOS/nixpkgs/d12251ef6e8e6a46e05689eeccd595bdbd3c9e60 \
     --override-input home-manager github:nix-community/home-manager/a631666f5ec18271e86a5cde998cba68c33d9ac6
 
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+    --override-input home-manager github:nix-community/home-manager/f33900124c23c4eca5831b9b5eb32ea5894375ce
   */
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -43,7 +48,7 @@
         modules = [
           ({ pkgs, ... }:
             {
-              home.stateVersion = "24.05";
+              home.stateVersion = "25.05";
               home.username = "${userName}";
               home.homeDirectory = "${homeDirectory}";
 
