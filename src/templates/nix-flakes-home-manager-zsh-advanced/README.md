@@ -7,7 +7,7 @@ sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"
 
 # curl -s https://api.github.com/repos/NixOS/nix/tags | jq -r '.[0].name'
 NIX_RELEASE_VERSION=2.29.0 \
-&& curl -L https://releases.nixos.org/nix/nix-"${NIX_RELEASE_VERSION}"/install | sh -s -- --no-daemon \
+&& curl -L https://releases.nixos.org/nix/nix-"${NIX_RELEASE_VERSION}"/install | sh -s -- --yes --no-daemon \
 && . "$HOME"/.nix-profile/etc/profile.d/nix.sh \
 && export NIX_CONFIG='extra-experimental-features = nix-command flakes' \
 && nix -vv registry pin nixpkgs github:NixOS/nixpkgs/7c43f080a7f28b2774f3b3f43234ca11661bf334
@@ -22,9 +22,9 @@ init \
 github:ES-nix/es#nixFlakesHomeManagerZshAdvanced \
 --verbose
 
+git --version || nix profile install nixpkgs#git
 git config init.defaultBranch \
 || git config --global init.defaultBranch main
-git --version || nix profile install nixpkgs#git
 git init && git add .
 
 # TODO

@@ -53,6 +53,7 @@
   };
 
   home.packages = with pkgs; [
+    direnv
     git
     nix
     zsh
@@ -104,6 +105,6 @@
   # systemd.user.startServices = "sd-switch";
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
-  home.stateVersion = "23.11";
+  home.stateVersion = "25.05";
   programs.home-manager.enable = true;
 }
