@@ -20,6 +20,11 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
 
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -212,7 +217,7 @@
                   result = machine.fail("${helloMingwW64Exe} 2>&1")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
-              # with subtest("can execute binarywith wine"):
+              # with subtest("can execute binary with wine"):
               #     expected = 'cannot execute binary file: Exec format error'
               #     result = machine.succeed("wine cmd.exe ${helloMingw32Exe}")
               #     assert expected in result, f"expected = {expected}, result = {result}"
@@ -494,7 +499,7 @@
                 boot.binfmt.emulatedSystems = [
                   "aarch64-linux"
                   "armv7l-linux"
-                  # "i686-linux"
+                  "i686-linux"
                   "mips64el-linux"
                   "powerpc64le-linux"
                   "riscv64-linux"
@@ -598,13 +603,13 @@
 
               export VNC_PORT=3001
 
-              for _ in web{0..50}; do
+              for _ in {0..100}; do
                 if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
                 then
                   break
                 fi
                 # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.2
+                sleep 0.1
               done;
 
               remote-viewer spice://localhost:"$VNC_PORT"
@@ -636,14 +641,13 @@
       rec {
         packages = {
           inherit (pkgs)
+            myvm
             testBinfmtMany
+            automatic-vm
             ;
 
           default = pkgs.testBinfmtMany;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
@@ -654,8 +658,23 @@
 
         checks = {
           inherit (pkgs)
-            # testBinfmtMany
-            # automatic-vm
+            helloAarch64Multiplatform
+            helloArmv7lHfMultiplatform
+            helloGnu32
+            helloGnu64
+            helloMingw32
+            helloMingwW64
+            helloMips64elLinuxGnuabin32
+            helloMips64elLinuxGnuabi64
+            helloPpc64
+            helloRaspberryPi
+            helloRiscv32
+            helloRiscv64
+            helloS390x
+
+            myvm
+            testBinfmtMany
+            automatic-vm
             ;
         };
 
@@ -663,6 +682,13 @@
           buildInputs = [
             foo-bar
           ];
+
+          shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+
+            test -L .profiles/dev \
+            || nix develop --impure .# --profile .profiles/dev --command true             
+          '';
         };
 
       }

@@ -59,9 +59,9 @@
     path = ./qemu-virtual-machine-xfce-copy-paste-k8s;
   };
 
-  # QEMUVirtualMachineDocker = {
-  #   description = "QEMU Virtual Machine with docker";
-  #   path = ./qemu-virtual-machine-docker;
-  # };
+  QEMUVirtualMachineDocker = {
+    description = "QEMU Virtual Machine with docker";
+    path = ./qemu-virtual-machine-docker;
+  };
 
 }

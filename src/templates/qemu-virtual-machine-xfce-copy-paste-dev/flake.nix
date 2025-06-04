@@ -15,6 +15,12 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/afb2b21ba489196da32cd9f0072e0dce6588a20a' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
@@ -273,7 +279,7 @@
                     iproute2
 
                     ffmpeg
-                    okular
+                    kdePackages.okular # okular
                     gnome-font-viewer
 
                     # julia
@@ -485,7 +491,7 @@
                     sudo
                     which
 
-                    beekeeper-studio
+                    # beekeeper-studio
                     dbeaver-bin
                     pgcli
 
@@ -517,7 +523,8 @@
                     })
                   ];
                   shell = pkgs.zsh;
-                  uid = 1234;
+                  # uid = 1234;
+                  uid = 1000;
                   autoSubUidGidRange = true;
                 };
 
@@ -611,102 +618,24 @@
                     # https://github.com/360ied/my-dotfiles/blob/45c7c15dbd525a589b0eddcda3cc4dcb3215ece9/fonts-configuration.nix#L5-L301
                     # 
                     # emacsPackages.unicode-fonts
-                    # 
-                    # last-resort
-                    # iosevka-term-curly-slab
-                    # undefined-medium
-                    # last-resort
-                    # vistafonts-chs
-                    # hackgen-font
-                    # hackgen-nf-font
-                    # julia-mono
-                    # udev-gothic
-                    # udev-gothic-nf
-                    # uiua386
-                    # rounded-mgenplus
-                    # maple-mono-SC-NF
-                    # unscii
-                    # camingo-code
-                    # cascadia-code
-                    # corefonts
-                    # cozette
-                    # dina-font
-                    # font-awesome_4
-                    # gohufont
-                    # go-font
-                    # hack-font
-                    # hermit
-                    # ibm-plex
-                    # iosevka
-                    # jetbrains-mono
-                    # julia-mono
-                    # liberation_ttf
-                    # libertine
-                    # lmodern
-                    # noto-fonts-emoji
-                    # proggyfonts
-                    # recursive
-                    # siji
-                    # source-code-pro
-                    # spleen
-                    # sudo-font
-                    # tamsyn
-                    # tamzen
-                    # terminus_font
-                    # uw-ttyp0
-                    # vistafonts
-                    # bqn386
-                    # font-awesome
-                    # uw-ttyp0
-                    # gohufont
-                    # terminus_font_ttf
-                    # profont
-                    # efont-unicode
-                    # noto-fonts-emoji
-                    # dina-font    
-                    #noto-fonts
-                    #noto-fonts-cjk-sans
-                    #google-fonts
-                    #meslo-lgs-nf
-                    #noto-fonts-cjk-serif
-                    #source-han-sans-vf-ttf
-                    #source-han-serif-vf-ttf
-                    #source-han-serif
-                    ##ark-pixel-font
-                    ##zpix-pixel-font
-                    #wqy_microhei
-                    #helvetica-neue-lt-std
-                    #aileron
-                    #ubuntu_font_family
-                    #fira
-                    ##maple-mono
-                    #julia-mono
-                    #jetbrains-mono
-                    #paratype-pt-sans
-                    ##tamsyn
-                    #vistafonts
-                    ##unscii
-                    #xorg.xbitmaps
-                    ##ucs-fonts
-                    #cozette
-                    #terminus_font
-                    #roboto
-                    #unscii
-                    #tamzen
-                    #envypn-font
-                    #spleen
-                    #ucs-fonts
-                    #corefonts
-
-                    agave
-                    anonymousPro
-                    arkpandora_ttf # Font, metrically identical to Arial and Times New Roman
+                    # (pkgs.nerdfonts.override { fonts = [ "0xproto" "DroidSansMono" ]; }) # nerdfonts
                     # assyrian
+                    # iosevka-term-curly-slab
+                    # maple-mono
+                    # whatsapp-emoji-font
+                    agave
+                    aileron
+                    anonymousPro
+                    ark-pixel-font
+                    arkpandora_ttf # Font, metrically identical to Arial and Times New Roman
                     atkinson-hyperlegible
                     aurulent-sans
                     awesome
                     bakoma_ttf
+                    bqn386
+                    camingo-code
                     cantarell-fonts
+                    cascadia-code
                     clearlyU
                     cm_unicode
                     comfortaa
@@ -714,32 +643,38 @@
                     corefonts
                     cozette
                     dejavu_fonts
-                    dina-font
+                    dina-font 
                     dosemu_fonts
+                    efont-unicode
                     emacs-all-the-icons-fonts
                     emacsPackages.unicode-fonts
                     emojione
+                    envypn-font
                     fantasque-sans-mono
                     fira
                     fira-code
-                    fira-code-nerdfont
                     fira-code-symbols
                     fira-mono
                     font-awesome
                     font-awesome_4
+                    font-awesome_4
                     font-awesome_5
                     freefont_ttf
                     gentium
+                    go-font
+                    gohufont
+                    google-fonts
                     gyre-fonts
+                    hack-font
+                    hackgen-font
+                    hackgen-nf-font
                     hannom
                     hasklig
                     helvetica-neue-lt-std
+                    hermit
                     ibm-plex
                     icu76
-                    inconsolata
-                    inconsolata-nerdfont
                     inter
-                    iosevka
                     iosevka
                     iosevka-comfy.comfy
                     iosevka-comfy.comfy-motion
@@ -750,13 +685,16 @@
                     jetbrains-mono
                     joypixels
                     julia-mono
+                    last-resort
                     lato
                     liberation_ttf
                     libertine
                     libre-caslon
                     lmmath
-                    maple-mono
-                    maple-mono-NF
+                    lmodern
+                    maple-mono.NF
+                    maple-mono.NF-CN # Old named as: maple-mono-SC-NF
+                    maple-mono.NormalNL-TTF-AutoHint # This maple-mono font package have 44 fonts
                     material-design-icons
                     material-icons
                     meslo-lg
@@ -767,9 +705,12 @@
                     montserrat
                     mplus-outline-fonts.githubRelease
                     mro-unicode
-                    nerdfonts
+                    nerd-fonts.fira-code # Old named as fira-code-nerdfont
+                    nerd-fonts.inconsolata # Old named as inconsolata
+                    nerd-fonts.terminess-ttf # Old named as terminus-nerdfont
                     noto-fonts
                     noto-fonts-cjk-sans
+                    noto-fonts-cjk-serif
                     noto-fonts-color-emoji
                     noto-fonts-emoji
                     noto-fonts-extra
@@ -780,15 +721,21 @@
                     openmoji-color
                     openttd-ttf
                     oxygenfonts
+                    paratype-pt-sans
                     powerline
                     powerline-fonts
+                    profont
+                    proggyfonts
                     recursive
                     redhat-official-fonts
+                    roboto
                     roboto-mono
                     roboto-slab
+                    rounded-mgenplus
                     sarasa-gothic
                     scientifica
                     shabnam-fonts
+                    siji
                     sketchybar-app-font
                     source-code-pro
                     source-han-mono
@@ -797,28 +744,41 @@
                     source-han-sans-korean
                     source-han-sans-simplified-chinese
                     source-han-sans-traditional-chinese
+                    source-han-sans-vf-ttf
                     source-han-serif
+                    source-han-serif-vf-ttf
                     source-sans
+                    spleen
                     stix-otf
                     stix-two
                     sudo-font
                     symbola
-                    terminus-nerdfont
+                    tamsyn
+                    tamzen
+                    terminus_font
+                    terminus_font_ttf
                     textfonts
-                    ttf-indic
                     ttf_bitstream_vera
+                    ttf-indic
                     twemoji-color-font
                     twitter-color-emoji
                     ubuntu_font_family
+                    ucs-fonts
+                    udev-gothic
+                    udev-gothic-nf
+                    uiua386
                     ultimate-oldschool-pc-font-pack
+                    undefined-medium
                     unicode-emoji
                     unidings
                     unifont_upper
+                    unscii
+                    uw-ttyp0
                     vazir-code-font
                     vazir-fonts
                     victor-mono
                     vistafonts
-                    # whatsapp-emoji-font
+                    vistafonts-chs
                     wqy_microhei
                     wqy_zenhei
                     xkcd-font
@@ -826,6 +786,8 @@
                     xorg.fontbitstream100dpi
                     xorg.fontbitstream75dpi
                     xorg.fontbitstreamtype1
+                    xorg.xbitmaps
+                    zpix-pixel-font
                   ];
                   # enableDefaultPackages = true;
                   # enableGhostscriptFonts = true;
@@ -919,13 +881,12 @@
               https://unix.stackexchange.com/a/698488
             */
           text = ''
-
               # https://unix.stackexchange.com/a/230442
               # export NO_AT_BRIDGE=1
               # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
-              export LD_LIBRARY_PATH="${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
+              # export LD_LIBRARY_PATH="''${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
 
-              ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+              ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
               export VNC_PORT=3001
 

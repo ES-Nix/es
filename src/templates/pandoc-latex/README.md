@@ -388,7 +388,6 @@ git status
 
 ```bash
 JUPYTER_PATH
-
 ```
 Refs.:
 - https://github.com/jupyter/nbconvert/issues/1773#issuecomment-1283852572
@@ -511,3 +510,13 @@ TODOs:
 - https://github.com/jupyter-book/jupyter-book/issues/274#issuecomment-540672801
 - https://chrisholdgraf.com/blog/2019/2019-11-11-ipynb_pandoc/
 
+
+LaTeX abnTeX2:
+```bash
+git clone https://github.com/abntex/abntex2.git \
+&& cd abntex2 \
+&& git --no-pager log --max-count=1 --format='%H' \
+&& git checkout 0cb2fe32e3ca5dbcbb08098497603777837f5098
+```
+Refs.:
+- 

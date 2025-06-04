@@ -62,6 +62,12 @@ nix flake metadata '.#'
 nix flake check '.#'
 ```
 
+TODO:
+```bash
+echo aaaqqq > /tmp/xchg/f00.txt
+
+cat "$(ls -td /tmp/nix-vm.* | head -n1)/xchg/f00"
+```
 
 ### TODO: django rest with poetry
 
@@ -112,31 +118,15 @@ mkdir -pv dj-jwt-ah \
 ```
 
 
-P vs NP
-
-Yan Lecun
-vs
-Roger Peronse
 
 
-Do sofrimento emergiram os espíritos mais fortes, as personalidades mais 
-sólidas estão marcadas com cicatrizes. Khalil Gibran
-
-Ainda não sei o quanto do que já fui ainda voltarei ser.
-É maravalhoso ser semelhante ao personagem Saitama no sentido de parecer banalmente comum.
-
-
-Post hoc ergo propter hoc.
-
-Her Official Trailer #1 (2013) - Joaquin Phoenix, Scarlett Johansson Movie HD
-
-https://en.wikipedia.org/wiki/Specials_(Unicode_block)
-https://stackoverflow.com/questions/18760943/character-code-of-unknown-character-character-e-g-square-or-question-mark-romb
-https://www.fileformat.info/info/unicode/char/fffd/index.htm
+- https://en.wikipedia.org/wiki/Specials_(Unicode_block)
+- https://stackoverflow.com/questions/18760943/character-code-of-unknown-character-character-e-g-square-or-question-mark-romb
+- https://www.fileformat.info/info/unicode/char/fffd/index.htm
 
 
 
-
+```bash
 git clone https://github.com/torvalds/linux.git \
 && cd linux \
 && git checkout 38fec10eb60d687e30c8c6b5420d86e8149f7557 \
@@ -148,7 +138,4 @@ github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0#ncurses
 
 make menuconfig
 make
-
-
-qemu-system-x86_64 -kernel 
-
+```
