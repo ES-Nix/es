@@ -149,6 +149,10 @@
     # noto-fonts
     # noto-fonts-emoji
     # noto-fonts-extra
+    fira
+    fira-code
+    fira-code-symbols
+    fira-mono    
     powerline
     powerline-fonts
     # source-han-sans-japanese
