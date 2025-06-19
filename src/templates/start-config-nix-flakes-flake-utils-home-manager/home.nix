@@ -607,7 +607,7 @@
         "pip"
         "poetry"
         "python"
-        "ripgrep"
+        # "ripgrep"  # It needs ripgrep to be installed
         "rsync"
         "rust"
         "scala"
@@ -619,7 +619,7 @@
         # "thefuck"
         "tig"
         "timer"
-        # "tmux" # It needs tmux to be installed
+        # "tmux"  # It needs tmux to be installed
         "vagrant"
         "vi-mode"
         "vim-interaction"
