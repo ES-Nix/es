@@ -1,5 +1,5 @@
 from flask import Flask
-from django.core.management import execute_from_command_line
+# from django.core.management import execute_from_command_line
 
 
 app = Flask(__name__)

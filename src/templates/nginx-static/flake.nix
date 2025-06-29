@@ -48,9 +48,15 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/11415c7ae8539d6292f2928317ee7a8410b28bb9' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'      
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -223,15 +229,15 @@
             result = machine.fail("ldd $(readlink -f $(which nginx)) 2>&1")
             assert expected in result, f"expected = {expected}, result = {result}"
 
-            expected = '10M'
+            expected = '10.3MB'
             result = machine.succeed('docker images --format "{{.Size}}"')
             assert expected in result, f"expected = {expected}, result = {result}"
 
-            expected = '9.6M'
+            expected = '9.9M'
             result = machine.succeed("du -chs $(readlink -f $(which nginx))") 
             assert expected in result, f"expected = {expected}, result = {result}"
             
-            expected = 'nginx version: nginx/1.26.3'
+            expected = 'nginx version: nginx/1.28.0'
             result = machine.succeed("nginx -V 2>&1")
             assert expected in result, f"expected = {expected}, result = {result}"
 

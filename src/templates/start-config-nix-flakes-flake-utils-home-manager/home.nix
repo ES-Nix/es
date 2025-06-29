@@ -152,7 +152,7 @@
     fira
     fira-code
     fira-code-symbols
-    fira-mono    
+    fira-mono
     powerline
     powerline-fonts
     # source-han-sans-japanese

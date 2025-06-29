@@ -15,6 +15,7 @@ github:ES-nix/es#flakesUtilsGodot4 \
 && nix flake metadata '.#' \
 && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
 && nix flake check --impure --verbose '.#' \
+&& nix develop --impure '.#' --command true \
 && nix develop --impure '.#' --command nixGL godot4 --rendering-driver opengl3
 ```
 Refs.:

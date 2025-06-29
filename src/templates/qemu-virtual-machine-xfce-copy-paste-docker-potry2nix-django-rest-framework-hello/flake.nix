@@ -15,9 +15,16 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
     --override-input poetry2nix 'github:nix-community//poetry2nix/3c92540611f42d3fb2d0d084a6c694cd6544b609'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -374,7 +381,7 @@
 
                 environment.variables.ONPATH = "${pkgs.myapp}/${pkgs.myapp.python.sitePackages}";
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.05";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -449,9 +456,9 @@
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
         };
 
-        apps.testmyappAsOCIImageDriverInteractive = {
+        apps.testMyappAsOCIImageDriverInteractive = {
           type = "app";
-          program = "${pkgs.lib.getExe pkgs.testmyappAsOCIImage.driverInteractive}";
+          program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
         };
 
         formatter = pkgs.nixpkgs-fmt;

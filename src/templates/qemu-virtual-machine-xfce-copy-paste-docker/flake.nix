@@ -19,9 +19,15 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/afb2b21ba489196da32cd9f0072e0dce6588a20a' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -168,7 +174,7 @@
               boot.loader.grub.efiInstallAsRemovable = true; # in case canTouchEfiVariables doesn't work for your system
               boot.loader.grub.device = "/dev/sda";
               boot.loader.grub.devices = "nodev";
-              boot.loader.grub.version = 2;
+              # boot.loader.grub.version = 2;
 
               fileSystems."/" = { device = "/dev/hda1"; };
 

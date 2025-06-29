@@ -8,9 +8,16 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
     --override-input poetry2nix 'github:nix-community//poetry2nix/3c92540611f42d3fb2d0d084a6c694cd6544b609'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'        
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -52,7 +59,7 @@
                 );
 
             });
-        };
+        } // { meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.scripts); };
 
         myappOCIImage =
           let
@@ -100,7 +107,7 @@
           };
 
 
-        testMyappOCIImage = prev.testers.runNixOSTest {
+        testMyAppAsOCIImage = prev.testers.runNixOSTest {
           name = "myapp-as-oci-image";
           nodes.machine =
             { config, pkgs, lib, ... }:
@@ -359,7 +366,7 @@
                 environment.systemPackages = with pkgs; [
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.05";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -371,6 +378,7 @@
 
         automatic-vm = prev.writeShellApplication {
           name = "run-nixos-vm";
+          meta.mainProgram = "$name";
           runtimeInputs = with final; [ curl virt-viewer ];
           text = ''
             export VNC_PORT=3001
@@ -417,7 +425,7 @@
           inherit (pkgs)
             myapp
             myappOCIImage
-            testMyappOCIImage
+            testMyAppAsOCIImage
             myvm
             automatic-vm
             ;
@@ -435,9 +443,9 @@
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
         };
 
-        apps.testmyappAsOCIImageDriverInteractive = {
+        apps.testMyAppAsOCIImageDriverInteractive = {
           type = "app";
-          program = "${pkgs.lib.getExe pkgs.testmyappAsOCIImage.driverInteractive}";
+          program = "${pkgs.lib.getExe pkgs.testMyAppAsOCIImage.driverInteractive}";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -446,7 +454,7 @@
           inherit (pkgs)
             myapp
             myappOCIImage
-            # testMyappOCIImage
+            testMyAppAsOCIImage
             automatic-vm
             ;
         };

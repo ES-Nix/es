@@ -24,7 +24,8 @@ chmod -v +x nix \
 --extra-experimental-features flakes \
 --refresh \
 run \
-github:ES-nix/es#installStartConfigTemplate
+github:ES-nix/es#installStartConfigTemplate \
+&& rm -v ./nix
 ```
 
 ```bash

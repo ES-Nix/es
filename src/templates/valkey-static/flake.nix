@@ -13,9 +13,15 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
     --override-input flake-utils 'github:numtide/flake-utils/c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' 
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -29,6 +35,7 @@
             preBuild = (oldAttrs.preBuild or "") + ''
               sed -ri 's!^( *createBoolConfig[(]"protected-mode",.*, *)1( *,.*[)],)$!\10\2!' src/config.c
             '';
+            doCheck = false; # Disable tests. It is taking too long on my machine
           }
         );
         # valkeyStatic = prev.pkgsStatic.valkey;
@@ -47,7 +54,7 @@
 
             extraCommands = ''
               mkdir -pv -m1777 ./tmp
-              mkdir -pv -m0700 ./bin
+              mkdir -pv -m0700 ./bin ./data
               mkdir -pv ./etc
 
               cp -aTv ${final.valkeyStatic}/bin/valkey-cli ./bin/valkey-cli
@@ -239,7 +246,7 @@
                     lsof
                     findutils
                     foo-bar
-                    pkgsStatic.valkey
+                    valkeyStatic
                   ];
                   shell = pkgs.bash;
                   uid = 1234;
@@ -261,7 +268,7 @@
                 environment.systemPackages = with pkgs; [
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.05";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }

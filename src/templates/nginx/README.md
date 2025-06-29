@@ -7,7 +7,8 @@ nix run --impure 'github:ES-Nix/es/?dir=src/templates/nginx'
 
 
 ```bash
-nix flake show --impure '.#' \
+nix fmt \
+&& nix flake show --impure '.#' \
 && nix flake metadata --impure '.#' \
 && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop --impure '.#' --command sh -c 'true' \

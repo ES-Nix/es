@@ -24,10 +24,16 @@
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -196,9 +202,8 @@
                   result = machine.succeed("${helloMips64elLinuxGnuabin32Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
-              #
               with subtest("file"):
-                  expected = 'PE32+ executable (console) x86-64 (stripped to external PDB), for MS Windows, 10 sections'
+                  expected = '/bin/hello.exe: PE32+ executable for MS Windows 5.02 (console), x86-64 (stripped to external PDB), 9 sections'
                   result = machine.succeed("file ${helloMingwW64Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -224,12 +229,12 @@
 
               #
               with subtest("file"):
-                  expected = 'PE32 executable (console) Intel 80386 (stripped to external PDB), for MS Windows, 8 sections'
+                  expected = 'PE32 executable for MS Windows 4.00 (console), Intel i386 (stripped to external PDB), 7 sections'
                   result = machine.succeed("file ${helloMingw32Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
               with subtest("readelf must fail"):
-                  expected = """Error: Not an ELF file - it has the wrong magic bytes at the start"""
+                  expected = 'Error: Not an ELF file - it has the wrong magic bytes at the start'
                   result = machine.fail("readelf -h ${helloMingw32Exe} 2>&1")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -243,8 +248,9 @@
                   result = machine.fail("${helloMingw32Exe} 2>&1")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
-              # with subtest("can execute binarywith wine"):
-              #     expected = 'cannot execute binary file: Exec format error'
+              # with subtest("can execute binary with wine"):
+              #     # expected = 'cannot execute binary file: Exec format error'
+              #     expected = '[Errno 9] Bad file descriptor'
               #     result = machine.succeed("wine cmd.exe ${helloMingw32Exe}")
               #     assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -397,7 +403,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 32-bit LSB executable, Intel i386, version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloGnu32Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 

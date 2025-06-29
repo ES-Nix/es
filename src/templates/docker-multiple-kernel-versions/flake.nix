@@ -7,9 +7,15 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/afb2b21ba489196da32cd9f0072e0dce6588a20a' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -68,7 +74,7 @@
             machine1.wait_for_unit("default.target")
             machine1.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_6_6"):
-                expected = '6.6.82'
+                expected = '6.6.92'
                 result_1 = machine1.succeed("uname -r")
                 result_2 = machine1.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -79,7 +85,7 @@
             machine2.wait_for_unit("default.target")
             machine2.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_latest"):
-                expected = '6.13.6'
+                expected = '6.14.8'
                 result_1 = machine2.succeed("uname -r")
                 result_2 = machine2.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -90,7 +96,7 @@
             machine3.wait_for_unit("default.target")
             machine3.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_latest"):
-                expected = '6.14.0-rc6'
+                expected = '6.15.0-rc7'
                 result_1 = machine3.succeed("uname -r")
                 result_2 = machine3.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -101,7 +107,7 @@
             machine4.wait_for_unit("default.target")
             machine4.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_latest"):
-                expected = '6.6.73-hardened1'
+                expected = '6.12.28-hardened1'
                 result_1 = machine4.succeed("uname -r")
                 result_2 = machine4.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'

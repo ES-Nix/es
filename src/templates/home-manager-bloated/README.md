@@ -176,3 +176,24 @@ which-key-nvim
 #    vimdiffAlias = true;
 #  };
 ```
+
+
+```nix
+"edonet.vscode-command-runner",
+"ms-python.debugpy",
+"ms-python.python",
+"ms-python.vscode-pylance",
+"charliermarsh.ruff",
+"wayou.vscode-todo-highlight",
+"gruntfuggly.todo-tree"
+
+
+keybindings.json
+// Place your key bindings in this file to override the defaults
+[
+    {
+        "key": "alt+-",
+        "command": "workbench.action.navigateBack"
+    }
+]%
+```

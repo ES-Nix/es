@@ -8,11 +8,10 @@ rm -fv nixos.qcow2;
 nix run --impure --refresh --verbose '.#'
 ```
 
-TODO: make more similar to others flake templates?
 ```bash
-nix flake show --impure '.#'
-
-nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure '.#'
-
-nix flake check --impure --verbose '.#'
+nix flake show --impure '.#' \
+&& nix flake metadata --impure '.#' \
+&& nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop --impure '.#' --command sh -c 'true' \
+&& nix flake check --impure --verbose '.#'
 ```
