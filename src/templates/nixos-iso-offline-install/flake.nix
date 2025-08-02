@@ -1,5 +1,5 @@
 {
-  description = "This is nix flake to make an NixOS self offiline install ISO in .qcow2";
+  description = "This is nix flake to make an NixOS self offline install ISO in .qcow2";
 
   /*
     nix \
@@ -24,11 +24,29 @@
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/11415c7ae8539d6292f2928317ee7a8410b28bb9' \
-    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'    
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/50ab793786d9de88ee30ec4e4c24fb4236fc2674' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'          
   */
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
   };
 
   outputs = { self, nixpkgs, flake-utils, ... }: {
@@ -132,6 +150,31 @@
           meta.mainProgram = name;
         };
 
+        testISOIntall = final.testers.runNixOSTest {
+          name = "test-";
+          nodes.machine =
+            { config, pkgs, lib, ... }:
+            {
+              config.virtualisation.memorySize = 1024 * 12;
+              config.virtualisation.diskSize = 1024 * 18;
+              config.boot.extraModprobeConfig = "options kvm_intel nested=1";
+              config.boot.kernelModules = [
+                "kvm-intel"
+              ];
+
+              config.environment.systemPackages = with pkgs; [
+                foo-bar
+                run-nixos-offline-install-iso-in-qcow2
+              ];
+            };
+
+          testScript = ''
+            start_all()
+          
+            machine.succeed("hello")
+            machine.succeed("run-nixos-offline-install-iso-in-qcow2")
+          '';
+        };
 
       })
     ];
@@ -151,11 +194,16 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
-        packages = { inherit (pkgs) iso-nixos-offline-install-in-qcow2; };
-        packages.default = pkgs.iso-nixos-offline-install-in-qcow2;
-
-        packages.run-nixos-offline-install-iso-in-qcow2 = pkgs.run-nixos-offline-install-iso-in-qcow2;
+      {
+        packages = {
+          inherit (pkgs)
+            iso-nixos-offline-install-in-qcow2
+            run-nixos-offline-install-iso-in-qcow2
+            testISOIntall
+            ;
+          # default = pkgs.testISOIntall;
+          default = pkgs.iso-nixos-offline-install-in-qcow2;
+        };
 
         apps.default = {
           type = "app";
@@ -170,38 +218,21 @@
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
-          iso-nixos-offline-install-in-qcow2 = pkgs.iso-nixos-offline-install-in-qcow2;
-
-          #  testISOIntall = pkgs.testers.runNixOSTest {
-          #    name = "test-";
-          #    nodes.machineWithDocker =
-          #      { config, pkgs, lib, ... }:
-          #      {
-          #        config.environment.systemPackages = with pkgs; [
-          #          foo-bar
-          #          run-qemu-nixos
-          #        ];
-          #      };
-          #
-          #    enableOCR = true;
-          #
-          #    testScript = ''
-          #      start_all()
-          #
-          #      machineWithDocker.succeed("hello")
-          #      # machineWithDocker.succeed("run-nixos-offline-install-iso-in-qcow2")
-          #    '';
-          #  };
+          inherit (pkgs)
+            iso-nixos-offline-install-in-qcow2
+            run-nixos-offline-install-iso-in-qcow2
+            run-qemu-nixos
+            # testISOIntall
+            ;
         };
 
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             foo-bar
-            # myapp
-            # poetry
-            # python3Custom
+            # iso-nixos-offline-install-in-qcow2
+            # run-nixos-offline-install-iso-in-qcow2
+            # run-qemu-nixos
           ];
-
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles

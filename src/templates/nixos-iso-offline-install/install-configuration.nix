@@ -72,7 +72,7 @@
   };
   # environment.etc."channels/nixpkgs".source = pkgs.path;
   nix = {
-    package = pkgs.nixVersions.nix_2_26;
+    package = pkgs.nix;
     extraOptions = ''
       experimental-features = nix-command flakes
     '';

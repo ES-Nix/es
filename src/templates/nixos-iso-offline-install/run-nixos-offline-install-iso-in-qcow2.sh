@@ -15,7 +15,7 @@ VM_RAM_SIZE="${RAM_SIZE:-2G}"
 VM_OVMF_FULL_PATH_TO_OVMF="${OVMF_FULL_PATH_TO_OVMF:-OVMF.fd}"
 
 # rm -fv "$DISK_NAME"
-qemu-img create -f qcow2 "$VM_DISK_NAME" 12G
+qemu-img create -f qcow2 "$VM_DISK_NAME" 14G
 
 echo qemu-img info "$DISK_NAME"
 
@@ -29,7 +29,7 @@ qemu-system-x86_64 \
 -enable-kvm \
 -boot d \
 -hda "$VM_DISK_NAME" \
--m 3G \
+-m 4G \
 -bios "$VM_OVMF_FULL_PATH_TO_OVMF" \
 -cdrom "$VM_ISO_FULL_PATH" \
 --net nic,model=virtio \

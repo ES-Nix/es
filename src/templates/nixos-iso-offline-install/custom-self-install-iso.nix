@@ -9,7 +9,8 @@ let
   off-install-script = pkgs.writeScript "off-install-script" ''
     #! ${pkgs.runtimeShell} -e
 
-    set -euxo pipefail
+    set -x
+    # set -euxo pipefail
 
     [ -d /sys/firmware/efi ] && echo 'The system was detected as UEFI' || echo 'The system was detected as BIOS'
 
@@ -28,23 +29,22 @@ let
     # to see what we have in the installer nix store, so copy everything
     # needed over.
 
+    ## Prints debugging information
     # dmesg | grep sda \
-    # && fdisk -l \
-    # && parted --script /dev/sda -- mklabel gpt \
-    # && partprobe /dev/sda \
-    # && parted --script /dev/sda print \
-    # && exit 1 
-
-    # parted --list \
-    # && fdisk --list \
-    # && wipefs --all --force --json /dev/sda \
+    # && df -h \
     # && parted --list \
-    # && 
+    # && parted /dev/sda align-check \
+    # && fdisk --list \
+    # && parted --list \
+    # && date --rfc-3339=ns --utc \
+    # && fdisk --list \
+    # && exit 1     
     
-    fdisk --list \
-    && wipefs --all --force --json /dev/sda \
+    wipefs --all --force --json /dev/sda \
     && parted --script /dev/sda -- mklabel gpt \
     && partprobe /dev/sda \
+    && parted /dev/sda print \
+    && parted /dev/sda print free \
     && parted --script /dev/sda -- mkpart primary 512MiB 10GiB \
     && partprobe /dev/sda \
     && parted --script /dev/sda -- mkpart primary linux-swap -1GiB -500MiB \
@@ -61,18 +61,9 @@ let
     && partprobe /dev/sda \
     && mkfs.fat -F 32 -n boot -I /dev/sda3 \
     && partprobe /dev/sda \
-    && parted --list \
-    && fdisk --list \
-    && exit 1 \
-    && sleep 1 \
-    && parted --list \
-    && fdisk --list \
     && mount /dev/disk/by-label/nixos /mnt \
-    && mkdir -pv /mnt/boot \
+    && mkdir -pv -m 0755 /mnt/boot \
     && mount /dev/disk/by-label/boot /mnt/boot \
-    && df -h \
-    && parted --list \
-    && fdisk --list \
     && (test -d /mnt || exit 1) \
     && nixos-generate-config --root /mnt \
     && date --rfc-3339=ns --utc \
@@ -84,12 +75,9 @@ let
         --file "${pkgs.path}"'/nixos' system \
         -I nixos-config=/mnt/etc/nixos/configuration.nix \
         -o /out \
-    && nix copy -vvv --no-check-sigs --to local?root=/mnt /out \
-    && date --rfc-3339=ns --utc \
+    && nix copy -v --no-check-sigs --to local?root=/mnt /out \
     && ls -al /nix/var/nix/profiles/per-user/root/channels \
-    && date --rfc-3339=ns --utc \
     && (${installBuild.nixos-install}/bin/nixos-install --no-root-password --no-channel-copy || true) \
-    && date --rfc-3339=ns --utc \
     && shutdown --poweroff
   '';
 
@@ -123,7 +111,12 @@ in
   #  boot.extraModulePackages = [ config.boot.kernelPackages.broadcom_sta ];
 
   # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653
-  boot.kernelModules = [ "kvm-amd" "kvm-intel" ];
+  # https://nixos.wiki/wiki/Libvirt
+  # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653
+  boot.extraModprobeConfig = "options kvm_intel nested=1";
+  boot.kernelModules = [
+    "kvm-intel"
+  ];
 
   # https://gist.github.com/andir/88458b13c26a04752854608aacb15c8f#file-configuration-nix-L11-L12
   boot.loader.grub.extraConfig = "serial --unit=0 --speed=115200 \n terminal_output serial console; terminal_input serial console";
@@ -131,7 +124,7 @@ in
   boot.consoleLogLevel = 0;
   boot.loader.timeout = lib.mkForce 0;
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "25.05";
 
   boot.kernelParams = [
     "console=tty0"
@@ -161,7 +154,6 @@ in
   environment.systemPackages = with pkgs; [
     git
     parted # check if this can be removed
-    cowsay
     (
       writeScriptBin "off-install-script" off-install-script
     )
@@ -173,11 +165,11 @@ in
   systemd.services.sshd.enable = true;
 
   # nix eval '.#nixosConfigurations.nixos-offline-install-iso-in-qcow2.config.system.build.isoImage.override.__functionArgs'
-  #isoImage.compressImage = false;
+  # isoImage.compressImage = false;
   isoImage.squashfsCompression = "gzip -Xcompression-level 1";
   # isoImage.squashfsCompression = "zstd -Xcompression-level 1";
   # isoImage.squashfsCompression = "zstd -Xcompression-level 22";
-  isoImage.isoBaseName = "nixos-offline-installer";
+  # isoImage.isoBaseName = "nixos-offline-installer"; # TODO: why it did not cause an error in 24.11?
   isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
   isoImage.makeEfiBootable = true;
   isoImage.makeUsbBootable = true;
