@@ -111,7 +111,7 @@
                 users.extraGroups.nixgroup.gid = 999;
                 users.users.nixuser = {
                   isSystemUser = true;
-                   password = "1"; # TODO: hardening
+                  password = "1"; # TODO: hardening
                   createHome = true;
                   home = "/home/nixuser";
                   homeMode = "0700";

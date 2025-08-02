@@ -7,9 +7,16 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4' \
     --override-input flake-utils 'github:numtide/flake-utils/c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -18,6 +25,8 @@
       (final: prev: {
         foo-bar = prev.hello;
 
+        # python3WithPackages = prev.python3.withPackages (pyPkgs: with pyPkgs; [
+        # ]);
         python3WithPackages = prev.python3.withPackages (pyPkgs: with pyPkgs; [
           # apache-airflow
           # awscli
@@ -321,7 +330,7 @@
           python-slugify
           python-utils
           pytz
-          pytzdata
+          # pytzdata
           pyyaml
           pyzmq
           rapidfuzz
@@ -651,8 +660,8 @@
 
         checks = {
           inherit (pkgs)
-            # testBinfmtMany
-            # automatic-vm
+            testBinfmtMany
+            automatic-vm
             ;
         };
 

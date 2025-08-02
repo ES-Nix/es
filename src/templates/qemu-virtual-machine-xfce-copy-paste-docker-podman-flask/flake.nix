@@ -5,24 +5,19 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b \
-    --override-input flake-utils github:numtide/flake-utils/4022d587cbbfd70fe950c1e2083a02621806a725
-
-    nix \
-    flake \
-    lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/aa4e34969baa92fcc227f880d82b1f5a6cc1d343' \
-    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
-
-    nix \
-    flake \
-    lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
-    --override-input poetry2nix 'github:nix-community//poetry2nix/8a18db56dd62edd26458a87e4d335b7df84c3f3f'
+    --override-input poetry2nix 'github:nix-community/poetry2nix/8a18db56dd62edd26458a87e4d335b7df84c3f3f'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'    
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -755,7 +750,7 @@
                   file
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.05";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -852,7 +847,7 @@
 
                 users.users.root = {
                   password = "root";
-                  initialPassword = "root";
+                  # initialPassword = "root";
                   openssh.authorizedKeys.keyFiles = [
                     "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w" }"
                   ];
@@ -902,11 +897,11 @@
                 # https://github.com/NixOS/nixpkgs/issues/21332#issuecomment-268730694
                 services.openssh = {
                   allowSFTP = true;
-                  kbdInteractiveAuthentication = false;
+                  settings.KbdInteractiveAuthentication = false;
                   enable = true;
-                  forwardX11 = false;
-                  passwordAuthentication = false;
-                  permitRootLogin = "yes";
+                  settings.X11Forwarding = false;
+                  settings.PasswordAuthentication = false;
+                  settings.PermitRootLogin = "yes";
                   ports = [ 10022 ];
                   authorizedKeysFiles = [
                     "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w" }"
@@ -915,7 +910,7 @@
 
                 # X configuration
                 services.xserver.enable = true;
-                services.xserver.layout = "br";
+                services.xserver.xkb.layout = "br";
 
                 # services.xserver.displayManager.autoLogin.user = "nixuser";
 
@@ -924,11 +919,10 @@
                 services.sshd.enable = true;
 
                 nixpkgs.config.allowUnfree = true;
-
+                boot.readOnlyNixStore = true; # TODO: hardening
                 nix = {
                   extraOptions = "experimental-features = nix-command flakes";
                   package = pkgs.nix;
-                  readOnlyStore = true;
                   registry.nixpkgs.flake = nixpkgs;
                   nixPath = [ "nixpkgs=${pkgs.path}" ];
                 };
@@ -937,7 +931,7 @@
                 environment.systemPackages = with pkgs; [
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.05";
               }
             )
           ];

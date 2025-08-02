@@ -32,34 +32,35 @@
         foo-bar = prev.hello;
 
         p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
-        myapp = final.p2n.mkPoetryApplication {
-          projectDir = ./.;
+        myapp = final.p2n.mkPoetryApplication
+          {
+            projectDir = ./.;
 
-          overrides = final.p2n.defaultPoetryOverrides.extend
-            (final: prev: {
-              itsdangerous = prev.itsdangerous.overridePythonAttrs
-                (
-                  old: {
-                    buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
-                  }
-                );
+            overrides = final.p2n.defaultPoetryOverrides.extend
+              (final: prev: {
+                itsdangerous = prev.itsdangerous.overridePythonAttrs
+                  (
+                    old: {
+                      buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                    }
+                  );
 
-              jinja2 = prev.jinja2.overridePythonAttrs
-                (
-                  old: {
-                    buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
-                  }
-                );
+                jinja2 = prev.jinja2.overridePythonAttrs
+                  (
+                    old: {
+                      buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                    }
+                  );
 
-              sqlparse = prev.sqlparse.overridePythonAttrs
-                (
-                  old: {
-                    buildInputs = (old.buildInputs or [ ]) ++ [ final.hatchling ];
-                  }
-                );
+                sqlparse = prev.sqlparse.overridePythonAttrs
+                  (
+                    old: {
+                      buildInputs = (old.buildInputs or [ ]) ++ [ final.hatchling ];
+                    }
+                  );
 
-            });
-        } // { meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.scripts); };
+              });
+          } // { meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.scripts); };
 
         myappOCIImage =
           let
