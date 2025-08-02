@@ -7,7 +7,7 @@ run \
 --refresh \
 --override-input \
 nixpkgs \
-github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
 github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
 && ((direnv &>/dev/null ) && direnv deny QEMUVirtualMachineDocker || true) \
 && cd QEMUVirtualMachineDocker
@@ -111,8 +111,8 @@ WORKDIR /home/abcuser
 ENV USER="abcuser"
 ENV NIX_CONFIG="extra-experimental-features = nix-command flakes"
 
-ENV HYDRA_BUILD_ID=257665509
-ENV NIXPKGS_COMMIT=58a1abdbae3217ca6b702f03d3b35125d88a2994
+ENV HYDRA_BUILD_ID=297111184
+ENV NIXPKGS_COMMIT=fd487183437963a59ba763c0cc4f27e3447dd6dd
 
 RUN mkdir -pv "$HOME"/.local/bin \
  && cd "$HOME"/.local/bin \
@@ -122,13 +122,13 @@ RUN mkdir -pv "$HOME"/.local/bin \
  && nix \
       registry \
       pin \
-      nixpkgs github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+      nixpkgs github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
  && nix \
     run \
     --refresh \
     --override-input \
     nixpkgs \
-    github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659 \
+    github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
     github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
  && cd QEMUVirtualMachineDocker \
  && nix develop '.#' --command 'true' \
@@ -181,6 +181,3 @@ run \
 vm-no-graphical-oci-image:0.0.1 \
 sh 
 ```
-
-
-foo

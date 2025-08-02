@@ -10,9 +10,10 @@ Inspired by:
 nix build --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.helloNixosTest'
 ```
 
-
+TODO: why nix fmt hangs?
 ```bash
-nix flake show '.#' \
+nix fmt . \
+&& nix flake show '.#' \
 && nix flake metadata '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop '.#' --command sh -c 'true' \
@@ -26,7 +27,7 @@ nix run '.#checks.x86_64-linux.helloNixosTest.driverInteractive'
 
 
 ```bash
-# In the python prompt, the one >>>
+# In the python prompt, the >>>
 start_all()
 run_tests()
 ```

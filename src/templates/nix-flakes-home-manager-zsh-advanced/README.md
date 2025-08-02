@@ -1,5 +1,5 @@
 
-
+python3 -c 'import platform; print(platform.libc_ver())'
 
 
 ```bash
@@ -30,7 +30,7 @@ git init && git add .
 # TODO
 sudo rm -fv "$HOME"/.local/state/nix/profiles/profile/manifest.json
 
-nix shell nixpkgs#home-manager --command sh -c 'home-manager -b bck switch --flake .#"$USER"'
+nix shell nixpkgs#home-manager --command sh -c 'home-manager -b bckup switch --flake .#"$USER"'
 
 /home/"$USER"/.nix-profile/bin/zsh \
 -cl \

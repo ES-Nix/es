@@ -7,8 +7,7 @@ nix run --impure --refresh --verbose .#
 
 
 ```bash
-nix fmt . \ 
-&& nix flake show '.#' \
+nix flake show '.#' \
 && nix flake metadata '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop '.#' --command sh -c 'true' \
@@ -68,6 +67,7 @@ EOF
 
 
 TODO
+
 ```nix
 # https://github.com/NixOS/nix/issues/2259#issuecomment-1144323965
 nix-instantiate --eval --expr '<nixpkgs>'

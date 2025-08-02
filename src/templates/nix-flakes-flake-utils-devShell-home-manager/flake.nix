@@ -109,16 +109,16 @@
                     file
                     which
                     (writeScriptBin "hms" ''
-                        #! ${pkgs.runtimeShell} -e
-                          nix \
-                          build \
-                          --no-link \
-                          --print-build-logs \
-                          --print-out-paths \
-                          "$HOME"'/.config/home-manager#homeConfigurations.'"$(id -un)".activationPackage
+                      #! ${pkgs.runtimeShell} -e
+                        nix \
+                        build \
+                        --no-link \
+                        --print-build-logs \
+                        --print-out-paths \
+                        "$HOME"'/.config/home-manager#homeConfigurations.'"$(id -un)".activationPackage
 
-                          home-manager switch --flake "$HOME/.config/home-manager"#"$(id -un)"
-                    '')                    
+                        home-manager switch --flake "$HOME/.config/home-manager"#"$(id -un)"
+                    '')
                   ];
 
                   nix = {

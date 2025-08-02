@@ -19,7 +19,7 @@ nix statically compilled.
 sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix'
 
 CURL_OR_WGET_OR_ERROR=$($(curl -V &> /dev/null) && echo 'curl -L' && exit 0 || $(wget -q &> /dev/null; test $? -eq 1) && echo 'wget -O-' && exit 0 || echo no-curl-or-wget) \
-&& $CURL_OR_WGET_OR_ERROR https://hydra.nixos.org/build/237228729/download-by-type/file/binary-dist > nix \
+&& $CURL_OR_WGET_OR_ERROR https://hydra.nixos.org/build/297111184/download-by-type/file/binary-dist > nix \
 && chmod -v +x nix
 
 export NIX_CONFIG="extra-experimental-features = auto-allocate-uids"
@@ -33,7 +33,7 @@ run \
 --refresh \
 --override-input \
 nixpkgs \
-github:NixOS/nixpkgs/7848cd8c982f7740edf76ddb3b43d234cb80fc4d \
+github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
 --no-update-lock-file \
 --no-write-lock-file \
 github:ES-Nix/es#installTemplateNixFlakesHomeManagerZsh

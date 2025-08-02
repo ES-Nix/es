@@ -79,8 +79,16 @@
           nodes = {
             machineNixpkgsPath = { config, pkgs, ... }: {
               environment.systemPackages = (with pkgs; [ nix ]);
-
-              nix.extraOptions = "experimental-features = nix-command flakes";
+              nix.extraOptions = ''
+                bash-prompt-prefix = (nix-develop:$name)\040
+                experimental-features = nix-command flakes
+                keep-build-log = true
+                keep-derivations = true
+                keep-env-derivations = true
+                keep-failed = true
+                keep-going = true
+                keep-outputs = true
+              '';
               nix.registry.nixpkgs.flake = nixpkgs;
               nix.settings.flake-registry = "${flake-registry}/flake-registry.json";
               nix.nixPath = [ "nixpkgs=${pkgs.path}" ];

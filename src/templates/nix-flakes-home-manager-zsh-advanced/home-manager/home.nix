@@ -64,16 +64,16 @@
     file
     which
     (writeScriptBin "hms" ''
-        #! ${pkgs.runtimeShell} -e
-          nix \
-          build \
-          --no-link \
-          --print-build-logs \
-          --print-out-paths \
-          "$HOME"'/.config/home-manager#homeConfigurations.'"$(id -un)".activationPackage
+      #! ${pkgs.runtimeShell} -e
+        nix \
+        build \
+        --no-link \
+        --print-build-logs \
+        --print-out-paths \
+        "$HOME"'/.config/home-manager#homeConfigurations.'"$(id -un)".activationPackage
 
-          home-manager switch --flake "$HOME/.config/home-manager"#"$(id -un)"
-    '')    
+        home-manager switch --flake "$HOME/.config/home-manager"#"$(id -un)"
+    '')
   ];
 
   nix = {
@@ -93,7 +93,7 @@
       keep-outputs = true;
       nix-path = "nixpkgs=flake:nixpkgs";
       tarball-ttl = 2419200; # 60 * 60 * 24 * 7 * 4 = one month
-    };    
+    };
   };
 
   # https://nix-community.github.io/home-manager/options.html#opt-programs.direnv.config
@@ -103,10 +103,6 @@
       enable = true;
     };
     enableZshIntegration = true;
-  };
-
-  sessionVariables = {
-    DIRENV_LOG_FORMAT = "";
   };
 
   programs.fzf = {
@@ -133,6 +129,7 @@
       # NIX_PATH = "nixpkgs=${inputs.nixpkgs}";
       NIX_PATH = "nixpkgs=${outputs.homeConfigurations.vagrant.pkgs.unstable.path}";
       LANG = "en_US.utf8";
+      DIRENV_LOG_FORMAT = ""; # TODO: direnv it self must have an way to disable logging
     };
     oh-my-zsh = {
       enable = true;
