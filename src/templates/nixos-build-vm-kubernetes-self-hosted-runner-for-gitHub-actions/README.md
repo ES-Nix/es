@@ -4,11 +4,12 @@
 
 ```bash
 nix fmt . \
-&& nix flake show --impure '.#' \
+&& nix flake show --allow-import-from-derivation --impure --refresh .# \
 && nix flake metadata --impure '.#' \
 && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop --impure '.#' --command sh -c 'true' \
-&& nix flake check --impure --verbose '.#'
+&& nix flake check --impure --verbose '.#' \
+&& git add .
 ```
 
 Passo 1: 

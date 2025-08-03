@@ -275,6 +275,8 @@
                     qbittorrent
                     graphviz
 
+                    # detexify
+                    socat
                     nettools
                     iproute2
 
@@ -416,7 +418,7 @@
                     ])
                     # # 
                     # bonmin
-                    # cbc
+                    cbc
                     # clp
                     # CoinMP
                     # csdp
@@ -444,6 +446,11 @@
                     # python39
                     # cbc
                     # z3
+                    (python311.withPackages (pyPkgs: with pyPkgs; [
+                      matplotlib
+                      pyomo
+                    ]
+                    ))
                     # (python311.withPackages (pyPkgs: with pyPkgs; [
                     #     numpy
                     #     deep-translator
@@ -456,6 +463,8 @@
                     gfortran
 
                     nixpkgs-review
+                    hydra-check
+                    nixpkgs-fmt
 
                     # ollama
                     pciutils
@@ -501,8 +510,11 @@
                     xsel
                     xorg.xev
 
+                    nodejs
+                    linuxPackages_latest.perf
+
                     (writeShellApplication {
-                      name = "get-rsa-keys"; # TODO: bad name?
+                      name = "get-rsa-keys"; # TODO: bad name?! Rename?
                       runtimeInputs = with final; [ bash openssh xclip ];
                       text = ''
                         test -d ~/.ssh || mkdir -v -m 0700 ~/.ssh
@@ -527,6 +539,13 @@
                   uid = 1000;
                   autoSubUidGidRange = true;
                 };
+
+                boot.kernel.sysctl."kernel.perf_event_paranoid" = -1;
+                boot.kernel.sysctl."kernel.kptr_restrict" = final.lib.mkForce 0;
+                # so perf can find kernel modules
+                systemd.tmpfiles.rules = [
+                  "L /lib - - - - /run/current/system/lib"
+                ];
 
                 services.xserver.enable = true;
                 services.xserver.xkb.layout = "br";
@@ -623,171 +642,176 @@
                     # iosevka-term-curly-slab
                     # maple-mono
                     # whatsapp-emoji-font
-                    agave
-                    aileron
-                    anonymousPro
-                    ark-pixel-font
-                    arkpandora_ttf # Font, metrically identical to Arial and Times New Roman
-                    atkinson-hyperlegible
-                    aurulent-sans
-                    awesome
-                    bakoma_ttf
-                    bqn386
-                    camingo-code
-                    cantarell-fonts
-                    cascadia-code
-                    clearlyU
-                    cm_unicode
-                    comfortaa
-                    comic-relief
-                    corefonts
-                    cozette
-                    dejavu_fonts
-                    dina-font 
-                    dosemu_fonts
-                    efont-unicode
-                    emacs-all-the-icons-fonts
-                    emacsPackages.unicode-fonts
-                    emojione
-                    envypn-font
-                    fantasque-sans-mono
-                    fira
-                    fira-code
-                    fira-code-symbols
-                    fira-mono
-                    font-awesome
-                    font-awesome_4
-                    font-awesome_4
-                    font-awesome_5
-                    freefont_ttf
-                    gentium
-                    go-font
-                    gohufont
-                    google-fonts
-                    gyre-fonts
-                    hack-font
-                    hackgen-font
-                    hackgen-nf-font
-                    hannom
-                    hasklig
-                    helvetica-neue-lt-std
-                    hermit
-                    ibm-plex
-                    icu76
-                    inter
-                    iosevka
-                    iosevka-comfy.comfy
-                    iosevka-comfy.comfy-motion
-                    iosevka-comfy.comfy-wide
-                    iosevka-comfy.comfy-wide-motion
-                    ipaexfont
-                    ipafont
-                    jetbrains-mono
-                    joypixels
-                    julia-mono
-                    last-resort
-                    lato
-                    liberation_ttf
-                    libertine
-                    libre-caslon
-                    lmmath
-                    lmodern
-                    maple-mono.NF
-                    maple-mono.NF-CN # Old named as: maple-mono-SC-NF
-                    maple-mono.NormalNL-TTF-AutoHint # This maple-mono font package have 44 fonts
-                    material-design-icons
-                    material-icons
-                    meslo-lg
+
+                    nerd-fonts.fira-code
                     meslo-lgs-nf
-                    monaspace
-                    monoid
-                    mononoki
-                    montserrat
-                    mplus-outline-fonts.githubRelease
-                    mro-unicode
-                    nerd-fonts.fira-code # Old named as fira-code-nerdfont
-                    nerd-fonts.inconsolata # Old named as inconsolata
-                    nerd-fonts.terminess-ttf # Old named as terminus-nerdfont
-                    noto-fonts
-                    noto-fonts-cjk-sans
-                    noto-fonts-cjk-serif
-                    noto-fonts-color-emoji
-                    noto-fonts-emoji
-                    noto-fonts-extra
-                    noto-fonts-lgc-plus
-                    noto-fonts-monochrome-emoji
-                    oldstandard
-                    open-fonts
-                    openmoji-color
-                    openttd-ttf
-                    oxygenfonts
-                    paratype-pt-sans
-                    powerline
-                    powerline-fonts
-                    profont
-                    proggyfonts
-                    recursive
-                    redhat-official-fonts
-                    roboto
-                    roboto-mono
-                    roboto-slab
-                    rounded-mgenplus
-                    sarasa-gothic
-                    scientifica
-                    shabnam-fonts
-                    siji
-                    sketchybar-app-font
-                    source-code-pro
-                    source-han-mono
-                    source-han-sans
-                    source-han-sans-japanese
-                    source-han-sans-korean
-                    source-han-sans-simplified-chinese
-                    source-han-sans-traditional-chinese
-                    source-han-sans-vf-ttf
-                    source-han-serif
-                    source-han-serif-vf-ttf
-                    source-sans
-                    spleen
-                    stix-otf
-                    stix-two
-                    sudo-font
-                    symbola
-                    tamsyn
-                    tamzen
-                    terminus_font
-                    terminus_font_ttf
-                    textfonts
-                    ttf_bitstream_vera
-                    ttf-indic
-                    twemoji-color-font
-                    twitter-color-emoji
-                    ubuntu_font_family
-                    ucs-fonts
-                    udev-gothic
-                    udev-gothic-nf
-                    uiua386
-                    ultimate-oldschool-pc-font-pack
-                    undefined-medium
-                    unicode-emoji
-                    unidings
-                    unifont_upper
-                    unscii
-                    uw-ttyp0
-                    vazir-code-font
-                    vazir-fonts
-                    victor-mono
-                    vistafonts
-                    vistafonts-chs
-                    wqy_microhei
-                    wqy_zenhei
-                    xkcd-font
-                    xmoji
-                    xorg.fontbitstream100dpi
-                    xorg.fontbitstream75dpi
-                    xorg.fontbitstreamtype1
-                    xorg.xbitmaps
-                    zpix-pixel-font
+
+                    #####
+                    # agave
+                    # aileron
+                    # anonymousPro
+                    # ark-pixel-font
+                    # arkpandora_ttf # Font, metrically identical to Arial and Times New Roman
+                    # atkinson-hyperlegible
+                    # aurulent-sans
+                    # awesome
+                    # bakoma_ttf
+                    # bqn386
+                    # camingo-code
+                    # cantarell-fonts
+                    # cascadia-code
+                    # clearlyU
+                    # cm_unicode
+                    # comfortaa
+                    # comic-relief
+                    # corefonts
+                    # cozette
+                    # dejavu_fonts
+                    # dina-font
+                    # dosemu_fonts
+                    # efont-unicode
+                    # emacs-all-the-icons-fonts
+                    # emacsPackages.unicode-fonts
+                    # emojione
+                    # envypn-font
+                    # fantasque-sans-mono
+                    # fira
+                    # fira-code
+                    # fira-code-symbols
+                    # fira-mono
+                    # font-awesome
+                    # font-awesome_4
+                    # font-awesome_4
+                    # font-awesome_5
+                    # freefont_ttf
+                    # gentium
+                    # go-font
+                    # gohufont
+                    # google-fonts
+                    # gyre-fonts
+                    # hack-font
+                    # hackgen-font
+                    # hackgen-nf-font
+                    # hannom
+                    # hasklig
+                    # helvetica-neue-lt-std
+                    # hermit
+                    # ibm-plex
+                    # icu76
+                    # inter
+                    # iosevka
+                    # iosevka-comfy.comfy
+                    # iosevka-comfy.comfy-motion
+                    # iosevka-comfy.comfy-wide
+                    # iosevka-comfy.comfy-wide-motion
+                    # ipaexfont
+                    # ipafont
+                    # jetbrains-mono
+                    # joypixels
+                    # julia-mono
+                    # last-resort
+                    # lato
+                    # liberation_ttf
+                    # libertine
+                    # libre-caslon
+                    # lmmath
+                    # lmodern
+                    # maple-mono.NF
+                    # maple-mono.NF-CN # Old named as: maple-mono-SC-NF
+                    # maple-mono.NormalNL-TTF-AutoHint # This maple-mono font package have 44 fonts
+                    # material-design-icons
+                    # material-icons
+                    # meslo-lg
+                    # meslo-lgs-nf
+                    # monaspace
+                    # monoid
+                    # mononoki
+                    # montserrat
+                    # mplus-outline-fonts.githubRelease
+                    # mro-unicode
+                    # nerd-fonts.fira-code # Old named as fira-code-nerdfont
+                    # nerd-fonts.inconsolata # Old named as inconsolata
+                    # nerd-fonts.terminess-ttf # Old named as terminus-nerdfont
+                    # noto-fonts
+                    # noto-fonts-cjk-sans
+                    # noto-fonts-cjk-serif
+                    # noto-fonts-color-emoji
+                    # noto-fonts-emoji
+                    # noto-fonts-extra
+                    # noto-fonts-lgc-plus
+                    # noto-fonts-monochrome-emoji
+                    # oldstandard
+                    # open-fonts
+                    # openmoji-color
+                    # openttd-ttf
+                    # oxygenfonts
+                    # paratype-pt-sans
+                    # powerline
+                    # powerline-fonts
+                    # profont
+                    # proggyfonts
+                    # recursive
+                    # redhat-official-fonts
+                    # roboto
+                    # roboto-mono
+                    # roboto-slab
+                    # rounded-mgenplus
+                    # sarasa-gothic
+                    # scientifica
+                    # shabnam-fonts
+                    # siji
+                    # sketchybar-app-font
+                    # source-code-pro
+                    # source-han-mono
+                    # source-han-sans
+                    # source-han-sans-japanese
+                    # source-han-sans-korean
+                    # source-han-sans-simplified-chinese
+                    # source-han-sans-traditional-chinese
+                    # source-han-sans-vf-ttf
+                    # source-han-serif
+                    # source-han-serif-vf-ttf
+                    # source-sans
+                    # spleen
+                    # stix-otf
+                    # stix-two
+                    # sudo-font
+                    # symbola
+                    # tamsyn
+                    # tamzen
+                    # terminus_font
+                    # terminus_font_ttf
+                    # textfonts
+                    # ttf_bitstream_vera
+                    # ttf-indic
+                    # twemoji-color-font
+                    # twitter-color-emoji
+                    # ubuntu_font_family
+                    # ucs-fonts
+                    # udev-gothic
+                    # udev-gothic-nf
+                    # uiua386
+                    # ultimate-oldschool-pc-font-pack
+                    # undefined-medium
+                    # unicode-emoji
+                    # unidings
+                    # unifont_upper
+                    # unscii
+                    # uw-ttyp0
+                    # vazir-code-font
+                    # vazir-fonts
+                    # victor-mono
+                    # vistafonts
+                    # vistafonts-chs
+                    # wqy_microhei
+                    # wqy_zenhei
+                    # xkcd-font
+                    # xmoji
+                    # xorg.fontbitstream100dpi
+                    # xorg.fontbitstream75dpi
+                    # xorg.fontbitstreamtype1
+                    # xorg.xbitmaps
+                    # zpix-pixel-font
                   ];
                   # enableDefaultPackages = true;
                   # enableGhostscriptFonts = true;
@@ -881,28 +905,28 @@
               https://unix.stackexchange.com/a/698488
             */
           text = ''
-              # https://unix.stackexchange.com/a/230442
-              # export NO_AT_BRIDGE=1
-              # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
-              # export LD_LIBRARY_PATH="''${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
+            # https://unix.stackexchange.com/a/230442
+            # export NO_AT_BRIDGE=1
+            # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
+            # export LD_LIBRARY_PATH="''${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
 
-              ${final.lib.getExe final.myvm} & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
-              export VNC_PORT=3001
+            export VNC_PORT=3001
 
-              for _ in {0..100}; do
-                if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
-                then
-                  break
-                fi
-                # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.1
-              done;
+            for _ in {0..100}; do
+              if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
+              then
+                break
+              fi
+              # date +'%d/%m/%Y %H:%M:%S:%3N'
+              sleep 0.1
+            done;
 
-              remote-viewer spice://localhost:"$VNC_PORT"
+            remote-viewer spice://localhost:"$VNC_PORT"
 
-              kill $PID_QEMU
-            '';
+            kill $PID_QEMU
+          '';
         };
 
       })
