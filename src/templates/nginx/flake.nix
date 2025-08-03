@@ -97,6 +97,29 @@
               ExposedPorts = { "${conf.nginxPort}/tcp" = { }; };
             };
           };
+
+        automatic-vm = final.writeShellApplication {
+          name = "run-nixos-vm";
+          runtimeInputs = with final; [ curl virt-viewer ];
+          text = ''
+            export VNC_PORT=3001
+
+            ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
+
+            for _ in {0..50}; do
+              if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
+              then
+                break
+              fi
+              # date +'%d/%m/%Y %H:%M:%S:%3N'
+              sleep 0.1
+            done;
+
+            remote-viewer spice://localhost:"$VNC_PORT"
+
+            kill $PID_QEMU
+          '';
+        };
       };
     } //
     (
@@ -125,33 +148,12 @@
           pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
             (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
         in
-        rec {
+        {
 
           packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
-          packages.default = packages.automatic-vm;
-          packages.automatic-vm = pkgsAllowUnfree.writeShellApplication {
-            name = "run-nixos-vm";
-            runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
-            text = ''
-              export VNC_PORT=3001
-
-              ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
-
-              for _ in {0..50}; do
-                if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
-                then
-                  break
-                fi
-                # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.1
-              done;
-
-              remote-viewer spice://localhost:"$VNC_PORT"
-
-              kill $PID_QEMU
-            '';
-          };
+          packages.default = pkgsAllowUnfree.automatic-vm;
+          packages.automatic-vm = pkgsAllowUnfree.automatic-vm;
 
           apps.default = {
             type = "app";
@@ -390,7 +392,7 @@
               #    };
               #  };
 
-              system.stateVersion = "24.05";
+              system.stateVersion = "25.05";
             })
 
           { nixpkgs.overlays = [ self.overlays.default ]; }
