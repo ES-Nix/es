@@ -13,9 +13,15 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/72841a4a8761d1aed92ef6169a636872c986c76d' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+    
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' 
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     # podman-rootless.url = "github:ES-Nix/podman-rootless/from-nixpkgs";
     # sops-nix.url = "github:Mic92/sops-nix";
@@ -587,10 +593,23 @@
                   writeScriptBin "run-github-runner" ''
                     #! ${pkgs.runtimeShell} -e
 
-                      while true; do
-                        sudo -E kubectl get pods --namespace kube-system --field-selector status.phase=Running | grep Running && break;
+                      while ! systemctl is-active kubernetes.target; do
+                        echo "Waiting for kubernetes.target to be active..."
+                        sleep 0.5;
+                      done
+
+                      while ! curl -k https://nixos:8888/api/v1/cfssl/health; do
+                        echo "Waiting for kubernetes.target to be active..."
+                        sleep 0.5;
+                      done
+
+                      while ! curl -k https://nixos:8888/api/v1/cfssl/health; do
+                        echo "Waiting for kubernetes.target to be active..."
+                        sleep 0.5;
+                      done
+
+                      while ! sudo -E kubectl get pods --namespace kube-system --field-selector status.phase=Running; do
                         sleep 0.1;
-                        sudo -E kubectl get pod --all-namespaces -o wide;
                         clear;
                       done
 

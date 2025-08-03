@@ -124,7 +124,6 @@ EOF
 
 
 kubectl apply -f flask-load-balancer.yml
-
 ```
 Refs.:
 - https://paul-boone.medium.com/kubernetes-loadbalancer-ip-stuck-in-pending-6ddea72b8ff5
@@ -134,8 +133,3 @@ No terminal da VM NixOS:
 ```bash
 curl 34.74.203.201:8080/
 ```
-
-Pelo que entendi não funciona externamente.
-
-
-

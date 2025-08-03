@@ -5,42 +5,23 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/95600680c021743fd87b3e2fe13be7c290e1cac4' \
-    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
-
-    nix \
-    flake \
-    lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/b134951a4c9f3c995fd7be05f3243f8ecd65d798' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
 
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/50ab793786d9de88ee30ec4e4c24fb4236fc2674' \
-    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' 
-
-    nix \
-    flake \
-    lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347' \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
 
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
-    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
-
-    In nixos-unstable it is broken!
-    nix \
-    flake \
-    lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/29e290002bfff26af1db6f64d070698019460302' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -50,6 +31,13 @@
         foo-bar = prev.hello;
 
         # nix eval --apply builtins.attrNames nixpkgs#fetchurl.__functionArgs
+        alpine318 = prev.fetchurl {
+          name = "alpine318";
+          url = "https://vagrantcloud.com/gnome-shell-box/boxes/alpine318/versions/0.0.10/providers/libvirt/amd64/vagrant.box";
+          hash = "";
+          meta.boxName = "gnome-shell-box/alpine318";
+        };
+
         alpine319 = prev.fetchurl {
           name = "alpine319";
           url = "https://app.vagrantup.com/generic/boxes/alpine319/versions/4.3.12/providers/libvirt/amd64/vagrant.box";
@@ -58,86 +46,65 @@
         };
 
         alpine321 = prev.fetchurl {
-          url = "https://vagrantcloud.com/gnome-shell-box/boxes/alpine321/versions/0.0.10/providers/libvirt/amd64/vagrant.box";
-          hash = "sha256-FW7WWzhax2GGUxdOxotKxHWXIffPdlyT0odarygvA9M=";
+          name = "alpine321";
+          # url = "https://vagrantcloud.com/gnome-shell-box/boxes/alpine321/versions/0.0.10/providers/libvirt/amd64/vagrant.box";
+          url = "https://vagrantcloud.com/gnome-shell-box/boxes/alpine321/versions/0.0.12/providers/libvirt/amd64/vagrant.box";
+
+          # hash = "sha256-FW7WWzhax2GGUxdOxotKxHWXIffPdlyT0odarygvA9M=";
+          hash = "sha256-bZcmZElWa3MKf0+pWvTsvmAuC4L9NVr1ce3hjJ17uMA=";
+          meta.boxName = "gnome-shell-box/alpine321";
         };
 
-        vagrantfileAlpineMinimal = prev.writeText "vagrantfile-alpine" ''
-          Vagrant.configure("2") do |config|
-            # Every Vagrant development environment requires a box. You can search for
-            # boxes at https://vagrantcloud.com/search.
-            config.vm.box = "generic/alpine319"
-            # config.vm.box = "gnome-shell-box/box/alpine321"
-            config.vm.provider :libvirt do |v|
-              v.cpus = 3
-              v.memory = "2048"
-            end
-          end
-        '';
+        alpine322 = prev.fetchurl {
+          name = "alpine321";
+          url = "https://vagrantcloud.com/cloud-image/boxes/alpine-3.22/versions/3.22.0-r0/providers/libvirt/amd64/vagrant.box";
+          hash = "sha256-gye9CgQWRXFxacYUV1Y69Creq1M9Inf1ifqvB/hro9o=";
+          meta.boxName = "cloud-image/alpine-3.22";
+        };
+
+        debian = let box_version = "12.20250126.1"; in prev.fetchurl {
+          name = "debian";
+          url = "https://vagrantcloud.com/debian/boxes/bookworm64/versions/${box_version}/providers/libvirt/amd64/vagrant.box";
+          hash = "sha256-TiKoGih08fZY+XP3PBL6VaMQ/nTAy+5T2dO6raoaZTw=";
+          meta.boxName = "debian/bookworm64";
+        };
 
         vagrantfileAlpine = prev.writeText "vagrantfile-alpine" ''
           Vagrant.configure("2") do |config|
             # Every Vagrant development environment requires a box. You can search for
             # boxes at https://vagrantcloud.com/search.
-            config.vm.box = "generic/alpine319"
+            # config.vm.box = "generic/alpine319"
+            config.vm.box = "generic/ubuntu2204"
             # config.vm.box = "gnome-shell-box/alpine321"
+            # config.vm.box = "gnome-shell-box/ubuntu2504"
+            config.vm.box = "cloud-image/alpine-3.22"
+            # config.vm.box = "gnome-shell-box/alpine318"
+
+            # config.vm.box = "debian/bookworm64"
+            # config.vm.box_version = "12.20250126.1"
 
             config.vm.provider :libvirt do |v|
-              v.cpus = 3
-              v.memory = "2048"
+              v.cpus = 4
+              v.memory = "5048"
+              v.driver = "kvm"
+              v.uri = 'qemu:///system'
+              # v.graphics_type = "none"
+              # v.video_type = "cirrus"
             end
-
-            #
-            # https://stackoverflow.com/a/77347166
-            # config.vm.network "forwarded_port", guest: 5000, host: 5000
-            # https://stackoverflow.com/questions/16244601/vagrant-reverse-port-forwarding#comment23723088_16420720
-            # https://stackoverflow.com/a/77347166
-            # config.ssh.extra_args = ["-L", "5001:localhost:5000"]
-            # config.ssh.extra_args = ["-R", "5001:localhost:5000"]
-            # config.vm.synced_folder '.', '/home/vagrant/code'
-
             config.vm.provision "shell", inline: <<-SHELL
-
-              # xz-utils -> xz-dev
-              apk add --no-cache shadow sudo \
-              && addgroup vagrant wheel \
-              && addgroup vagrant kvm \
-              && chown -v root:kvm /dev/kvm \
-              && usermod --append --groups kvm vagrant
-
-              # https://stackoverflow.com/a/59103173
-              echo 'Start tzdata stuff' \
-              && apk add --no-cache tzdata \
-              && (test -d /etc || mkdir -pv /etc) \
-              && cp -v /usr/share/zoneinfo/America/Recife /etc/localtime \
-              && echo America/Recife > /etc/timezone \
-              && apk del tzdata \
-              && echo 'End tzdata stuff!'
-
-              # https://unix.stackexchange.com/a/400140
-              echo
-              df -h /tmp && sudo mount -o remount,size=9G /tmp/ && df -h /tmp
-              echo
-              mkdir -pv /etc/sudoers.d \
-              && echo 'vagrant:1' | chpasswd \
-              && echo 'vagrant ALL=(ALL) PASSWD:SETENV: ALL' > /etc/sudoers.d/vagrant
-
-              # mkdir -pv -m 1735 /nix/var/nix && chown -Rv vagrant:vagrant /nix
-              su vagrant -lc \
-              '
-                # curl -L https://hydra.nixos.org/build/297111184/download-by-type/file/binary-dist > nix \
-                # && chmod +x nix \
-                # && ./nix --version \
-                # && export NIX_CONFIG="extra-experimental-features = nix-command flakes auto-allocate-uids" \
-                # && export PATH="$HOME"/.nix-profile/bin:"$PATH" \
-                # && export NIX_PATH=nixpkgs=$(./nix eval --raw nixpkgs#path) \
-                # && ./nix registry pin nixpkgs github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
-                # && ./nix profile install nixpkgs#nix nixpkgs#path \
-                # && echo End
-              '
+              echo "Hello from Vagrantfile Alpine"
+              echo "The time is: $(date +'%d/%m/%Y %H:%M:%S:%3N')"
+              echo "The hostname is: $(hostname)"
+              echo "The user is: $(whoami)"
+              echo "The current directory is: $(pwd)"
+              echo "The current user is: $(id)"
+              echo "The current groups are: $(groups)"
+              echo "The current environment variables are: $(env)"
             SHELL
           end
         '';
+
+        vagrantfileAlpineMinimal = final.vagrantfileAlpine;
 
         prepareVagrantVms = prev.writeScriptBin "prepare-vagrant-vms" ''
           #! ${prev.runtimeShell} -e
@@ -145,7 +112,7 @@
           for i in {0..100};do
             echo "The iteration number is: $i. Time: $(date +'%d/%m/%Y %H:%M:%S:%3N')";
             vagrant box list
-            if (vagrant box list | grep -q alpine3); then
+            if (vagrant box list | grep -q alpine); then
               break
             fi
           done;
@@ -206,8 +173,8 @@
                     && vagrant \
                         box \
                         add \
-                        "${pkgs.alpine319.meta.boxName}" \
-                        "${pkgs.alpine319}" \
+                        "${pkgs.alpine321.meta.boxName}" \
+                        "${pkgs.alpine321}" \
                         --force \
                         --debug \
                         --provider \
@@ -292,7 +259,7 @@
                     virtualisation.podman.enable = true;
 
                     virtualisation.memorySize = 1024 * 9; # Use MiB memory.
-                    virtualisation.diskSize = 1024 * 50; # Use MiB memory.
+                    virtualisation.diskSize = 1024 * 28; # Use MiB memory.
                     virtualisation.cores = 7; # Number of cores.
                     virtualisation.graphics = true;
 
@@ -313,6 +280,7 @@
 
                     virtualisation.useNixStoreImage = false; # TODO: hardening
                     virtualisation.writableStore = false; # TODO: hardening
+                    # virtualisation.useBootLoader = true; # TODO: hardening
                   };
 
                 # journalctl --user --unit copy-vagrant-examples-vagrant-up.service -b -f
@@ -339,8 +307,8 @@
                       && vagrant \
                           box \
                           add \
-                          generic/alpine319 \
-                          "${pkgs.alpine319}" \
+                          "${pkgs.alpine322.meta.boxName}" \
+                          "${pkgs.alpine322}" \
                           --force \
                           --debug \
                           --provider \
@@ -350,9 +318,9 @@
                   wantedBy = [ "default.target" ];
                 };
 
-                security.sudo.wheelNeedsPassword = false; # TODO: hardening
+                security.sudo.wheelNeedsPassword = true; # TODO: hardening
                 # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
-                users.extraGroups.nixgroup.gid = 999;
+                users.extraGroups.nixgroup.gid = 1000;
                 users.users.nixuser = {
                   isSystemUser = true;
                   password = "1"; # TODO: hardening
@@ -386,7 +354,7 @@
                     foo-bar
                   ];
                   shell = pkgs.bash;
-                  uid = 1234;
+                  uid = 1000;
                   autoSubUidGidRange = true;
                 };
 
@@ -403,7 +371,7 @@
                 virtualisation.libvirtd.enable = true;
                 # virtualisation.services.libvirtd.serviceOverrides = { PrivateUsers="no"; };
 
-
+                boot.readOnlyNixStore = true; # TODO: how to test it?
                 nix.extraOptions = "experimental-features = nix-command flakes";
                 nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
                   "vagrant"
@@ -411,20 +379,7 @@
 
                 programs.dconf.enable = true;
 
-                environment.variables = {
-                  VAGRANT_DEFAULT_PROVIDER = "libvirt";
-                  # VAGRANT_DEFAULT_PROVIDER = "virtualbox"; # Is it an must for vagrant snapshots?
-                  /*
-                    https://github.com/erictossell/nixflakes/blob/e97cdba0d6b192655d01f8aef5a6691f587c61fe/modules/virt/libvirt.nix#L29-L36
-                    */
-                  # programs.dconf.enable = true;
-                  # VIRSH_DEFAULT_CONNECT_URI="qemu:///system";
-                  # VIRSH_DEFAULT_CONNECT_URI = "qemu:///session";
-                  # programs.dconf.profiles = pkgs.writeText "org/virt-manager/virt-manager/connections" ''
-                  #  autoconnect = ["qemu:///system"];
-                  #  uris = ["qemu:///system"];
-                  # '';
-                };
+                environment.variables.VAGRANT_DEFAULT_PROVIDER = "libvirt";
 
                 # displayManager.job.logToJournal
                 # journalctl -t xsession -b -f
@@ -527,7 +482,8 @@
         packages = {
           inherit (pkgs)
             alpine319
-            # alpine321
+            alpine321
+            alpine322
             myvm
             testVagrantWithLibvirt
             ;
@@ -551,8 +507,9 @@
         checks = {
           inherit (pkgs)
             # alpine319
+            alpine321
             automatic-vm
-            testVagrantWithLibvirt
+            # testVagrantWithLibvirt
             ;
         };
 

@@ -27,7 +27,8 @@ Refs.:
 
 
 ```bash
-nix flake show --impure '.#' \
+nix fmt . \
+&& nix flake show --impure '.#' \
 && nix flake metadata --impure '.#' \
 && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop --impure '.#' --command sh -c 'true' \
@@ -80,6 +81,34 @@ lock \
 --override-input nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8 \
 --override-input flake-utils github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a
 ```
+
+
+24.11
+```bash
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0 \
+--override-input flake-utils github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b
+```
+
+25.05
+```bash
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/7c43f080a7f28b2774f3b3f43234ca11661bf334 \
+--override-input flake-utils github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b
+```
+
+```bash
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
+--override-input flake-utils github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b
+```
+
 
 ```bash
 rm -fv nixos.qcow2
@@ -537,7 +566,7 @@ nix \
 eval \
 --json \
 --apply builtins.attrNames \
-nixpkgs#nixosTests.kubernetes.dns-single-node.config.nodes.machine1.services.kubernet
+nixpkgs#nixosTests.kubernetes.dns-single-node.config.nodes.machine1.services.kubernetes
 ```
 
 ```bash

@@ -1,20 +1,32 @@
 # github self-hosted runner using kubernetes in NixOS QEMU
 
 
+
+```bash
+nix fmt . \
+&& nix flake show --impure '.#' \
+&& nix flake metadata --impure '.#' \
+&& nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+&& nix develop --impure '.#' --command sh -c 'true' \
+&& nix flake check --impure --verbose '.#'
+```
+
 Passo 1: 
 Generating a token:
-- https://github.com/settings/tokens
+- https://github.com/settings/tokens/new
 - with these checks: https://github.com/myoung34/docker-github-actions-runner/wiki/Usage#token-scope
 
 
 Passo 2:
 ```bash
 test -f .env || cp -v .env.example .env
-test -f .env && source .env
 ```
 
 Passo 3:
 Adicione o PAT no .env!
+```bash
+test -f .env && source .env
+```
 
 Passo 4:
 ```bash

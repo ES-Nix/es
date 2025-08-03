@@ -3,7 +3,7 @@
 
 
 ```bash
-nix fmt \
+nix fmt . \
 && nix flake show --allow-import-from-derivation --impure --refresh .# \
 && nix flake metadata --impure '.#' \
 && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \

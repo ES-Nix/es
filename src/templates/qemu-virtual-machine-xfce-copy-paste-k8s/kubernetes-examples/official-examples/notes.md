@@ -24,7 +24,10 @@ https://cloud.google.com/kubernetes-engine/docs/tutorials/guestbook
 ```bash
 git clone https://github.com/GoogleCloudPlatform/kubernetes-engine-samples \
 && cd kubernetes-engine-samples/quickstarts/guestbook \
-&& BASE_URL='https://k8s.io/examples/application/guestbook'
+&& git checkout 9e0cf0234b95bda80dcb36a2f8800305079d81b4 
+
+BASE_URL='https://k8s.io/examples/application/guestbook'
+
 kubectl apply \
 -f redis-leader-deployment.yaml \
 -f redis-leader-service.yaml \
@@ -83,8 +86,11 @@ EOF
 
 
 kubectl apply -f static-docker-example.yml
-
 ```
 Refs.:
 - https://discuss.kubernetes.io/t/can-k8s-or-k8s-api-build-image-with-dockerfile/16059/2
 
+
+```bash
+The Pod "static-docker-example" is invalid: spec.containers[0].securityContext.privileged: Forbidden: disallowed by cluster policy
+```
