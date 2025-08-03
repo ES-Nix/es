@@ -29,9 +29,16 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
     --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'  
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -101,13 +108,14 @@
             };
           };
 
-
         testMyappOCIImage = prev.testers.runNixOSTest {
           name = "myapp-as-oci-image";
           nodes.machine =
             { config, pkgs, lib, ... }:
             {
               config.virtualisation.docker.enable = true;
+              config.virtualisation.memorySize = 1024 * 8; # Use MiB memory.
+              config.virtualisation.diskSize = 1024 * 40; # Use MiB memory.
 
               # journalctl --unit docker-podman-load.service -b -f
               config.systemd.services.docker-podman-load = {
@@ -328,7 +336,7 @@
                 environment.systemPackages = with pkgs; [
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.05";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -404,9 +412,9 @@
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
         };
 
-        apps.testmyappAsOCIImageDriverInteractive = {
+        apps.testMyappOCIImageDriverInteractive = {
           type = "app";
-          program = "${pkgs.lib.getExe pkgs.testmyappAsOCIImage.driverInteractive}";
+          program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
         };
 
         formatter = pkgs.nixpkgs-fmt;
