@@ -40,6 +40,7 @@ docker run -it --platform linux/mips64le --rm mips64le/busybox:1.36.1-glibc unam
 ```bash
 python -c "import sys; print(sys.byteorder)"
 python -c "import sysconfig; print(sysconfig.get_platform())"
+python3 -c 'import platform; print(platform.libc_ver())'
 ```
 Refs.:
 - https://serverfault.com/a/599012
@@ -65,8 +66,6 @@ Refs.:
 ```bash
 nix eval --json --apply 'builtins.attrNames' 'nixpkgs#pkgsCross' | jq .
 ```
-
-
 
 
 ```bash
@@ -118,7 +117,6 @@ github:NixOS/nixpkgs/aa4e34969baa92fcc227f880d82b1f5a6cc1d343 \
 ```
 
 
-
 ```bash
 nix \
 build \
@@ -167,9 +165,6 @@ github:NixOS/nixpkgs/aa4e34969baa92fcc227f880d82b1f5a6cc1d343 \
 ```
 
 
-
-
-
 ```bash
 nix eval --json 'github:NixOS/nixpks/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06#virtualbox.meta.platforms' | jq
 nix eval --json 'github:NixOS/nixpks/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06#python3.meta.platforms' | jq
@@ -179,7 +174,6 @@ nix eval --json 'github:NixOS/nixpks/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06#qe
 nix eval --json 'github:NixOS/nixpks/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06#pkgsStatic.python3.meta.platforms' | jq
 nix eval --json 'github:NixOS/nixpks/ae2fc9e0e42caaf3f068c1bfdc11c71734125e06#pkgsStatic.nodejs.meta.platforms' | jq
 ```
-
 
 
 TODO: how to make it work?
@@ -197,12 +191,9 @@ Refs.:
 
 
 
-
-
-
 TODO: use that in an flake
 ```bash
-nix run github:emmanuelrosa/erosanix//df435beac4a196101c8eb961a6286c09433dd491#foobar2000
+nix run github:emmanuelrosa/erosanix/df435beac4a196101c8eb961a6286c09433dd491#foobar2000
 ```
 Refs.:
 - https://discourse.nixos.org/t/using-wine-installing-foobar2000/17870/4
@@ -211,11 +202,16 @@ Refs.:
 TODO: Test it with pkgsMusl and/or pkgsStatic
 ```bash
 hello
+
 pypy
 rustpython
 python3Minimal
 python3
 python3Full
+
+python3 \
+-c \
+"import timeit; print(timeit.Timer('for i in range(100): oct(i)', 'gc.enable()').repeat(5))"
 
 
 graphviz

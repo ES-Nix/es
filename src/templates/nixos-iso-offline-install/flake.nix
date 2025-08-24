@@ -62,7 +62,7 @@
           specialArgs = { inherit nixpkgs; };
         };
 
-        iso-nixos-offline-install-in-qcow2 = final.nixos-offline-install-iso-in-qcow2.config.system.build.isoImage;
+        ISONixOSSelfOfflineInstallISOInQcow2 = final.nixos-offline-install-iso-in-qcow2.config.system.build.isoImage;
 
         run-nixos-offline-install-iso-in-qcow2 = prev.stdenv.mkDerivation rec {
           name = "run-nixos-offline-install-iso-in-qcow2";
@@ -72,7 +72,7 @@
             bashInteractive
             # coreutils
             qemu
-            final.iso-nixos-offline-install-in-qcow2
+            final.ISONixOSSelfOfflineInstallISOInQcow2
           ];
 
           src = builtins.path { path = ./.; inherit name; };
@@ -104,7 +104,7 @@
 
             substituteInPlace \
             $out/bin/${name} \
-            --replace-fail 'VM_ISO_FULL_PATH="''${ISO_FULL_PATH:-result/iso/*.iso}"' 'VM_ISO_FULL_PATH="''${ISO_FULL_PATH:-${final.iso-nixos-offline-install-in-qcow2}/iso/${final.iso-nixos-offline-install-in-qcow2.name}}"'
+            --replace-fail 'VM_ISO_FULL_PATH="''${ISO_FULL_PATH:-result/iso/*.iso}"' 'VM_ISO_FULL_PATH="''${ISO_FULL_PATH:-${final.ISONixOSSelfOfflineInstallISOInQcow2}/iso/${final.ISONixOSSelfOfflineInstallISOInQcow2.name}}"'
 
 
             wrapProgram $out/bin/${name} \
@@ -115,8 +115,8 @@
         };
 
 
-        run-qemu-nixos = prev.stdenv.mkDerivation rec {
-          name = "run-qemu-nixos";
+        runQEMUNixOS = prev.stdenv.mkDerivation rec {
+          name = "runQEMUNixOS";
           buildInputs = with prev; [ stdenv ];
           nativeBuildInputs = with prev; [ makeWrapper ];
           propagatedNativeBuildInputs = with prev; [
@@ -197,12 +197,12 @@
       {
         packages = {
           inherit (pkgs)
-            iso-nixos-offline-install-in-qcow2
+            ISONixOSSelfOfflineInstallISOInQcow2
             run-nixos-offline-install-iso-in-qcow2
             testISOIntall
             ;
           # default = pkgs.testISOIntall;
-          default = pkgs.iso-nixos-offline-install-in-qcow2;
+          default = pkgs.ISONixOSSelfOfflineInstallISOInQcow2;
         };
 
         apps.default = {
@@ -212,16 +212,16 @@
 
         apps.run = {
           type = "app";
-          program = "${pkgs.lib.getExe pkgs.run-qemu-nixos}";
+          program = "${pkgs.lib.getExe pkgs.runQEMUNixOS}";
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            iso-nixos-offline-install-in-qcow2
+            ISONixOSSelfOfflineInstallISOInQcow2
             run-nixos-offline-install-iso-in-qcow2
-            run-qemu-nixos
+            runQEMUNixOS
             # testISOIntall
             ;
         };
@@ -229,9 +229,9 @@
         devShells.default = with pkgs; mkShell {
           buildInputs = [
             foo-bar
-            # iso-nixos-offline-install-in-qcow2
+            # ISONixOSSelfOfflineInstallISOInQcow2
             # run-nixos-offline-install-iso-in-qcow2
-            # run-qemu-nixos
+            # runQEMUNixOS
           ];
 
           shellHook = ''

@@ -1,26 +1,23 @@
 
 ```bash
-! test -d "$HOME/.config/home-manager" \
-&& mkdir -pv "$HOME/.config/home-manager" \
+(! test -d "$HOME/.config/home-manager" && mkdir -pv "$HOME/.config/home-manager") \
 && cd "$HOME/.config/home-manager" \
 && nix \
 --refresh \
 flake \
 init \
 --template \
-github:ES-nix/es#devShellHomeManagerFlakeUtils
-
-git --version || nix profile install nixpkgs#git
-git init && git add .
-
-nix fmt . \
+github:ES-nix/es#devShellHomeManagerFlakeUtils \
+&& (git --version || nix profile install nixpkgs#git) \
+&& git init \
+&& git add . \
+&& nix fmt . \
 && nix flake show '.#' \
 && nix flake metadata '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop '.#' --command sh -c 'true' \
-&& nix flake check --verbose '.#'
-
-nix \
+&& nix flake check --verbose '.#' \
+&& nix \
 shell \
 github:NixOS/nixpkgs/7c43f080a7f28b2774f3b3f43234ca11661bf334#home-manager \
 --command \

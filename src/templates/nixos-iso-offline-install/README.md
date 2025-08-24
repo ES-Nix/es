@@ -114,8 +114,8 @@ ${installBuild.nixos-install}/bin/nixos-install \
 
 ls -alh /mnt/system
 
-time nix --option cores 8 build --print-build-logs --print-out-paths '.#iso-nixos-offline-install-in-qcow2'
-time nix --option cores 8 build --print-build-logs --print-out-paths --rebuild '.#iso-nixos-offline-install-in-qcow2'
+time nix --option cores 8 build --print-build-logs --print-out-paths '.#ISONixOSSelfOfflineInstallISOInQcow2'
+time nix --option cores 8 build --print-build-logs --print-out-paths --rebuild '.#ISONixOSSelfOfflineInstallISOInQcow2'
 
 
 TODO: figure it out why so many bugs/race conditions using the script that install NixOS
