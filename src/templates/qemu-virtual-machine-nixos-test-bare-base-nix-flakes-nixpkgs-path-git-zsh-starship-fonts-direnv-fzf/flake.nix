@@ -112,47 +112,47 @@
                 group = "nixgroup";
               };
 
-                # Internationalisation options
-                i18n.defaultLocale = "en_US.UTF-8";
-                console.keyMap = "br-abnt2";
+              # Internationalisation options
+              i18n.defaultLocale = "en_US.UTF-8";
+              console.keyMap = "br-abnt2";
 
-                # Set your time zone.
-                time.timeZone = "America/Recife";
+              # Set your time zone.
+              time.timeZone = "America/Recife";
 
-                # Why
-                # nix flake show --impure .#
-                # break if it does not exists?
-                # Use systemd boot (EFI only)
-                boot.loader.systemd-boot.enable = true;
-                fileSystems."/" = { device = "/dev/hda1"; };
+              # Why
+              # nix flake show --impure .#
+              # break if it does not exists?
+              # Use systemd boot (EFI only)
+              boot.loader.systemd-boot.enable = true;
+              fileSystems."/" = { device = "/dev/hda1"; };
 
-                virtualisation.vmVariant =
-                  {
-                    virtualisation.docker.enable = true;
-                    virtualisation.podman.enable = true;
+              virtualisation.vmVariant =
+                {
+                  virtualisation.docker.enable = true;
+                  virtualisation.podman.enable = true;
 
-                    virtualisation.memorySize = 1024 * 14; # Use MiB memory.
-                    virtualisation.diskSize = 1024 * 50; # Use MiB memory.
-                    virtualisation.cores = 7; # Number of cores.
-                    virtualisation.graphics = true;
+                  virtualisation.memorySize = 1024 * 14; # Use MiB memory.
+                  virtualisation.diskSize = 1024 * 50; # Use MiB memory.
+                  virtualisation.cores = 7; # Number of cores.
+                  virtualisation.graphics = true;
 
-                    virtualisation.resolution = pkgs.lib.mkForce { x = 1024; y = 768; };
+                  virtualisation.resolution = pkgs.lib.mkForce { x = 1024; y = 768; };
 
-                    virtualisation.qemu.options = [
-                      # https://www.spice-space.org/spice-user-manual.html#Running_qemu_manually
-                      # remote-viewer spice://localhost:3001
-                      # "-daemonize" # How to save the QEMU PID?
-                      "-machine vmport=off"
-                      "-vga qxl"
-                      "-spice port=3001,disable-ticketing=on"
-                      "-device virtio-serial"
-                      "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
-                      "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
-                    ];
+                  virtualisation.qemu.options = [
+                    # https://www.spice-space.org/spice-user-manual.html#Running_qemu_manually
+                    # remote-viewer spice://localhost:3001
+                    # "-daemonize" # How to save the QEMU PID?
+                    "-machine vmport=off"
+                    "-vga qxl"
+                    "-spice port=3001,disable-ticketing=on"
+                    "-device virtio-serial"
+                    "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
+                    "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
+                  ];
 
-                    virtualisation.useNixStoreImage = false; # TODO: hardening
-                    virtualisation.writableStore = true; # TODO: hardening
-                  };
+                  virtualisation.useNixStoreImage = false; # TODO: hardening
+                  virtualisation.writableStore = true; # TODO: hardening
+                };
 
               services.xserver.enable = true;
               services.xserver.xkb.layout = "br";

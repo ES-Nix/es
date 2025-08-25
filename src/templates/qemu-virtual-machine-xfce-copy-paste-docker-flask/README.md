@@ -9,7 +9,7 @@ nix run --impure --refresh --verbose .#
 
 Invoking in the host:
 ```bash
-start
+run-flask-server
 ```
 
 
@@ -76,6 +76,7 @@ nix fmt . \
 && nix flake show '.#' \
 && nix flake metadata '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
-&& nix develop '.#' --command sh -c 'true' \
+&& nix develop '.#' --command sh -c 'hello' \
+&& nix develop '.#' --command sh -c 'timeout 5 run-flask-server' \
 && nix flake check --verbose '.#'
 ```

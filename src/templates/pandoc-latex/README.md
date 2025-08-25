@@ -11,7 +11,8 @@ github:ES-nix/es#pandocLaTeX
 
 (direnv allow || true)
 
-nix flake show '.#' \
+nix fmt . \                                                 
+&& nix flake show '.#' \
 && nix flake metadata '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop '.#' --command sh -c 'true' \
@@ -19,6 +20,11 @@ nix flake show '.#' \
 ```
 Refs.:
 - 
+
+```bash
+rm -fv nixos.qcow2
+nix run '.#'
+```
 
 
 ```bash

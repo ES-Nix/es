@@ -24,146 +24,168 @@
       (final: prev: {
         fooBar = prev.hello;
 
+        juliaCustom = ((prev.julia.withPackages.override {
+          precompile = false; # Turn off precompilation. TODO Why?
+        }) [
+          "JuMP" # ?
+          "Juniper" # (MI)SOCP, (MI)NLP
+          "SCS" # LP, QP, SOCP, SDP
+          "DAQP" # (Mixed-binary) QP
+        ]);
+
+        juliaCustomBloated =
+          let
+            minplSolvers = [
+              # Begin (MI)NLP Solvers
+              "Alpine"
+              "Couenne_jll"
+              "GLPK"
+              "HiGHS"
+              "Ipopt"
+              "JuMP"
+              "Juniper"
+              "Pajarito"
+              "Pavito"
+              "SCIP"
+              # "EAGO"
+              # "Minotaur"
+              # "Octeract"
+              # "SHOT"
+              # End (MI)NLP Solvers
+              # # MIT Solvers
+              "Juniper" # (MI)SOCP, (MI)NLP
+              "SCS" # LP, QP, SOCP, SDP
+              "DAQP" # (Mixed-binary) QP
+              # # MIT Solvers
+            ];
+
+            manyTools = [
+              "ArgParse"
+              "BenchmarkProfiles"
+              "BenchmarkTools"
+              "Catalyst"
+              "CategoricalArrays"
+              "CDDLib"
+              "Chain"
+              "Clustering"
+              "Colors"
+              "ComponentArrays"
+              "Crayons" # Needed for OhMyREPL color scheme
+              "CSV"
+              "Dagitty"
+              "DataFrames"
+              "DataStructures"
+              "Dates"
+              "DiffEqFlux"
+              "DifferentialEquations"
+              "Distances"
+              "Distributions"
+              "FFTW"
+              "FileIO"
+              "FourierTools"
+              "Graphs"
+              "GraphViz"
+              "Gurobi"
+              "HDF5"
+              "IJulia"
+              "ImageMagick"
+              "ImageShow"
+              "IndexFunArrays"
+              "InteractiveUtils"
+              "IterativeSolvers"
+              "JLD"
+              "JLD2"
+              "JuliaFormatter"
+              "Juno"
+              "KNITRO"
+              "LanguageServer"
+              "LaTeXStrings"
+              "LazySets"
+              "LightGraphs"
+              "LinearAlgebra"
+              "LinearMaps"
+              "Markdown"
+              "Measures"
+              "Metaheuristics"
+              "MethodOfLines"
+              "ModelingToolkit"
+              "NDTools"
+              "NonlinearSolve"
+              "OhMyREPL"
+              "Optim"
+              "Optimization"
+              "OptimizationPolyalgorithms"
+              "OrdinaryDiffEq"
+              "Parameters"
+              "Plots"
+              "PlotThemes"
+              "Pluto"
+              "PlutoUI"
+              "PolyJuMP"
+              "PrettyTables"
+              "Printf"
+              "PyCall"
+              "PyPlot"
+              "Random"
+              "Roots"
+              "ScikitLearn"
+              "SpecialFunctions"
+              "SQLite"
+              "StatsPlots"
+              "TestImages"
+              "TimeZones"
+              "TypedPolynomials"
+              "UrlDownload"
+              "VegaLite" # to make some nice plots
+              "XLSX"
+              "ZipFile"
+
+              # "AmplNLWriter"
+              # "Arpack"
+              # "Atom"
+              # "EAGO_jll"
+              # "Flux.Losses"
+              # "Flux"
+              # "IntervalArithmetic"
+              # "MathOptInterface"
+              # "MosekTools"
+              # "PATHSolver.jl"
+              # "UnicodePlots"
+            ];
+          in
+          ((prev.julia.withPackages.override {
+            precompile = false; # Turn off precompilation
+          }) (
+            minplSolvers
+              ++
+              manyTools
+          ));
+
         testNixOSBare = final.testers.runNixOSTest {
           name = "test-bare-base";
           nodes = {
             machineABCZ = { config, pkgs, ... }: {
-
               environment.systemPackages = with pkgs; [
-
-                ((julia.withPackages.override {
-                  precompile = false; # Turn off precompilation
-                }) [
-                  /*
-                        # Begin (MI)NLP Solvers
-                        "Alpine"
-                        "Couenne_jll"
-                        "GLPK"
-                        "HiGHS"
-                        "Ipopt"
-                        "JuMP"
-                        "Juniper"
-                        "Pajarito"
-                        "Pavito"
-                        "SCIP"
-                        # "EAGO"
-                        # "Minotaur"
-                        # "Octeract"
-                        # "SHOT"
-                        # End (MI)NLP Solvers
-
-                        # MIT 
-                        # "Juniper" # (MI)SOCP, (MI)NLP
-                        # "SCS" # LP, QP, SOCP, SDP
-                        # "DAQP" # (Mixed-binary) QP
-                   */
-                  # "KNITRO"
-                  # "AmplNLWriter"
-                  # "PolyJuMP"
-                  # "SCS"
-                  # "CDDLib"
-                  # "MosekTools"
-                  # "EAGO_jll"
-                  # "PATHSolver.jl"
-                  "DAQP"
-                  /*
-                          # Other tools
-                          "ArgParse" 
-                          # "Arpack"          
-                          "BenchmarkProfiles"
-                          "BenchmarkTools"
-                          "Catalyst"
-                          "CategoricalArrays"
-                          "Chain"
-                          "Clustering"      
-                          "Colors"
-                          "ComponentArrays"
-                          "Crayons" # Needed for OhMyREPL color scheme
-                          "CSV"          
-                          "Dagitty"
-                          "DataFrames"   
-                          "DataStructures"  
-                          "Dates"
-                          "DiffEqFlux"
-                          "DifferentialEquations"
-                          "Distances"       
-                          "Distributions"
-                          "FFTW"
-                          "FileIO"
-                          "FourierTools"
-                          "Graphs"
-                          "Gurobi"          
-                          "HDF5"            
-                          "IJulia"
-                          "ImageShow"
-                          "IndexFunArrays"
-                          "InteractiveUtils"
-                          "IterativeSolvers"
-                          "JuliaFormatter"
-                          "Juno"            
-                          "LanguageServer"
-                          "LaTeXStrings"    
-                          "LazySets"
-                          "LightGraphs"     
-                          "LinearAlgebra" 
-                          "LinearMaps"      
-                          "Markdown"
-                          "Measures"
-                          "Metaheuristics"
-                          "MethodOfLines"
-                          "ModelingToolkit"
-                          "NDTools"
-                          "NonlinearSolve"
-                          "OhMyREPL"
-                          "Optim"
-                          "Optimization"
-                          "OptimizationPolyalgorithms"
-                          "OrdinaryDiffEq"
-                          "Parameters"
-                          "Plots"         
-                          "PlotThemes"
-                          "Pluto"
-                          "PlutoUI"
-                          "PrettyTables"
-                          "Printf"
-                          "PyCall"
-                          "PyPlot"          
-                          "Random"                                          
-                          "Roots"
-                          "ScikitLearn"
-                          "SpecialFunctions"
-                          "SQLite"
-                          "StatsPlots"
-                          "TestImages"
-                          "TimeZones"
-                          "TypedPolynomials" 
-                          "UrlDownload"
-                          "VegaLite"  # to make some nice plots
-                          "XLSX"
-                          "ZipFile"
-                          */
-                  # "Atom"            
-                  # "Flux.Losses"
-                  # "Flux"
-                  # "GraphViz"
-                  # "ImageMagick"
-                  # "IntervalArithmetic"
-                  # "JLD"             
-                  # "JLD2"
-                  # "MathOptInterface"
-                  # "UnicodePlots"
-                ])
+                # juliaCustom
+                juliaCustomBloated
               ];
-
             };
           };
           testScript = { nodes, ... }: ''
-            machineABCZ.succeed("julia --version")
+            # machineABCZ.succeed("julia --version")
+            machineABCZ.succeed("""
+              julia --version
+              julia -e "using Pkg"
+              # julia -e "import Pkg; using JuMP" 1>&2
+            """)
           '';
         };
 
         testNixOSBareDriverInteractive = final.testNixOSBare.driverInteractive
-          // { virtualisation.vmVariant.virtualisation.graphics = false; };
+          // {
+          virtualisation.vmVariant.virtualisation.graphics = false;
+          # meta.mainProgram = "${final.testNixOSBare.driverInteractive.name}";
+        };
       })
     ];
   } // (
@@ -188,6 +210,7 @@
         packages = {
           inherit (pkgs)
             fooBar
+            juliaCustom
             testNixOSBare
             ;
           default = pkgs.testNixOSBareDriverInteractive;
@@ -197,6 +220,8 @@
           default = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.testNixOSBareDriverInteractive}";
+            meta.mainProgram = "${pkgs.testNixOSBare.driverInteractive.name}";
+            meta.description = "Test NixOS Bare Base with Julia";
           };
         };
 

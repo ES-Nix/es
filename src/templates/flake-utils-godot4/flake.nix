@@ -63,7 +63,7 @@
 
           packages.default = self.devShells."${suportedSystem}".default;
           devShells.default = pkgsAllowUnfree.mkShell.override { stdenv = pkgsAllowUnfree.clangStdenv; } {
-            buildInputs = with pkgsAllowUnfree; [
+            packages = with pkgsAllowUnfree; [
               # Rust related dependencies
               rustc
               cargo

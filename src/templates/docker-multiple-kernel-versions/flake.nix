@@ -22,7 +22,7 @@
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         OCIImageAlpineAmd64 = prev.dockerTools.pullImage {
           finalImageTag = "1.37.0-musl";
@@ -69,7 +69,6 @@
 
           testScript = { nodes, ... }: ''
             start_all()
-
 
             machine1.wait_for_unit("default.target")
             machine1.succeed("docker load <${final.OCIImageAlpineAmd64}")
@@ -128,7 +127,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -137,12 +135,11 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
             testDockerAndMultiKernels
             ;
-
           default = pkgs.testDockerAndMultiKernels;
         };
 
@@ -156,18 +153,15 @@
 
         devShells.default = with pkgs; mkShell {
           buildInputs = [
-            foo-bar
+            fooBar
             testDockerAndMultiKernels
           ];
-
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
-
       }
     )
   );

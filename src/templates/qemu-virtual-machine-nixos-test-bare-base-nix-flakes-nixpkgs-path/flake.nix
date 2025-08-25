@@ -45,12 +45,28 @@
               # ];
             };
           };
+          extraPythonPackages = p: [ p.pytest ];
           testScript = { nodes, ... }: ''
-            expected = 'nix (Nix) 2.28.3'
-            result = machine.succeed("nix --version").strip()
-            assert expected == result, f"expected = {expected}, result = {result}"
+            import pytest
+            from typing import List, Tuple
 
-            machineABCZ.succeed("nix flake --version")
+
+            @pytest.mark.parametrize(
+                "cmd, expected",
+                [
+                    ("nix --version", "nix (Nix) 1.28.3"),
+                    ("nix flake --version", "nix (Nix) 2.28.3"),
+                    ("nix eval --raw nixpkgs#lib.version", "25.05.20250612.fd48718"),
+                ],
+            )
+            def test_cmds_equal_expected(
+                cmd: str,
+                expected: List[Tuple[str, str]],
+            ):
+              result = machine.succeed(cmd).strip()
+              assert expected == result, f"expected = {expected}, result = {result}"
+
+            # test_cmds_equal_expected()
             machineABCZ.succeed("nix profile list")
             machineABCZ.succeed("nix registry list >&2")
             machineABCZ.succeed("nix flake metadata nixpkgs")

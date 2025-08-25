@@ -1,6 +1,10 @@
-.DS_Store
-.idea*
-result*
-.profiles/*
-.direnv/*
-.venv/*
+__pycache__/
+*.py[cod]
+*$py.class
+.idea/
+.env
+.direnv/
+.profiles/
+*.qcow2
+.nixos-test-history
+result-*

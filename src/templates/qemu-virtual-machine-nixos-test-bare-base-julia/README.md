@@ -7,8 +7,8 @@ nix run --impure --refresh --verbose .#
 
 
 ```bash
-nix flake show '.#' \
-&& nix flake metadata '.#' \
+nix fmt . \
+&& nix flake show --impure '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop '.#' --command sh -c 'true' \
 && nix flake check --verbose '.#'

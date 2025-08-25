@@ -60,7 +60,6 @@
           postInstall = ''
             mv -v $out/bin/main.py $out/bin/run-flask-server
           '';
-
           meta.mainProgram = "run-flask-server";
         };
 
@@ -88,6 +87,120 @@
           config = {
             Cmd = [ "${prev.lib.getExe final.appFlaskAPI}" ];
           };
+        };
+
+        testMyappFirefoxOCR = prev.testers.runNixOSTest {
+          name = "test-myapp-firefox-ocr";
+          nodes.machineWithFirefoxAndOCR =
+            { config, pkgs, lib, modulesPath, ... }:
+            {
+
+              imports = [
+                "${dirOf modulesPath}/tests/common/x11.nix"
+                "${dirOf modulesPath}/tests/common/user-account.nix"
+              ];
+
+              config.services.xserver.enable = true;
+              config.services.xserver.displayManager.startx.enable = true;
+              config.networking.firewall.allowedTCPPorts = [ 8080 ];
+
+              config.environment.systemPackages = with pkgs; [
+                firefox
+                appFlaskAPI
+              ];
+            };
+
+          enableOCR = true;
+          globalTimeout = 160;
+
+          testScript = { nodes, ... }:
+            let
+              apiPort = "${ toString 8080}";
+
+              url = "http://127.0.0.1:${apiPort}";
+              cmdFirefoxUrl = "firefox ${url} >&2 &";
+            in
+            ''
+              start_all()
+
+              machineWithFirefoxAndOCR.wait_for_unit("default.target")
+              machineWithFirefoxAndOCR.wait_for_unit("graphical.target")
+              machineWithFirefoxAndOCR.wait_for_x()
+              machineWithFirefoxAndOCR.screenshot("screen0")
+
+              machineWithFirefoxAndOCR.succeed("run-flask-server >&2 &")
+
+              machineWithFirefoxAndOCR.wait_for_open_port(${apiPort})
+              machineWithFirefoxAndOCR.wait_until_succeeds("curl ${url} | grep --quiet -F 'Hello, World!'")
+
+              machineWithFirefoxAndOCR.execute("${cmdFirefoxUrl}")
+              machineWithFirefoxAndOCR.wait_until_succeeds("pgrep -x firefox")
+              machineWithFirefoxAndOCR.screenshot("screen1")
+              machineWithFirefoxAndOCR.wait_for_text("Hello, World!")
+              machineWithFirefoxAndOCR.screenshot("screen2")
+              machineWithFirefoxAndOCR.send_key("alt-f4")
+              machineWithFirefoxAndOCR.wait_until_fails("pgrep -x firefox")
+            '';
+          # hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs
+        };
+
+        testMyappOCIImageDockerFirefoxOCR = prev.testers.runNixOSTest {
+          name = "test-myapp-as-oci-image-docker-firefox-ocr";
+          nodes.machineWithDockerFirefoxOCR =
+            { config, pkgs, lib, modulesPath, ... }:
+            {
+
+              imports = [
+                "${dirOf modulesPath}/tests/common/x11.nix"
+                "${dirOf modulesPath}/tests/common/user-account.nix"
+              ];
+
+              config.services.xserver.enable = true;
+              config.services.xserver.displayManager.startx.enable = true;
+
+              config.virtualisation.docker.enable = true;
+
+              config.environment.systemPackages = with pkgs; [
+                firefox
+              ];
+            };
+
+          enableOCR = true;
+          globalTimeout = 160;
+
+          testScript = { nodes, ... }:
+            let
+              apiPort = "${ toString 8080}";
+
+              url = "http://127.0.0.1:${apiPort}";
+              cmdFirefoxUrl = "firefox ${url} >&2 &";
+            in
+            ''
+              start_all()
+
+              machineWithDockerFirefoxOCR.succeed("docker load < ${final.python3WithFlaskOCIImage}")
+              machineWithDockerFirefoxOCR.succeed("docker run -d --rm --publish=${apiPort}:${apiPort} flask-app:0.0.1")
+
+              machineWithDockerFirefoxOCR.wait_for_open_port(${apiPort})
+              machineWithDockerFirefoxOCR.wait_until_succeeds("curl ${url} | grep --quiet -F 'Hello, World!'")
+
+              machineWithDockerFirefoxOCR.wait_for_unit("default.target")
+              machineWithDockerFirefoxOCR.wait_for_unit("graphical.target")
+              machineWithDockerFirefoxOCR.wait_for_x()
+              machineWithDockerFirefoxOCR.screenshot("screen0")
+
+              machineWithDockerFirefoxOCR.execute("${cmdFirefoxUrl}")
+              machineWithDockerFirefoxOCR.wait_until_succeeds("pgrep -x firefox")
+              # machineWithDockerFirefoxOCR.sleep(15)
+              # machineWithDockerFirefoxOCR.wait_for_window("firefox")
+              machineWithDockerFirefoxOCR.screenshot("screen1")
+              machineWithDockerFirefoxOCR.wait_for_text("Hello, World!")
+              # machineWithDockerFirefoxOCR.sleep(12)
+              machineWithDockerFirefoxOCR.screenshot("screen2")
+              machineWithDockerFirefoxOCR.send_key("alt-f4")
+              machineWithDockerFirefoxOCR.wait_until_fails("pgrep -x firefox")
+            '';
+          # hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
@@ -275,143 +388,33 @@
             appFlaskAPI
             python3WithFlask
             python3WithFlaskOCIImage
+            myvm
+            automatic-vm
             ;
-        };
-        # packages.default = pkgs.myapp;
-
-        packages.myvm = pkgs.myvm;
-        packages.default = packages.automatic-vm;
-        packages.automatic-vm = pkgs.automatic-vm;
-
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          default = pkgs.automatic-vm;
         };
 
+        apps = {
+          default = let appPkg = pkgs.automatic-vm; in {
+            type = "app";
+            program = "${pkgs.lib.getExe appPkg}";
+            meta.mainProgram = "${appPkg.name}";
+            meta.description = " ";
+          };
+        };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
-          testMyappFirefoxOCR = pkgs.testers.runNixOSTest {
-            name = "test-myapp-firefox-ocr";
-            nodes.machineWithFirefoxAndOCR =
-              { config, pkgs, lib, modulesPath, ... }:
-              {
-
-                imports = [
-                  "${dirOf modulesPath}/tests/common/x11.nix"
-                  "${dirOf modulesPath}/tests/common/user-account.nix"
-                ];
-
-                config.services.xserver.enable = true;
-                config.services.xserver.displayManager.startx.enable = true;
-                config.networking.firewall.allowedTCPPorts = [ 8080 ];
-
-                config.environment.systemPackages = with pkgs; [
-                  firefox
-                  appFlaskAPI
-                ];
-
-              };
-
-            enableOCR = true;
-            globalTimeout = 160;
-
-            testScript = { nodes, ... }:
-              let
-                apiPort = "${ toString 8080}";
-
-                url = "http://127.0.0.1:${apiPort}";
-                cmdFirefoxUrl = "firefox ${url} >&2 &";
-              in
-              ''
-                start_all()
-
-                machineWithFirefoxAndOCR.wait_for_unit("default.target")
-                machineWithFirefoxAndOCR.wait_for_unit("graphical.target")
-                machineWithFirefoxAndOCR.wait_for_x()
-                machineWithFirefoxAndOCR.screenshot("screen0")
-
-                machineWithFirefoxAndOCR.succeed("run-flask-server >&2 &")
-
-                machineWithFirefoxAndOCR.wait_for_open_port(${apiPort})
-                machineWithFirefoxAndOCR.wait_until_succeeds("curl ${url} | grep --quiet -F 'Hello, World!'")
-
-                machineWithFirefoxAndOCR.execute("${cmdFirefoxUrl}")
-                machineWithFirefoxAndOCR.wait_until_succeeds("pgrep -x firefox")
-                machineWithFirefoxAndOCR.screenshot("screen1")
-                machineWithFirefoxAndOCR.wait_for_text("Hello, World!")
-                machineWithFirefoxAndOCR.screenshot("screen2")
-                machineWithFirefoxAndOCR.send_key("alt-f4")
-                machineWithFirefoxAndOCR.wait_until_fails("pgrep -x firefox")
-              '';
-            # hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs
-          };
-
-          testMyappOCIImageDockerFirefoxOCR = pkgs.testers.runNixOSTest {
-            name = "test-myapp-as-oci-image-docker-firefox-ocr";
-            nodes.machineWithDockerFirefoxOCR =
-              { config, pkgs, lib, modulesPath, ... }:
-              {
-
-                imports = [
-                  "${dirOf modulesPath}/tests/common/x11.nix"
-                  "${dirOf modulesPath}/tests/common/user-account.nix"
-                ];
-
-                config.services.xserver.enable = true;
-                config.services.xserver.displayManager.startx.enable = true;
-
-                config.virtualisation.docker.enable = true;
-
-                config.environment.systemPackages = with pkgs; [
-                  firefox
-                ];
-
-              };
-
-            enableOCR = true;
-            globalTimeout = 160;
-
-            testScript = { nodes, ... }:
-              let
-                apiPort = "${ toString 8080}";
-
-                url = "http://127.0.0.1:${apiPort}";
-                cmdFirefoxUrl = "firefox ${url} >&2 &";
-              in
-              ''
-                start_all()
-
-                machineWithDockerFirefoxOCR.succeed("docker load < ${self.packages.${system}.python3WithFlaskOCIImage}")
-                machineWithDockerFirefoxOCR.succeed("docker run -d --rm --publish=${apiPort}:${apiPort} flask-app:0.0.1")
-
-                machineWithDockerFirefoxOCR.wait_for_open_port(${apiPort})
-                machineWithDockerFirefoxOCR.wait_until_succeeds("curl ${url} | grep --quiet -F 'Hello, World!'")
-
-                machineWithDockerFirefoxOCR.wait_for_unit("default.target")
-                machineWithDockerFirefoxOCR.wait_for_unit("graphical.target")
-                machineWithDockerFirefoxOCR.wait_for_x()
-                machineWithDockerFirefoxOCR.screenshot("screen0")
-
-                machineWithDockerFirefoxOCR.execute("${cmdFirefoxUrl}")
-                machineWithDockerFirefoxOCR.wait_until_succeeds("pgrep -x firefox")
-                # machineWithDockerFirefoxOCR.sleep(15)
-                # machineWithDockerFirefoxOCR.wait_for_window("firefox")
-                machineWithDockerFirefoxOCR.screenshot("screen1")
-                machineWithDockerFirefoxOCR.wait_for_text("Hello, World!")
-                # machineWithDockerFirefoxOCR.sleep(12)
-                machineWithDockerFirefoxOCR.screenshot("screen2")
-                machineWithDockerFirefoxOCR.send_key("alt-f4")
-                machineWithDockerFirefoxOCR.wait_until_fails("pgrep -x firefox")
-              '';
-            # hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs
-          };
-
+          inherit (pkgs)
+            testMyappFirefoxOCR
+            testMyappOCIImageDockerFirefoxOCR
+            automatic-vm
+            ;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
             appFlaskAPI
             packageFlaskAPI

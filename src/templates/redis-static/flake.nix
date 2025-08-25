@@ -353,7 +353,7 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
             automatic-vm
@@ -361,13 +361,14 @@
             redisStatic
             testRedisStatic
             ;
-
           default = pkgs.testRedisStatic;
         };
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.mainProgram = "${pkgs.automatic-vm.name}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -379,6 +380,7 @@
             redisStatic
             testRedisStatic
             ;
+          default = pkgs.testRedisStatic;
         };
 
         devShells.default = with pkgs; mkShell {
@@ -394,7 +396,6 @@
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
-
       }
     )
   );

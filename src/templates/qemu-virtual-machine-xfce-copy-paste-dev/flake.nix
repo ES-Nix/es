@@ -284,153 +284,6 @@
                     kdePackages.okular # okular
                     gnome-font-viewer
 
-                    # julia
-                    # julia-bin
-                    /*
-                      (julia.withPackages.override {
-                        precompile = false; # Turn off precompilation
-                      }) ["Plots"]
-                    */
-                    # (julia.withPackages [
-                    ((julia.withPackages.override {
-                      precompile = false; # Turn off precompilation
-                    }) [
-                      /*
-                          # Begin (MI)NLP Solvers
-                          "Alpine"
-                          "Couenne_jll"
-                          "GLPK"
-                          "HiGHS"
-                          "Ipopt"
-                          "JuMP"
-                          "Juniper"
-                          "Pajarito"
-                          "Pavito"
-                          "SCIP"
-                          # "EAGO"
-                          # "Minotaur"
-                          # "Octeract"
-                          # "SHOT"
-                          # End (MI)NLP Solvers
-
-                          # MIT 
-                          # "Juniper" # (MI)SOCP, (MI)NLP
-                          # "SCS" # LP, QP, SOCP, SDP
-                          # "DAQP" # (Mixed-binary) QP
-                          */
-
-                      # "KNITRO"
-                      # "AmplNLWriter"
-                      # "PolyJuMP"
-                      # "SCS"
-                      # "CDDLib"
-                      # "MosekTools"
-                      # "EAGO_jll"
-                      # "PATHSolver.jl"
-                      "DAQP"
-
-                      /*
-                          # Other tools
-                          "ArgParse" 
-                          # "Arpack"          
-                          "BenchmarkProfiles"
-                          "BenchmarkTools"
-                          "Catalyst"
-                          "CategoricalArrays"
-                          "Chain"
-                          "Clustering"      
-                          "Colors"
-                          "ComponentArrays"
-                          "Crayons" # Needed for OhMyREPL color scheme
-                          "CSV"          
-                          "Dagitty"
-                          "DataFrames"   
-                          "DataStructures"  
-                          "Dates"
-                          "DiffEqFlux"
-                          "DifferentialEquations"
-                          "Distances"       
-                          "Distributions"
-                          "FFTW"
-                          "FileIO"
-                          "FourierTools"
-                          "Graphs"
-                          "Gurobi"          
-                          "HDF5"            
-                          "IJulia"
-                          "ImageShow"
-                          "IndexFunArrays"
-                          "InteractiveUtils"
-                          "IterativeSolvers"
-                          "JuliaFormatter"
-                          "Juno"            
-                          "LanguageServer"
-                          "LaTeXStrings"    
-                          "LazySets"
-                          "LightGraphs"     
-                          "LinearAlgebra" 
-                          "LinearMaps"      
-                          "Markdown"
-                          "Measures"
-                          "Metaheuristics"
-                          "MethodOfLines"
-                          "ModelingToolkit"
-                          "NDTools"
-                          "NonlinearSolve"
-                          "OhMyREPL"
-                          "Optim"
-                          "Optimization"
-                          "OptimizationPolyalgorithms"
-                          "OrdinaryDiffEq"
-                          "Parameters"
-                          "Plots"         
-                          "PlotThemes"
-                          "Pluto"
-                          "PlutoUI"
-                          "PrettyTables"
-                          "Printf"
-                          "PyCall"
-                          "PyPlot"          
-                          "Random"                                          
-                          "Roots"
-                          "ScikitLearn"
-                          "SpecialFunctions"
-                          "SQLite"
-                          "StatsPlots"
-                          "TestImages"
-                          "TimeZones"
-                          "TypedPolynomials" 
-                          "UrlDownload"
-                          "VegaLite"  # to make some nice plots
-                          "XLSX"
-                          "ZipFile"
-                          */
-                      # "Atom"            
-                      # "Flux.Losses"
-                      # "Flux"
-                      # "GraphViz"
-                      # "ImageMagick"
-                      # "IntervalArithmetic"
-                      # "JLD"             
-                      # "JLD2"
-                      # "MathOptInterface"
-                      # "UnicodePlots"
-                    ])
-                    # # 
-                    # bonmin
-                    cbc
-                    # clp
-                    # CoinMP
-                    # csdp
-                    # ecos
-                    # glpk
-                    # ipopt
-                    # nlopt
-                    # opensmt
-                    # picosat
-                    # scip
-                    # z3
-
                     yarn
                     nodejs
                     # nodejs_23
@@ -469,7 +322,19 @@
                     # ollama
                     pciutils
 
-                    azure-cli
+                    # azure-cli
+                    # (azure-cli.override {
+                    #   # withExtensions  = (final.azure-cli-extensions or []) ++ [ final.azure-devops ];
+                    #   withExtensions  =  [ 
+                    #     final.azure-cli-extensions.azure-devops 
+                    #     # final.python3Packages.keyring
+                    #     ];
+                    # })
+                    /*
+                    
+                    az devops configure --defaults organization=https://dev.azure.com/portaldedocumentos project=mt-backend-dev
+
+                    */
                     openjdk17
 
                     python311
@@ -878,9 +743,10 @@
                 environment.systemPackages = with pkgs; [
                   # pipenv
                   gcc
+                  parted
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.05";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }

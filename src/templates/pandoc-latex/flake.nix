@@ -139,16 +139,15 @@
           packages.test-nixos = nixos-lib.runTest {
             name = "ocr-from-pdf";
             nodes.machine = { config, pkgs, ... }:
-              let user = config.users.users.alice;
-              in {
+              let
+                # user = config.users.users.alice;
+              in
+              {
                 imports = [
                   "${pkgsAllowUnfree.path}/nixos/tests/common/x11.nix"
                   "${pkgsAllowUnfree.path}/nixos/tests/common/user-account.nix"
                 ];
-                services.xserver.enable = true;
-                services.xserver.displayManager.startx.enable = true;
                 # test-support.displayManager.auto.user = user.name;
-
                 # services.xserver.displayManager.autoLogin.enable = true;
                 # services.xserver.displayManager.autoLogin.user = user.name;
                 # services.xserver.desktopManager.gnome.enable = true;
@@ -156,7 +155,8 @@
                 #    # okular --presentation ''${pkgsAllowUnfree.latex-demo-document}/latex-demo-document.pdf
                 #    ${pkgs.vscodium}/bin/codium
                 # '';
-
+                services.xserver.enable = true;
+                services.xserver.displayManager.startx.enable = true;
                 environment.systemPackages = with pkgsAllowUnfree; [
                   firefox
                   okular
@@ -164,9 +164,9 @@
               };
             hostPkgs = pkgsAllowUnfree;
             enableOCR = true;
-            # Disable linting for simpler debugging of the testScript
-            skipLint = true;
+            skipLint = false; # Disable linting for simpler debugging of the testScript
             skipTypeCheck = true;
+            globalTimeout = 2 * 60;
 
             testScript = ''
               start_all()
@@ -192,12 +192,15 @@
           apps = {
             default = {
               type = "app";
-              program = "${self.packages."${suportedSystem}".scriptFirefox}/bin/script-firefox";
+              program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".scriptFirefox}";
+              meta.mainProgram = "${self.packages."${suportedSystem}".scriptFirefox.name}";
+              meta.description = "Test NixOS with Firefox showing a PDF generated with LaTeX";
             };
-
-            show-print = {
+            showPrint = {
               type = "app";
-              program = "${self.packages."${suportedSystem}".scriptShowPrintScreenFirefox}/bin/script-show-print-screen-firefox";
+              program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".scriptShowPrintScreenFirefox}";
+              meta.mainProgram = "${self.packages."${suportedSystem}".scriptShowPrintScreenFirefox.name}";
+              meta.description = "Script showing a PDF generated with LaTeX";
             };
           };
 
@@ -207,24 +210,17 @@
 
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
-
             ];
-
             shellHook = ''
-              export TMPDIR=/tmp
-
               test -d .profiles || mkdir -v .profiles
-
               test -L .profiles/dev \
               || nix develop .# --impure --profile .profiles/dev --command true
-
               test -L .profiles/dev-shell-default \
               || nix build --impure $(nix eval --impure --raw .#devShells."$system".default.drvPath) --out-link .profiles/dev-shell-"$system"-default
             '';
           };
         }
       )
-
     // {
       #
     };

@@ -79,3 +79,26 @@ nix-instantiate --eval --expr '(builtins.getFlake "nixpkgs").sourceInfo.outPath'
 
 nix-instantiate --eval --expr '( import (builtins.getFlake "nixpkgs") {} ).lib.version'
 ```
+
+
+TODO:
+```bash
+building Nix...
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels/nixos' does not exist, ignoring
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels' does not exist, ignoring
+error: file 'nixpkgs/nixos' was not found in the Nix search path (add it using $NIX_PATH or -I)
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels/nixos' does not exist, ignoring
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels' does not exist, ignoring
+error: file 'nixpkgs' was not found in the Nix search path (add it using $NIX_PATH or -I)
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels/nixos' does not exist, ignoring
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels' does not exist, ignoring
+error: file 'nixpkgs/nixos/modules/installer/tools/nix-fallback-paths.nix' was not found in the Nix search path (add it using $NIX_PATH or -I)
+/tmp/nixos-rebuild.pClwTX/nix
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels/nixos' does not exist, ignoring
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels' does not exist, ignoring
+error: file 'nixpkgs' was not found in the Nix search path (add it using $NIX_PATH or -I)
+building the system configuration...
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels/nixos' does not exist, ignoring
+warning: Nix search path entry '/nix/var/nix/profiles/per-user/root/channels' does not exist, ignoring
+error: file 'nixpkgs/nixos' was not found in the Nix search path (add it using $NIX_PATH or -I)
+```
