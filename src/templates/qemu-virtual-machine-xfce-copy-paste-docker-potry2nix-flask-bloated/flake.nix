@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A QEMU virtual machine with XFCE, copy/paste, Docker, Poetry2nix, FastAPI, bloated";
 
   /*
     nix \
@@ -55,7 +55,7 @@
         p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
         myapp = final.p2n.mkPoetryApplication
           {
-            projectDir = ./.;
+            projectDir = final.p2n.cleanPythonSources { src = ./.; };
             preferWheels = true;
 
             overrides = final.p2n.defaultPoetryOverrides.extend
@@ -153,6 +153,7 @@
                 };
               };
             };
+          globalTimeout = 6 * 60;
           testScript = ''
             start_all()
 
@@ -173,6 +174,8 @@
             assert expected in result, f"expected = {expected}, result = {result}"
           '';
         };
+
+        testMyappOCIImageDriverInteractive = final.testMyappOCIImage.driverInteractive;
 
         nixos-vm = nixpkgs.lib.nixosSystem {
           system = prev.system;
@@ -373,7 +376,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -419,23 +422,25 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.myapp;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.myapp}";
-        };
-
-        apps.automatic-vm = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-        };
-
-        apps.testMyappOCIImageDriverInteractive = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
+        apps = {
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.myapp}";
+            meta.description = "Run the myapp application";
+          };
+          automatic-vm = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+            meta.description = "Run the NixOS VM";
+          };
+          testMyappOCIImageDriverInteractive = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.testMyappOCIImageDriverInteractive}";
+            meta.description = "Run the testMyappOCIImage in interactive mode";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -445,24 +450,25 @@
             myapp
             myappOCIImage
             testMyappOCIImage
+            testMyappOCIImageDriverInteractive
             automatic-vm
             ;
+          default = pkgs.testMyappOCIImage;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             poetry
 
             foo-bar
             myapp
             # myappOCIImage
-            # testMyappOCIImage
-            # automatic-vm            
+            testMyappOCIImage
+            automatic-vm
           ];
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
@@ -474,7 +480,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );

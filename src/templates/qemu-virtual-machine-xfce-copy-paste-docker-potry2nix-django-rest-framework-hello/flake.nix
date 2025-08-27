@@ -50,7 +50,7 @@
             # src = ./.;
             # projectDir = ./.;
             # src = prev.lib.cleanSource ./.;
-            projectDir = ./backend;
+            projectDir = final.p2n.cleanPythonSources { src = ./backend; }; 
             preferWheels = true;
             # projectDir = ./. + "/backend/";
             # pyproject = ./backend/pyproject.toml;
@@ -397,7 +397,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -473,7 +473,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
             poetry
             myapp

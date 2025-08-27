@@ -439,7 +439,7 @@
               # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
               export LD_LIBRARY_PATH="${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
 
-              ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+              ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
               export VNC_PORT=3001
 
@@ -469,7 +469,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -478,7 +477,7 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
             cachedOCIImageAlpineAmd64
@@ -496,13 +495,13 @@
             automatic-vm
             testBinfmtManyEmulatedSystems
             ;
-
           default = pkgs.testBinfmtManyEmulatedSystems;
         };
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -524,22 +523,21 @@
             automatic-vm
             testBinfmtManyEmulatedSystems
             ;
+          default = pkgs.testBinfmtManyEmulatedSystems;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
             testBinfmtManyEmulatedSystems
           ];
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
-
       }
     )
   );

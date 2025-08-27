@@ -58,7 +58,7 @@
               {\huge Hello, World!}
             \end{document}
           '';
-          buildInputs = [
+          packages = [
             final.coreutils
             (final.texlive.combine {
               inherit (final.texlive) scheme-minimal latex-bin latexmk;
@@ -167,7 +167,6 @@
             skipLint = false; # Disable linting for simpler debugging of the testScript
             skipTypeCheck = true;
             globalTimeout = 2 * 60;
-
             testScript = ''
               start_all()
 
@@ -193,13 +192,11 @@
             default = {
               type = "app";
               program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".scriptFirefox}";
-              meta.mainProgram = "${self.packages."${suportedSystem}".scriptFirefox.name}";
               meta.description = "Test NixOS with Firefox showing a PDF generated with LaTeX";
             };
             showPrint = {
               type = "app";
               program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".scriptShowPrintScreenFirefox}";
-              meta.mainProgram = "${self.packages."${suportedSystem}".scriptShowPrintScreenFirefox.name}";
               meta.description = "Script showing a PDF generated with LaTeX";
             };
           };

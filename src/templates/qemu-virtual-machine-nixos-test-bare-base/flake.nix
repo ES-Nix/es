@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A QEMU virtual machine NixOS test bare base template.";
 
   /*
     nix \
@@ -84,7 +84,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             fooBar
             testNixOSBare
             testNixOSBareDriverInteractive

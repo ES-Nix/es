@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A Nix flake for a Nginx Docker image and a NixOS VM with Kubernetes";
 
   /*
     nix \
@@ -129,7 +129,6 @@
           "x86_64-linux"
           "aarch64-linux"
         ];
-
       in
       allAttrs.flake-utils.lib.eachSystem suportedSystems
         (system:
@@ -158,6 +157,7 @@
           apps.default = {
             type = "app";
             program = "${self.packages."${system}".automatic-vm}/bin/run-nixos-vm";
+            meta.description = "Run the NixOS VM with Kubernetes to test nginx OCI image";
           };
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
@@ -174,7 +174,6 @@
               export TMPDIR=/tmp
 
               test -d .profiles || mkdir -v .profiles
-
               test -L .profiles/dev \
               || nix develop --impure .# --profile .profiles/dev --command true
 
@@ -183,7 +182,6 @@
 
               test -L .profiles/nixosConfigurations."$system".vm.config.system.build.vm \
               || nix build --impure --out-link .profiles/nixosConfigurations."$system".vm.config.system.build.vm .#nixosConfigurations.vm.config.system.build.vm
-
             '';
           };
         })

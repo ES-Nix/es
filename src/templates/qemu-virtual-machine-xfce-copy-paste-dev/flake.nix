@@ -821,16 +821,13 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.automatic-vm;
         };
-
-        # packages.myvm = pkgs.myvm;
-        # packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -843,14 +840,13 @@
 
         devShells.default = with pkgs; mkShell {
           # nix eval --json nixpkgs#mkShell.__functionArgs
-          buildInputs = [
+          packages = [
             foo-bar
             automatic-vm
           ];
 
           shellHook = ''
             export TMPDIR=/tmp
-
             test -d .profiles || mkdir -v .profiles
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true

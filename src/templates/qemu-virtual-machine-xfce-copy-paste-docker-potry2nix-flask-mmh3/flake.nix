@@ -55,7 +55,7 @@
         p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
         myapp = final.p2n.mkPoetryApplication
           {
-            projectDir = ./.;
+            projectDir = final.p2n.cleanPythonSources { src = ./.; };
 
             overrides = final.p2n.defaultPoetryOverrides.extend
               (final: prev: {
@@ -366,7 +366,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -424,11 +424,13 @@
         apps.automatic-vm = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         apps.testMyappOCIImageDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
+          meta.description = "Run the myapp OCI Image test in interactive mode";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -443,7 +445,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             poetry
 
             foo-bar

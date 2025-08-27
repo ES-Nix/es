@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "An OCI Image with a statically linked nginx, and a NixOS VM to test it";
 
   /*
     nix \
@@ -63,8 +63,6 @@
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
-
         # perl540 = prev.pkgsStatic.perl540;
 
         # nginxMusl = prev.pkgsMusl.nginx;
@@ -335,7 +333,6 @@
                     jq
                     lsof
                     findutils
-                    foo-bar
                     nginxStatic
                   ];
                   shell = pkgs.bash;
@@ -378,7 +375,7 @@
               # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
               export LD_LIBRARY_PATH="${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
 
-              ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+              ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
               export VNC_PORT=3001
 
@@ -417,41 +414,49 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
-            testNginxStatic
+            automatic-vm
+            myvm
             nginxStatic
+            OCIImageNginxStatic
             perl540
+            testNginxStatic
             ;
-
           default = pkgs.testNginxStatic;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            # testNginxStatic
-            # automatic-vm
+            automatic-vm
+            myvm
+            nginxStatic
+            OCIImageNginxStatic
+            perl540
+            testNginxStatic
             ;
+          default = pkgs.testNginxStatic;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
-            foo-bar
+          packages = [
+            automatic-vm
+            myvm
+            nginxStatic
+            # OCIImageNginxStatic
+            perl540
+            testNginxStatic
           ];
           shellHook = ''
-            export TMPDIR=/tmp
-
             test -d .profiles || mkdir -v .profiles
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true

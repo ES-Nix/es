@@ -511,7 +511,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -531,7 +530,6 @@
             myvm
             testVagrantWithLibvirt
             ;
-
           # default = pkgs.testVagrantWithLibvirt;
           default = pkgs.automatic-vm;
         };
@@ -539,11 +537,13 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         apps.testVagrantWithLibvirtDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testVagrantWithLibvirt.driverInteractive}";
+          meta.description = "Run the testVagrantWithLibvirt in interactive mode";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -554,10 +554,11 @@
             automatic-vm
             testVagrantWithLibvirt
             ;
+          # default = pkgs.testVagrantWithLibvirt;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
             # alpine319
             automatic-vm
@@ -569,7 +570,6 @@
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
-
       }
     )
   );

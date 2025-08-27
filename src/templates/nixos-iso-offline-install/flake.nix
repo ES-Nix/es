@@ -167,7 +167,7 @@
                 run-nixos-offline-install-iso-in-qcow2
               ];
             };
-
+          globalTimeout = 2 * 60;
           testScript = ''
             start_all()
           
@@ -208,11 +208,13 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.run-nixos-offline-install-iso-in-qcow2}";
+          meta.description = "Run NixOS self offline install ISO in .qcow2 in QEMU";
         };
 
         apps.run = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.runQEMUNixOS}";
+          meta.description = "Run a NixOS in QEMU";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -224,10 +226,11 @@
             runQEMUNixOS
             # testISOIntall
             ;
+          default = pkgs.runQEMUNixOS;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
             # ISONixOSSelfOfflineInstallISOInQcow2
             # run-nixos-offline-install-iso-in-qcow2
@@ -236,12 +239,10 @@
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
-
       }
     )
   );

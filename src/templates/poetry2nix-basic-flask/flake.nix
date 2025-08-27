@@ -206,6 +206,7 @@
                   config.virtualisation.docker.enable = true;
                   config.virtualisation.podman.enable = true;
                 };
+              globalTimeout = 2 * 60;
               testScript = ''
                 start_all()
 

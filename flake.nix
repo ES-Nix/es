@@ -161,7 +161,6 @@
     {
       templates = import ./src/templates;
     }
-
   ;
 }
 

@@ -201,7 +201,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             fooBar
             testNixOSPerfFlameGraphs
             testNixOSPerfFlameGraphsDriverInteractive

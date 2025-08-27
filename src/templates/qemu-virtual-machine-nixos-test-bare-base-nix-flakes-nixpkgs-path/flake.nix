@@ -47,26 +47,29 @@
           };
           extraPythonPackages = p: [ p.pytest ];
           testScript = { nodes, ... }: ''
-            import pytest
-            from typing import List, Tuple
 
-
-            @pytest.mark.parametrize(
-                "cmd, expected",
-                [
-                    ("nix --version", "nix (Nix) 1.28.3"),
-                    ("nix flake --version", "nix (Nix) 2.28.3"),
-                    ("nix eval --raw nixpkgs#lib.version", "25.05.20250612.fd48718"),
-                ],
-            )
-            def test_cmds_equal_expected(
+            def test_machine_cmd_equal_expected(
+                machine_arg,
                 cmd: str,
-                expected: List[Tuple[str, str]],
+                expected: str,
             ):
-              result = machine.succeed(cmd).strip()
+              result = machine_arg.succeed(cmd).strip()
               assert expected == result, f"expected = {expected}, result = {result}"
 
+
+            def run_all_version_tests(test_cases):
+                for machine, cmd, expected in test_cases:
+                    test_machine_cmd_equal_expected(machine, cmd, expected)
+
+            test_cases = [
+                (machineABCZ, "nix --version", "nix (Nix) 2.28.3"),
+                (machineABCZ, "nix flake --version", "nix (Nix) 2.28.3"),
+                (machineABCZ, "nix eval --raw nixpkgs#lib.version", "25.05.20250612.fd48718"),
+            ]
+            run_all_version_tests(test_cases)
+
             # test_cmds_equal_expected()
+            # test_cmds_equal_expected("nix --version", "nix (Nix) 2.28.3")
             machineABCZ.succeed("nix profile list")
             machineABCZ.succeed("nix registry list >&2")
             machineABCZ.succeed("nix flake metadata nixpkgs")
@@ -236,6 +239,7 @@
           default = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.testNixOSBareDriverInteractive}";
+            meta.description = "";
           };
         };
 
@@ -250,12 +254,11 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             fooBar
             testNixOSBare
             testNixOSBareDriverInteractive
           ];
-
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
             test -L .profiles/dev \

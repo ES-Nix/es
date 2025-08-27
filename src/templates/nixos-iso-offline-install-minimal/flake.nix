@@ -129,7 +129,7 @@
                 runISONixOSSelfOfflineInstallISOInQcow2
               ];
             };
-
+          globalTimeout = 3 * 60;
           testScript = ''
             start_all()
           
@@ -190,7 +190,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
             ISONixOSSelfOfflineInstallISOInQcow2
             runISONixOSSelfOfflineInstallISOInQcow2

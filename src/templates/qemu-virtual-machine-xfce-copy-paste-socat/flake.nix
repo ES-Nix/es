@@ -144,7 +144,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..100}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -244,7 +244,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             f00Bar
             automatic-vm
           ];

@@ -55,7 +55,7 @@
         p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
         myapp = final.p2n.mkPoetryApplication
           {
-            projectDir = ./.;
+            projectDir = final.p2n.cleanPythonSources { src = ./.; };
 
             overrides = final.p2n.defaultPoetryOverrides.extend
               (final: prev: {
@@ -366,7 +366,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -443,7 +443,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             poetry
 
             foo-bar

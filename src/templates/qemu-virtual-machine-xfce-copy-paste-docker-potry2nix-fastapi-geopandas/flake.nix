@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A QEMU virtual machine with XFCE, copy/paste, Docker, poetry2nix, FastAPI, and GeoPandas.";
 
   /*
     nix \
@@ -55,7 +55,7 @@
         p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
         myapp = final.p2n.mkPoetryApplication
           {
-            projectDir = ./.;
+            projectDir = final.p2n.cleanPythonSources { src = ./.; };
             preferWheels = true;
 
             overrides = final.p2n.defaultPoetryOverrides.extend
@@ -353,7 +353,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -411,6 +411,7 @@
         apps.automatic-vm = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         apps.testMyappAsOCIImageDriverInteractive = {
@@ -430,7 +431,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             poetry
             foo-bar
             myapp

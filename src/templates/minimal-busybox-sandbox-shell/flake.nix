@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A minimal busybox sandbox shell and OCI image tested with NixOS test and docker";
 
   /*
     nix \
@@ -146,7 +146,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -155,7 +154,7 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
             # busybox-sandbox-shell
@@ -166,7 +165,6 @@
             testOCIImageBusyboxSandboxShell
             testOCIImageMinimalBusyboxSandboxShell
             ;
-
           default = pkgs.testOCIImageMinimalBusyboxSandboxShell;
         };
 
@@ -175,6 +173,7 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testOCIImageMinimalBusyboxSandboxShell.driverInteractive}";
+          meta.description = "Run the testOCIImageMinimalBusyboxSandboxShell NixOS test in an interactive mode";
         };
 
         checks = {
@@ -187,21 +186,20 @@
             testOCIImageBusyboxSandboxShell
             testOCIImageMinimalBusyboxSandboxShell
             ;
+          default = pkgs.testOCIImageMinimalBusyboxSandboxShell;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
           ];
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
-
       }
     )
   );

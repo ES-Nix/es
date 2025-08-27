@@ -511,10 +511,11 @@
             automatic-vm
             # testVagrantWithLibvirt
             ;
+            # default = pkgs.testVagrantWithLibvirt;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
             # alpine319
             automatic-vm
@@ -526,7 +527,6 @@
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
-
       }
     )
   );

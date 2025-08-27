@@ -240,7 +240,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..100}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -268,7 +268,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -284,13 +283,13 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.f00Bar;
         };
 
         apps.default = {
           type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          program = "${pkgs.lib.getExe pkgs.automatic-vm}"
+meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -300,17 +299,17 @@
             f00Bar
             automatic-vm
             ;
+            default = pkgs.hello;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             f00Bar
             automatic-vm
           ];
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';

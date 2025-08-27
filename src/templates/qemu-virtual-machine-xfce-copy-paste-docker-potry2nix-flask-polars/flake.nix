@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A QEMU virtual machine with XFCE, copy/paste, Docker, poetry2nix, Flask, Polars";
 
   /*
     nix \
@@ -55,7 +55,7 @@
         p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
         myapp = final.p2n.mkPoetryApplication
           {
-            projectDir = ./.;
+            projectDir = final.p2n.cleanPythonSources { src = ./.; };
             preferWheels = true;
 
             overrides = final.p2n.defaultPoetryOverrides.extend
@@ -118,8 +118,7 @@
             ;
 
             config = {
-              # TODO: use builtins.getTOML to get the command!
-              Cmd = [ "start" ];
+              Cmd = [ "${final.myapp.meta.mainProgram or final.myapp.pname}" ];
             };
           };
 
@@ -368,7 +367,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -414,23 +413,27 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.myapp;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.myapp}";
-        };
+        apps = {
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.myapp}";
+            meta.description = "";
+          };
 
-        apps.automatic-vm = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-        };
+          automatic-vm = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+            meta.description = "";
+          };
 
-        apps.testMyappOCIImageDriverInteractive = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
+          testMyappOCIImageDriverInteractive = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
+            meta.description = "";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -442,22 +445,22 @@
             testMyappOCIImage
             automatic-vm
             ;
+          default = pkgs.testMyappOCIImage;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             poetry
 
             foo-bar
             myapp
             # myappOCIImage
-            # testMyappOCIImage
-            # automatic-vm            
+            testMyappOCIImage
+            automatic-vm
           ];
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
@@ -469,7 +472,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );

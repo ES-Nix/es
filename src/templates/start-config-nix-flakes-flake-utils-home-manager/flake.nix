@@ -109,7 +109,7 @@
       pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
         (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
     in
-    rec {
+    {
       formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
       devShells.default =
@@ -126,7 +126,6 @@
             # echo -e 'X' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
 
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop .# --profile .profiles/dev --command true
 

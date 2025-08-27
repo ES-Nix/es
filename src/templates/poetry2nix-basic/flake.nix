@@ -44,11 +44,13 @@
           # see https://github.com/nix-community/poetry2nix/tree/master#api for more functions and examples.
           pkgs = nixpkgs.legacyPackages.${system};
           nixos-lib = import (nixpkgs + "/nixos/lib") { };
-          inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication;
+          inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication cleanPythonSources;
         in
         {
           packages = {
-            myapp = mkPoetryApplication { projectDir = ./.; };
+            myapp = mkPoetryApplication { projectDir = cleanPythonSources { src = ./.; }; }
+              // { meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.scripts); };
+            
             default = self.packages.${system}.myapp;
 
             myappOCIImage =
@@ -106,8 +108,7 @@
                 ;
 
                 config = {
-                  # TODO: use builtins.getTOML to get the command!
-                  Cmd = [ "start" ];
+                  Cmd = [ "${self.packages.${system}.myapp.meta.mainProgram or self.packages.${system}.myapp.pname}" ];
                   # Cmd = [ "${pkgs.bashInteractive}/bin/bash" ];
                   # Entrypoint = [ entrypoint ];
                   # Entrypoint = [ "${pkgs.bashInteractive}/bin/bash" ];
@@ -133,8 +134,9 @@
 
           apps = {
             default = {
-              program = "${self.packages.${system}.default}/bin/start";
               type = "app";
+              program = "${self.packages.${system}.default}/bin/start";
+              meta.description = "";
             };
           };
 
@@ -147,12 +149,17 @@
                   config.virtualisation.docker.enable = true;
                   config.virtualisation.podman.enable = true;
                 };
+              globalTimeout = 2 * 60;
               testScript = ''
                 start_all()
 
                 machine.succeed("docker load < ${self.packages.${system}.myappOCIImage}")
+                machine.succeed("docker images >&2")
+                machine.succeed("docker images | grep myapp")
                 machine.succeed("podman load < ${self.packages.${system}.myappOCIImage}")
+                machine.succeed("podman images | grep myapp")
 
+                machine.succeed("docker run --rm myapp-oci-image:0.0.1 >&2")
                 machine.succeed("docker run --rm myapp-oci-image:0.0.1 | grep -q 'Hello poetry2nix!'")
                 machine.succeed("podman run --rm localhost/myapp-oci-image:0.0.1 | grep -q 'Hello poetry2nix!'")
               '';

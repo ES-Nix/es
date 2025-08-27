@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A QEMU virtual machine with XFCE, copy/paste, Docker, poetry2nix, FastAPI, and Hello World.";
 
   /*
     nix \
@@ -55,7 +55,7 @@
         p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
         myapp = final.p2n.mkPoetryApplication
           {
-            projectDir = ./.;
+            projectDir = final.p2n.cleanPythonSources { src = ./.; };
             preferWheels = true;
 
             overrides = final.p2n.defaultPoetryOverrides.extend
@@ -108,7 +108,6 @@
             };
           };
 
-
         testMyappOCIImage = prev.testers.runNixOSTest {
           name = "myapp-as-oci-image";
           nodes.machine =
@@ -151,6 +150,8 @@
           '';
           # hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs
         };
+
+        testMyappOCIImageDriverInteractive = final.testMyappOCIImage.driverInteractive;
 
         nixos-vm = nixpkgs.lib.nixosSystem {
           system = prev.system;
@@ -351,7 +352,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -387,9 +388,7 @@
           inherit system;
           overlays = [ self.overlays.default ];
         };
-      in
-      {
-        packages = {
+        f = { pkgs, ... }: {
           inherit (pkgs)
             myapp
             myappOCIImage
@@ -397,50 +396,63 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.myapp;
         };
 
-        apps.default = {
+        ff = { pkgs, pkgsList, defaultPkg, ... }: (
+          (pkgs.lib.forEach pkgsList (pkg:
+            { pkg = pkgs.pkg; }
+          ))
+          // {
+            default = defaultPkg;
+          }
+        );
+
+        g = { pkg, ... }: {
           type = "app";
-          program = "${pkgs.lib.getExe pkgs.myapp}";
+          program = "${pkgs.lib.getExe pkgs.pkg}";
+          meta.description = "";
+        };
+        h = { pkgs, ... }: {
+          automatic-vm = (g { pkg = pkgs.automatic-vm; });
+          default = (g { pkg = pkgs.myapp; });
+          testMyappOCIImageDriverInteractive = (g { pkg = pkgs.testMyappOCIImageDriverInteractive; });
         };
 
-        apps.automatic-vm = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-        };
+        pkgsList = with pkgs; [
+          myapp
+          myappOCIImage
+          testMyappOCIImage
+          myvm
+          automatic-vm
+        ];
+      in
+      {
+        packages = (f pkgs);
 
-        apps.testMyappAsOCIImageDriverInteractive = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
+        # apps = (ff { pkgs = pkgs; pkgsList = pkgsList; defaultPkg = pkgs.myapp; });
+        apps = {
+          myapp = (g { pkg = pkgs.myapp; });
+          myappOCIImage = (g { pkg = pkgs.myappOCIImage; });
+          automatic-vm = (g { pkg = pkgs.automatic-vm; });
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
-        checks = {
-          inherit (pkgs)
-            myapp
-            myappOCIImage
-            testMyappOCIImage
-            automatic-vm
-            ;
-        };
+        checks = (f pkgs);
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             poetry
             foo-bar
-
             myapp
             # myappOCIImage
-            # testMyappOCIImage
-            # automatic-vm            
+            testMyappOCIImage
+            automatic-vm
           ];
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true          
           '';
@@ -452,7 +464,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );

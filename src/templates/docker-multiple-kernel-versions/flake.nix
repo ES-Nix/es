@@ -152,7 +152,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             fooBar
             testDockerAndMultiKernels
           ];

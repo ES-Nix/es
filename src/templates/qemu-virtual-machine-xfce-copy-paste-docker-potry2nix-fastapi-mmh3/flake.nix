@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A QEMU virtual machine with XFCE, copy/paste, Docker, poetry2nix, FastAPI, mmh3";
 
   /*
     nix \
@@ -50,12 +50,12 @@
   outputs = { self, nixpkgs, flake-utils, poetry2nix }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
         myapp = final.p2n.mkPoetryApplication
           {
-            projectDir = ./.;
+            projectDir = final.p2n.cleanPythonSources { src = ./.; };
             preferWheels = true;
 
             overrides = final.p2n.defaultPoetryOverrides.extend
@@ -240,7 +240,7 @@
                     lsof
                     findutils
                     dive
-                    foo-bar
+                    fooBar
                     final.myapp
                     starship
                     direnv
@@ -351,7 +351,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -397,23 +397,25 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.myapp;
         };
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.myapp}";
+          meta.description = "";
         };
 
         apps.automatic-vm = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "";
         };
 
         apps.testmMappAsOCIImageDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
+          meta.description = "";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -425,12 +427,13 @@
             testMyappOCIImage
             automatic-vm
             ;
+          default = pkgs.testMyappOCIImage;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             poetry
-            foo-bar
+            fooBar
             myapp
             # myappOCIImage
             # testMyappOCIImage
@@ -451,7 +454,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );

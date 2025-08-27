@@ -603,7 +603,7 @@
               # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
               export LD_LIBRARY_PATH="${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
 
-              ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+              ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
               export VNC_PORT=3001
 
@@ -642,32 +642,32 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
+            appFl4skAPI
+            automatic-vm
+            myvm
+            OCIImageAppFl4skAPI
+            OCIImagePythonWithPackage
             packageFlaskAPI
             python3WithPackage
-            appFl4skAPI
-            OCIImagePythonWithPackage
-            OCIImageAppFl4skAPI
             ;
-
           default = pkgs.python3WithPackage;
         };
 
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
-
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+        apps = {
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+            meta.description = "Run the NixOS VM with QEMU and connect to it with remote-viewer";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-
             testFl4skBin
             testFl4skPythonModule
             testFl4skPythonApplication
@@ -680,25 +680,24 @@
 
             automatic-vm
             ;
+          default = pkgs.testFl4skBin;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
-            # appFl4skAPI
+            appFl4skAPI
             python3WithPackage
           ];
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true
 
             # echo ${pkgs.OCIImagePythonWithPackage}
           '';
         };
-
       }
     )
   );

@@ -12,7 +12,7 @@ pkgs.nixosTest {
 
     system.stateVersion = "24.05";
   };
-
+  globalTimeout = 2 * 60;
   testScript = ''
     machineWithHelloService.wait_for_unit("helloNixosTests.service")
     machineWithHelloService.wait_for_open_port(3000)

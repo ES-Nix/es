@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A flake to build static memcached servers for multiple architectures and their OCI images";
 
   /*
     nix \
@@ -603,7 +603,6 @@
           '';
         };
 
-
         nixos-vm = nixpkgs.lib.nixosSystem {
           system = prev.system;
           modules = [
@@ -782,7 +781,7 @@
               # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
               export LD_LIBRARY_PATH="${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
 
-              ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+              ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
               export VNC_PORT=3001
 
@@ -812,7 +811,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -821,7 +819,7 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
             OCIImageStaticMemcachedServerMips64el
@@ -844,13 +842,13 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.testBinfmtMany;
         };
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -860,21 +858,20 @@
             testBinfmtMany
             automatic-vm
             ;
+          default = pkgs.testBinfmtMany;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             testBinfmtMany
             automatic-vm
           ];
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
         };
-
       }
     )
   );

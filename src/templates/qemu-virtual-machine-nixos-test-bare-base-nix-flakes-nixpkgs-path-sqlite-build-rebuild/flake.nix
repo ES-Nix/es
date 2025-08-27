@@ -121,7 +121,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             fooBar
             testNixOSBare
             testNixOSBareDriverInteractive

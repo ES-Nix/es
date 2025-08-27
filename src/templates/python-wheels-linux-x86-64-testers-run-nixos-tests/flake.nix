@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A NixOS VM that can run and test many Python wheels on Linux x86_64 using binfmt_misc";
 
   /*
     nix \
@@ -604,7 +604,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -641,7 +641,7 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
             automatic-vm
@@ -654,6 +654,7 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -666,7 +667,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
             python3WithPackages
           ];

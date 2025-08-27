@@ -311,7 +311,7 @@
           text = ''
             export VNC_PORT=3001
 
-            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+            ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
             for _ in {0..50}; do
               if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
@@ -348,34 +348,34 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
+            automatic-vm
+            myvm
             testBinfmtMany
             ;
-
           default = pkgs.testBinfmtMany;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            # testBinfmtMany
+            testBinfmtMany
             # automatic-vm
             ;
+          default = pkgs.testBinfmtMany;
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
           ];
           shellHook = ''
@@ -384,7 +384,6 @@
             || nix develop --impure .# --profile .profiles/dev --command true
           '';
         };
-
       }
     )
   );

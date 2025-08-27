@@ -120,6 +120,7 @@
           apps.default = {
             type = "app";
             program = "${self.packages."${system}".automatic-vm}/bin/run-nixos-vm";
+            meta.description = "Run the NixOS QEMU virtual machine";
           };
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;

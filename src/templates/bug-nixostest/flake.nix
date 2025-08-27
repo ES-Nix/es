@@ -283,7 +283,7 @@
               # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
               export LD_LIBRARY_PATH="${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
 
-              ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+              ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
               export VNC_PORT=3001
 
@@ -322,22 +322,21 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
-            testBinfmtMany
+            # testBinfmtMany
             nginxStatic
+            myvm
+            automatic-vm
             ;
-
           default = pkgs.testNginxStatic;
         };
-
-        packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -350,11 +349,10 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
           ];
         };
-
       }
     )
   );

@@ -38,7 +38,7 @@
     {
       formatter."${system}" = pkgs.nixpkgs-fmt;
       devShells."${system}".default = pkgs.mkShell {
-        buildInputs = [
+        packages = [
         ];
         shellHook = ''
           test -d .profiles || mkdir -v .profiles

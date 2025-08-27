@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A QEMU virtual machine with XFCE, copy-paste, Docker, Podman, Flask, Poetry2nix, flask, and many more";
 
   /*
     nix \
@@ -56,7 +56,6 @@
 
             });
         };
-
 
         myappOCIImage =
           let
@@ -781,7 +780,7 @@
               # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
               export LD_LIBRARY_PATH="${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
 
-              ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
+              ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
               export VNC_PORT=3001
 
@@ -1006,7 +1005,6 @@
         "x86_64-linux"
         "aarch64-linux"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -1015,7 +1013,7 @@
           overlays = [ self.overlays.default ];
         };
       in
-      rec {
+      {
         packages = {
           inherit (pkgs)
             myapp
@@ -1032,11 +1030,13 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         apps.NixOSVMNoGraphical = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.myvmNoGRaphicalPkg}";
+          meta.description = "Run the NixOS VM without graphical interface";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -1114,7 +1114,6 @@
 
             enableOCR = true;
             globalTimeout = 60;
-
             testScript = ''
               start_all()
 
@@ -1134,7 +1133,7 @@
               {
                 config.virtualisation.podman.enable = true;
               };
-
+            globalTimeout = 2 * 60;
             testScript = ''
               start_all()
 
@@ -1150,7 +1149,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             foo-bar
             myapp
             # poetry
