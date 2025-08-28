@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A Nix flake for a QEMU virtual machine with XFCE, copy/paste, Docker, poetry2nix, and a Django REST Framework hello world app.";
 
   /*
     nix \
@@ -50,7 +50,7 @@
             # src = ./.;
             # projectDir = ./.;
             # src = prev.lib.cleanSource ./.;
-            projectDir = final.p2n.cleanPythonSources { src = ./backend; }; 
+            projectDir = final.p2n.cleanPythonSources { src = ./backend; };
             preferWheels = true;
             # projectDir = ./. + "/backend/";
             # pyproject = ./backend/pyproject.toml;
@@ -161,6 +161,7 @@
               # ];
 
             };
+          globalTimeout = 2 * 60;
           testScript = ''
             start_all()
 
@@ -425,7 +426,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -449,16 +449,17 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.myapp}";
+          meta.description = "Run the myapp application";
         };
-
         apps.automatic-vm = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
-
         apps.testMyappAsOCIImageDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
+          meta.description = "Run the testMyappAsOCIImageDriverInteractive";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -496,7 +497,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );

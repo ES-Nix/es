@@ -405,7 +405,6 @@
           program = "${pkgs.lib.getExe pkgs.myapp}";
           meta.description = "Run the myapp application";
         };
-
         apps.automatic-vm = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";

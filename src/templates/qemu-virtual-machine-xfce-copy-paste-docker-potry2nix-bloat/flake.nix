@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A Nix flake for a QEMU virtual machine with XFCE, copy/paste, Docker, poetry2nix, and bloated libs.";
 
   /*
     nix \
@@ -411,7 +411,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -429,23 +428,23 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.myapp;
         };
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.myapp}";
+          meta.description = "Run the myapp application";
         };
-
         apps.automatic-vm = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
-
         apps.testMyAppAsOCIImageDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testMyAppAsOCIImage.driverInteractive}";
+          meta.description = "Run the testMyAppAsOCIImageDriverInteractive";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -457,6 +456,7 @@
             testMyAppAsOCIImage
             automatic-vm
             ;
+          default = pkgs.testMyAppAsOCIImage;
         };
 
         devShells.default = with pkgs; mkShell {
@@ -479,7 +479,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );
