@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A NixOS VM with XFCE, copy/paste, libvirt and vagrant with Debian";
 
   /*
     nix \
@@ -44,9 +44,12 @@
       (final: prev: {
         foo-bar = prev.hello;
 
+        # debian = prev.hello;
         debian = prev.fetchurl {
-          url = "https://vagrantcloud.com/alvistack/boxes/debian-12/versions/20250517.1.1/providers/libvirt/amd64/vagrant.box";
-          hash = "sha256-3ezLawi6aG3f3L5lyrAX2suAW06SdmuSzxMmiveNcQc=";
+          url = "https://vagrantcloud.com/alvistack/boxes/debian-12/versions/20250825.1.1/providers/libvirt/amd64/vagrant.box";
+          # url = "https://vagrantcloud.com/alvistack/boxes/debian-12/versions/20250517.1.1/providers/libvirt/amd64/vagrant.box";
+          # url = "https://vagrantcloud.com/alvistack/boxes/debian-12/versions/20250517.1.1/providers/libvirt/amd64/vagrant.box";
+          hash = "sha256-qBQMgn2sQe8LhqBNRVPutEmPuhzLM9PbHZZQusWpTXA=";
         };
 
         vagrantfileDebian = prev.writeText "vagrantfile-debian" ''
@@ -336,7 +339,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -359,6 +361,7 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -367,6 +370,7 @@
           inherit (pkgs)
             automatic-vm
             ;
+          default = pkgs.automatic-vm;
         };
 
         devShells.default = with pkgs; mkShell {

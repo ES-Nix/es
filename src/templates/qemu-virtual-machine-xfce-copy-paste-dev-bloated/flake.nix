@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A Nix flake for a QEMU virtual machine with XFCE, copy/paste, Docker, poetry2nix, and bloated libs.";
 
   /*
     nix \
@@ -954,7 +954,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -969,12 +968,8 @@
             myvm
             automatic-vm
             ;
-
           default = pkgs.automatic-vm;
         };
-
-        # packages.myvm = pkgs.myvm;
-        # packages.automatic-vm = pkgs.automatic-vm;
 
         apps.default = {
           type = "app";
@@ -988,6 +983,7 @@ meta.description = "Run the NixOS VM";
           inherit (pkgs)
             automatic-vm
             ;
+          default = pkgs.automatic-vm;
         };
 
         devShells.default = with pkgs; mkShell {
@@ -999,7 +995,6 @@ meta.description = "Run the NixOS VM";
 
           shellHook = ''
             export TMPDIR=/tmp
-
             test -d .profiles || mkdir -v .profiles
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true
