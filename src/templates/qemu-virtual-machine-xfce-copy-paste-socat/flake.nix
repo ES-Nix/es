@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "NixOS VM with XFCE, copy/paste and socat enabled";
 
   /*
 
@@ -221,15 +221,14 @@
             myvm
             automatic-vm
             ;
-
           # default = pkgs.f00Bar;
           default = pkgs.testNixOSSocat;
-
         };
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -241,6 +240,7 @@
             testNixOSSocat
             testNixOSSocatDriverInteractive
             ;
+          default = pkgs.testNixOSSocat;
         };
 
         devShells.default = with pkgs; mkShell {
@@ -251,7 +251,6 @@
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';

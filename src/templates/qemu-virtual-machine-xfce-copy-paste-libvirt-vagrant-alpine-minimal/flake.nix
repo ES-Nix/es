@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "QEMU Virtual Machine with XFCE, Copy/Paste, Libvirt, Vagrant, Alpine Minimal";
 
   /*
     nix \
@@ -73,11 +73,11 @@
           Vagrant.configure("2") do |config|
             # Every Vagrant development environment requires a box. You can search for
             # boxes at https://vagrantcloud.com/search.
-            # config.vm.box = "generic/alpine319"
-            config.vm.box = "generic/ubuntu2204"
+            config.vm.box = "generic/alpine319"
+            # config.vm.box = "generic/ubuntu2204"
             # config.vm.box = "gnome-shell-box/alpine321"
             # config.vm.box = "gnome-shell-box/ubuntu2504"
-            config.vm.box = "cloud-image/alpine-3.22"
+            # config.vm.box = "cloud-image/alpine-3.22"
             # config.vm.box = "gnome-shell-box/alpine318"
 
             # config.vm.box = "debian/bookworm64"
@@ -173,8 +173,8 @@
                     && vagrant \
                         box \
                         add \
-                        "${pkgs.alpine321.meta.boxName}" \
-                        "${pkgs.alpine321}" \
+                        "${pkgs.alpine319.meta.boxName}" \
+                        "${pkgs.alpine319}" \
                         --force \
                         --debug \
                         --provider \
@@ -466,7 +466,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -482,36 +481,36 @@
         packages = {
           inherit (pkgs)
             alpine319
-            alpine321
+            # alpine321
             alpine322
+            automatic-vm
             myvm
             testVagrantWithLibvirt
             ;
-
-          # default = pkgs.testVagrantWithLibvirt;
           default = pkgs.automatic-vm;
         };
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
-
         apps.testVagrantWithLibvirtDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testVagrantWithLibvirt.driverInteractive}";
+          meta.description = "Run the Vagrant with Libvirt test in interactive mode";
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            # alpine319
-            alpine321
+            alpine319
+            # alpine321
             automatic-vm
             # testVagrantWithLibvirt
             ;
-            # default = pkgs.testVagrantWithLibvirt;
+          # default = pkgs.testVagrantWithLibvirt;
         };
 
         devShells.default = with pkgs; mkShell {

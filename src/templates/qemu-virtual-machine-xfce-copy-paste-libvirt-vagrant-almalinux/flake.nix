@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A NixOS VM with XFCE, copy/paste support, Libvirt and Vagrant with AlmaLinux";
 
   /*
     nix \

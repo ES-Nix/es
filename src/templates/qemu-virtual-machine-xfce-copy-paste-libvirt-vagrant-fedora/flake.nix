@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A NixOS VM with XFCE, copy/paste support, Libvirt and Vagrant with Fedora box";
 
   /*
     nix \
@@ -341,7 +341,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -361,13 +360,13 @@
             myvm
             vagrantfileFedora
             ;
-
           default = pkgs.automatic-vm;
         };
 
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -380,6 +379,7 @@
             # myvm
             vagrantfileFedora
             ;
+          default = pkgs.automatic-vm;
         };
 
         devShells.default = with pkgs; mkShell {

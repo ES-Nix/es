@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A NixOS VM with XFCE, copy/paste NixOS tests";
 
   /*
     nix \
@@ -188,7 +188,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -211,11 +210,12 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          meta.description = "Run the NixOS VM";
         };
-
         apps.testNixOSBareDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testNixOSBareDriverInteractive}";
+          meta.description = "Run the NixOS Bare test in interactive mode";
         };
 
         formatter = pkgs.nixpkgs-fmt;

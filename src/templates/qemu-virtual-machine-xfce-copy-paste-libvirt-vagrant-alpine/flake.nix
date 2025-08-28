@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A NixOS VM with XFCE, copy/paste support, Libvirt and Vagrant with Alpine Linux";
 
   /*
     nix \
@@ -539,7 +539,6 @@
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
           meta.description = "Run the NixOS VM";
         };
-
         apps.testVagrantWithLibvirtDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testVagrantWithLibvirt.driverInteractive}";
