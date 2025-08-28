@@ -131,6 +131,7 @@
                 };
               };
             };
+          globalTimeout = 2 * 60;
           testScript = ''
             start_all()
 
@@ -380,7 +381,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let

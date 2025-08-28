@@ -132,6 +132,7 @@
                 };
               };
             };
+          globalTimeout = 2 * 60;
           testScript = ''
             start_all()
 
@@ -411,7 +412,6 @@
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
           meta.description = "";
         };
-
         apps.testmMappAsOCIImageDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
@@ -437,12 +437,11 @@
             myapp
             # myappOCIImage
             # testMyappOCIImage
-            # automatic-vm            
+            # automatic-vm
           ];
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';

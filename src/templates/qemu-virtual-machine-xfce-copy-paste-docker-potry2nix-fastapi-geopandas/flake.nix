@@ -134,6 +134,7 @@
                 };
               };
             };
+          globalTimeout = 2 * 60;
           testScript = ''
             start_all()
 
@@ -428,6 +429,7 @@
             testMyappOCIImage
             automatic-vm
             ;
+          default = pkgs.testMyappOCIImage;
         };
 
         devShells.default = with pkgs; mkShell {
@@ -442,7 +444,6 @@
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
@@ -454,7 +455,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );

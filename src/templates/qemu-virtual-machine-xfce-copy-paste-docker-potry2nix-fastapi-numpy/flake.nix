@@ -131,6 +131,7 @@
                 };
               };
             };
+          globalTimeout = 2 * 60;
           testScript = ''
             start_all()
 
@@ -380,7 +381,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -405,20 +405,17 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.myapp}";
-          meta.mainProgram = "${pkgs.myapp.name}";
-          # meta.description = "${pkgs.myapp.description}";
+          meta.description = "Run the myapp FastAPI application.";
         };
-
         apps.automatic-vm = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          # meta.description = "${pkgs.automatic-vm.description}";
+          meta.description = "Run the NixOS VM with QEMU and SPICE.";
         };
-
         apps.testMyappOCIImageDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testMyappOCIImageDriverInteractive}";
-          # meta.description = "${pkgs.testMyappOCIImageDriverInteractive.description}";
+          meta.description = "Run the testMyappOCIImageDriverInteractive.";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -446,7 +443,6 @@
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
@@ -458,7 +454,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );

@@ -460,7 +460,7 @@
         };
 
         devShells.default = with pkgs; mkShell {
-          buildInputs = [
+          packages = [
             poetry
             automatic-vm
             foo-bar

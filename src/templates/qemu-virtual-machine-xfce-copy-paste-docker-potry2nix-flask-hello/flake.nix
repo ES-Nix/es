@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A QEMU virtual machine with XFCE, copy/paste, Docker, poetry2nix, and a Flask hello world app";
 
   /*
     nix \
@@ -161,6 +161,7 @@
               # ];
 
             };
+          globalTimeout = 2 * 60;
           testScript = ''
             start_all()
 
@@ -421,7 +422,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -448,13 +448,11 @@
           meta.mainProgram = "${pkgs.myapp.name}";
           meta.description = "Run the Flask hello world app";
         };
-
         apps.automatic-vm = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
           meta.description = "Run the NixOS VM";
         };
-
         apps.testMyappAsOCIImageDriverInteractive = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.testMyappAsOCIImage.driverInteractive}";
@@ -470,6 +468,7 @@
             testMyappAsOCIImage
             automatic-vm
             ;
+          default = pkgs.testMyappAsOCIImage;
         };
 
         devShells.default = with pkgs; mkShell {
@@ -483,7 +482,6 @@
 
           shellHook = ''
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop --impure .# --profile .profiles/dev --command true             
           '';
@@ -495,7 +493,6 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-
       }
     )
   );

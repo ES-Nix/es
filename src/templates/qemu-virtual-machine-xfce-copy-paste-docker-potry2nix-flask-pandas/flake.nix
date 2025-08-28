@@ -145,6 +145,7 @@
                 };
               };
             };
+          globalTimeout = 2 * 60;
           testScript = ''
             start_all()
 
@@ -395,7 +396,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -420,19 +420,17 @@
           default = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.myapp}";
-            meta.description = "";
+            meta.description = "Run the myapp application";
           };
-
           automatic-vm = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.automatic-vm}";
             meta.description = "Run the NixOS VM";
           };
-
           testMyappOCIImageDriverInteractive = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
-            meta.description = "";
+            meta.description = "Interactively test the myapp OCI Image in a NixOS VM";
           };
         };
 
