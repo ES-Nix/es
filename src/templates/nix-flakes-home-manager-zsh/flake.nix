@@ -33,7 +33,16 @@
       homeDirectory = "/home/${userName}";
 
       system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
+      # pkgs = nixpkgs.legacyPackages.${system};
+      overlays.default = nixpkgs.lib.composeManyExtensions [
+        (final: prev: {
+          fooBar = prev.hello;
+        })
+      ];
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ overlays.default ];
+      };
     in
     {
       formatter."${system}" = pkgs.nixpkgs-fmt;
@@ -67,6 +76,7 @@
                 git
                 nix
                 zsh
+                fooBar
               ];
 
               nix = {

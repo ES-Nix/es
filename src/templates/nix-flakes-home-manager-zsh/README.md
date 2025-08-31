@@ -97,6 +97,9 @@ For investigating:
 ```bash
 nix eval --impure '.#homeConfigurations.vagrant.activationPackage'
 nix eval --impure '.#homeConfigurations.vagrant.activation-script'
+
+nix build --no-link --print-build-logs --print-out-paths '.#homeConfigurations.vagrant.activationPackage'
+nix build --no-link --print-build-logs --print-out-paths '.#homeConfigurations.vagrant.activation-script'
 ```
 
 

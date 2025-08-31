@@ -1,5 +1,5 @@
 {
-  description = " ";
+  description = "A Nix flake for generating a simple LaTeX document and viewing it with Firefox or Okular";
 
   /*
     nix \
@@ -40,10 +40,9 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     {
-      inherit (self) outputs;
+      # inherit (self) outputs;
 
       overlays.default = final: prev: {
         inherit self final prev;
@@ -96,6 +95,77 @@
           # dontPatchELF = true;
           # dontFixup = true;
         };
+
+        test-nixos = prev.testers.runNixOSTest {
+          name = "ocr-from-pdf";
+          nodes.machine = { config, pkgs, lib, modulesPath, ... }:
+            let
+              # user = config.users.users.alice;
+            in
+            {
+              imports = [
+                # "${pkgs.path}/nixos/tests/common/x11.nix"
+                # "${pkgs.path}/nixos/tests/common/user-account.nix"
+                "${dirOf modulesPath}/tests/common/x11.nix"
+                "${dirOf modulesPath}/tests/common/user-account.nix"
+              ];
+              # test-support.displayManager.auto.user = user.name;
+              # services.xserver.displayManager.autoLogin.enable = true;
+              # services.xserver.displayManager.autoLogin.user = user.name;
+              # services.xserver.desktopManager.gnome.enable = true;
+              # services.xserver.displayManager.sessionCommands = ''
+              #    # okular --presentation ''${pkgs.latex-demo-document}/latex-demo-document.pdf
+              #    ${pkgs.vscodium}/bin/codium
+              # '';
+              services.xserver.enable = true;
+              services.xserver.displayManager.startx.enable = true;
+              environment.systemPackages = with pkgs; [
+                firefox
+                okular
+              ];
+            };
+          # hostPkgs = pkgsAllowUnfree;
+          enableOCR = true;
+          skipLint = false; # Disable linting for simpler debugging of the testScript
+          skipTypeCheck = true;
+          globalTimeout = 2 * 60;
+          testScript = ''
+            start_all()
+
+            machine.wait_for_unit('graphical.target')
+
+            # machine.screenshot("firefox1")
+            # machine.execute("firefox >&2 &")
+            # machine.wait_for_text(r"(Mozilla Firefox|Directory listing for)")
+            # machine.screenshot("firefox2")
+
+            machine.execute("okular --presentation ${final.latex-demo-document}/latex-demo-document.pdf >&2 &")
+            machine.screenshot("okular1")
+            machine.wait_for_text("There are two ways of exiting")
+            machine.send_key("esc")
+            # Move the mouse out of the way
+            machine.succeed("${prev.xdotool}/bin/xdotool mousemove 0 0")
+            machine.wait_for_text(r"(Hello, World!)")
+            machine.screenshot("okular2")
+          '';
+        };
+
+        scriptFirefox = prev.writeShellApplication {
+          name = "script-firefox";
+          runtimeInputs = with final; [ bash firefox latex-demo-document ];
+          text = ''
+            firefox "${final.latex-demo-document}"/latex-demo-document.pdf
+          '';
+        };
+
+        scriptShowPrintScreenFirefox = prev.writeShellApplication {
+          name = "script-show-print-screen-firefox";
+          runtimeInputs = with prev; [ okular ];
+          text = ''
+            okular "${final.test-nixos}"/okular2.png
+          '';
+        };
+
       };
     } //
     flake-utils.lib.eachSystem suportedSystems
@@ -107,104 +177,42 @@
             config.allowUnfree = true;
           };
 
-          # TODO: double check it
-          nixos-lib = import (nixpkgs + "/nixos/lib") { };
-
           # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
           pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
             (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
         in
         {
+          packages = {
+            inherit (pkgsAllowUnfree)
+              latex-demo-document
+              scriptFirefox
+              test-nixos
+              ;
+            default = pkgsAllowUnfree.latex-demo-document;
+          };
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
-
-          packages.default = pkgsAllowUnfree.latex-demo-document;
-
-          packages.scriptFirefox = pkgsAllowUnfree.writeShellApplication {
-            name = "script-firefox";
-            runtimeInputs = with pkgsAllowUnfree; [ bash firefox latex-demo-document ];
-            text = ''
-              firefox "${pkgsAllowUnfree.latex-demo-document}"/latex-demo-document.pdf
-            '';
-          };
-
-          packages.scriptShowPrintScreenFirefox = pkgsAllowUnfree.writeShellApplication {
-            name = "script-show-print-screen-firefox";
-            runtimeInputs = with pkgsAllowUnfree; [ okular ];
-            text = ''
-              okular "${self.packages."${suportedSystem}".test-nixos}"/okular2.png
-            '';
-          };
-
-          packages.test-nixos = nixos-lib.runTest {
-            name = "ocr-from-pdf";
-            nodes.machine = { config, pkgs, ... }:
-              let
-                # user = config.users.users.alice;
-              in
-              {
-                imports = [
-                  "${pkgsAllowUnfree.path}/nixos/tests/common/x11.nix"
-                  "${pkgsAllowUnfree.path}/nixos/tests/common/user-account.nix"
-                ];
-                # test-support.displayManager.auto.user = user.name;
-                # services.xserver.displayManager.autoLogin.enable = true;
-                # services.xserver.displayManager.autoLogin.user = user.name;
-                # services.xserver.desktopManager.gnome.enable = true;
-                # services.xserver.displayManager.sessionCommands = ''
-                #    # okular --presentation ''${pkgsAllowUnfree.latex-demo-document}/latex-demo-document.pdf
-                #    ${pkgs.vscodium}/bin/codium
-                # '';
-                services.xserver.enable = true;
-                services.xserver.displayManager.startx.enable = true;
-                environment.systemPackages = with pkgsAllowUnfree; [
-                  firefox
-                  okular
-                ];
-              };
-            hostPkgs = pkgsAllowUnfree;
-            enableOCR = true;
-            skipLint = false; # Disable linting for simpler debugging of the testScript
-            skipTypeCheck = true;
-            globalTimeout = 2 * 60;
-            testScript = ''
-              start_all()
-
-              machine.wait_for_unit('graphical.target')
-
-              # machine.screenshot("firefox1")
-              # machine.execute("firefox >&2 &")
-              # machine.wait_for_text(r"(Mozilla Firefox|Directory listing for)")
-              # machine.screenshot("firefox2")
-
-              machine.execute("okular --presentation ${pkgsAllowUnfree.latex-demo-document}/latex-demo-document.pdf >&2 &")
-              machine.screenshot("okular1")
-              machine.wait_for_text("There are two ways of exiting")
-              machine.send_key("esc")
-              # Move the mouse out of the way
-              machine.succeed("${pkgsAllowUnfree.xdotool}/bin/xdotool mousemove 0 0")
-              machine.wait_for_text(r"(Hello, World!)")
-              machine.screenshot("okular2")
-            '';
-          };
 
           apps = {
             default = {
               type = "app";
-              program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".scriptFirefox}";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.scriptFirefox}";
               meta.description = "Test NixOS with Firefox showing a PDF generated with LaTeX";
             };
             showPrint = {
               type = "app";
-              program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".scriptShowPrintScreenFirefox}";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.scriptShowPrintScreenFirefox}";
               meta.description = "Script showing a PDF generated with LaTeX";
             };
           };
 
           checks = {
-            test-nixos = self.packages."${suportedSystem}".test-nixos;
+            inherit (pkgsAllowUnfree)
+              latex-demo-document
+              scriptFirefox
+              ;
+            default = pkgsAllowUnfree.latex-demo-document;
           };
-
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
             ];
