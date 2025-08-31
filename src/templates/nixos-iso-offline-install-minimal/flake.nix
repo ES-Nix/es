@@ -164,18 +164,20 @@
             runQEMUNixOS
             testISOInstall
             ;
-          # default = pkgs.testISOIntall;
           default = pkgs.ISONixOSSelfOfflineInstallISOInQcow2;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.runISONixOSSelfOfflineInstallISOInQcow2}";
-        };
-
-        apps.run = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.runQEMUNixOS}";
+        apps = {
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.runISONixOSSelfOfflineInstallISOInQcow2}";
+            meta.description = "Run NixOS Self Offline Install ISO in QEMU";
+          };
+          run = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.runQEMUNixOS}";
+            meta.description = "Run a NixOS in QEMU";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;

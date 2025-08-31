@@ -184,8 +184,8 @@ command -v curl || (command -v apk && sudo apk add --no-cache curl)
 || test -w /nix \
 || test 1735 -eq $(stat -c '%a' /nix/var/nix)
 ) || sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix') \
-&& curl -L https://hydra.nixos.org/build/278148689/download-by-type/file/binary-dist > nix \
-&& echo 41ffe16f6119fbcf06f2e442d62cf7e051e272a9e2bac0cda754732652282134'  'nix \
+&& curl -L https://hydra.nixos.org/build/297111184/download-by-type/file/binary-dist > nix \
+&& echo 7838348c0e560855921cfa97051161bd63e29ee7ef4111eedc77228e91772958'  'nix \
  | sha256sum -c \
 && chmod +x nix \
 && ./nix --version \

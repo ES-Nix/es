@@ -158,7 +158,7 @@
               services.xserver.xkb.layout = "br";
               services.displayManager.autoLogin.user = "nixuser";
               services.xserver.displayManager.sessionCommands = ''
-                test -f 
+                test -f "$HOME"/.zshrc || touch "$HOME"/.zshrc
                 exo-open \
                   --launch TerminalEmulator \
                   --zoom=-1 \

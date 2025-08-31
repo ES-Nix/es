@@ -13,7 +13,10 @@ nix run '.#' && nix run '.#run'
 
 3) In the VM's terminal:
 ```bash
-sudo nixos-rebuild test \
+# TODO: remove the nix-channel
+sudo nix-channel --update -vv \
+&& sudo nixos-rebuild list-generations --json \
+&& sudo nixos-rebuild test \
 && sudo nixos-rebuild switch
 ```
 
@@ -97,8 +100,6 @@ nix-build \
 -I "nixos-config=/mnt/etc/nixos/configuration.nix"
 
 
-
-
 nix-build \
 --out-link /mnt/system \
 --store /mnt \
@@ -118,7 +119,10 @@ time nix --option cores 8 build --print-build-logs --print-out-paths '.#ISONixOS
 time nix --option cores 8 build --print-build-logs --print-out-paths --rebuild '.#ISONixOSSelfOfflineInstallISOInQcow2'
 
 
-TODO: figure it out why so many bugs/race conditions using the script that install NixOS
+TODO: 
+
+Figure it out why so many bugs/race conditions using the script that install NixOS!
+
 ```bash
 Error: You requested a partition from 537MB to 11.8GB (sectors 1048576..23068671).
 The closest location we can manage is 537MB to 537MB (sectors 1048575..1048575).
@@ -127,7 +131,6 @@ The closest location we can manage is 537MB to 537MB (sectors 1048575..1048575).
 ```bash
 Error: primary partition table array CRC mismatch
 ```
-
 
 ```bash
 Error: The backup GPT table is corrupt, but the primary appears OK, so that will be used.

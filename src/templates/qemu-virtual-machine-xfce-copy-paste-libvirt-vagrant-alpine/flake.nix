@@ -123,18 +123,15 @@
               && echo 'vagrant ALL=(ALL) PASSWD:SETENV: ALL' > /etc/sudoers.d/vagrant
 
               # mkdir -pv -m 1735 /nix/var/nix && chown -Rv vagrant:vagrant /nix
-              su vagrant -lc \
-              '
-                # curl -L https://hydra.nixos.org/build/297111184/download-by-type/file/binary-dist > nix \
-                # && chmod +x nix \
-                # && ./nix --version \
-                # && export NIX_CONFIG="extra-experimental-features = nix-command flakes auto-allocate-uids" \
-                # && export PATH="$HOME"/.nix-profile/bin:"$PATH" \
-                # && export NIX_PATH=nixpkgs=$(./nix eval --raw nixpkgs#path) \
-                # && ./nix registry pin nixpkgs github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
-                # && ./nix profile install nixpkgs#nix nixpkgs#path \
-                # && echo End
-              '
+              # su vagrant -lc \
+              # '
+              #   BUILD_ID=297111184
+              #   curl -L https://hydra.nixos.org/build/$BUILD_ID/download-by-type/file/binary-dist > nix \
+              #   && echo 7838348c0e560855921cfa97051161bd63e29ee7ef4111eedc77228e91772958'  'nix \
+              #   | sha256sum -c \
+              #   && chmod +x nix \
+              #   && ./nix --version
+              # '
             SHELL
           end
         '';

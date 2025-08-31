@@ -32,7 +32,6 @@
         "aarch64-darwin"
         "x86_64-darwin"
       ];
-
     in
     {
       inherit (self) outputs;
@@ -63,10 +62,15 @@
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
-          packages.default = self.devShells."${suportedSystem}".default;
+          packages = {
+            inherit (pkgsAllowUnfree)
+              f00Bar
+              ;
+            default = pkgsAllowUnfree.f00Bar;
+          };
 
           devShells.default = pkgsAllowUnfree.mkShell {
-            buildInputs = with pkgsAllowUnfree; [
+            packages = with pkgsAllowUnfree; [
               f00Bar
               python313
               uv
@@ -76,7 +80,6 @@
 
             shellHook = ''
               test -d .profiles || mkdir -v .profiles
-
               test -L .profiles/dev \
               || nix develop .# --impure --profile .profiles/dev --command true
 
@@ -91,7 +94,7 @@
             inherit (pkgsAllowUnfree)
               f00Bar
               ;
-            default = self.packages."${suportedSystem}".default;
+            default = pkgsAllowUnfree.f00Bar;
           };
         }
       )

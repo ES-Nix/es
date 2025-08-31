@@ -13,7 +13,6 @@ nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
 nix flake check --verbose '.#'
 ```
 
-
 1)
 ```bash
 rm -fv nixos.qcow2; 
@@ -23,7 +22,6 @@ run \
 --verbose \
 '.#'
 ```
-
 
 2)
 ```bash

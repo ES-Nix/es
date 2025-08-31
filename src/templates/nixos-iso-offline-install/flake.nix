@@ -52,7 +52,7 @@
   outputs = { self, nixpkgs, flake-utils, ... }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         nixos-offline-install-iso-in-qcow2 = nixpkgs.lib.nixosSystem {
           system = prev.system;
@@ -116,7 +116,7 @@
 
 
         runQEMUNixOS = prev.stdenv.mkDerivation rec {
-          name = "runQEMUNixOS";
+          name = "run-qemu-nixos";
           buildInputs = with prev; [ stdenv ];
           nativeBuildInputs = with prev; [ makeWrapper ];
           propagatedNativeBuildInputs = with prev; [
@@ -158,12 +158,10 @@
               config.virtualisation.memorySize = 1024 * 12;
               config.virtualisation.diskSize = 1024 * 18;
               config.boot.extraModprobeConfig = "options kvm_intel nested=1";
-              config.boot.kernelModules = [
-                "kvm-intel"
-              ];
+              config.boot.kernelModules = [ "kvm-intel" ];
 
               config.environment.systemPackages = with pkgs; [
-                foo-bar
+                fooBar
                 run-nixos-offline-install-iso-in-qcow2
               ];
             };
@@ -231,7 +229,7 @@
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
+            fooBar
             # ISONixOSSelfOfflineInstallISOInQcow2
             # run-nixos-offline-install-iso-in-qcow2
             # runQEMUNixOS
