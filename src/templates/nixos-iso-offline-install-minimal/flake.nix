@@ -189,6 +189,7 @@
             runQEMUNixOS
             # testISOIntall
             ;
+          default = pkgs.runISONixOSSelfOfflineInstallISOInQcow2;
         };
 
         devShells.default = with pkgs; mkShell {

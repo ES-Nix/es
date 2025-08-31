@@ -96,7 +96,7 @@
                   packages = with pkgs; [
                     btop
                     starship
-                    foo-bar
+                    f00Bar
                   ];
                   shell = pkgs.zsh;
                   uid = 1234;
@@ -229,6 +229,8 @@
           specialArgs = { inherit nixpkgs inputs; };
         });
 
+        nf00Build = final.nf00.config.system.build.toplevel;
+
         homeManagerVagrant = (home-manager.lib.homeManagerConfiguration {
           # inherit pkgs;
           pkgs = final;
@@ -253,6 +255,7 @@
                   file
                   which
                   f00Bar
+                  # nf00Build
                   (writeScriptBin "hms" ''
                     #! ${final.runtimeShell} -e
                       nix \
@@ -335,6 +338,7 @@
       packages = forAllSystems (pkgs: {
         inherit (pkgs)
           f00Bar
+          nf00Build
           ;
         default = pkgs.homeManagerVagrant;
       });
@@ -350,6 +354,6 @@
 
       homeConfigurations = forAllSystems (pkgs: pkgs.homeManagerVagrant);
 
-      nixosConfigurations.nixos = forAllSystems (pkgs: pkgs.nf00);
+      # nixosConfigurations.nixos = forAllSystems (pkgs: pkgs.nf00);
     };
 }

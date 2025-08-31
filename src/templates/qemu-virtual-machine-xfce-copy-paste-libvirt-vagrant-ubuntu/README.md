@@ -40,6 +40,7 @@ PRETTY_NAME="Alpine Linux v3.19"
 
 
 ```bash
+cd "$HOME"/vagrant-examples/libvirt/ubuntu/
 vagrant destroy --force; vagrant destroy --force && vagrant up && vagrant ssh
 ```
 

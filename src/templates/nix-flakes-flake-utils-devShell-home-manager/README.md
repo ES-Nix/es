@@ -1,5 +1,17 @@
 
 ```bash
+sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix'
+
+xz --version || sudo apt-get install -y xz
+xz --version || sudo apk add --no-cache xz
+
+# curl -s https://api.github.com/repos/NixOS/nix/tags | jq -r '.[0].name'
+NIX_RELEASE_VERSION=2.28.4 \
+&& curl -L https://releases.nixos.org/nix/nix-"${NIX_RELEASE_VERSION}"/install | sh -s -- --yes --no-daemon \
+&& . "$HOME"/.nix-profile/etc/profile.d/nix.sh \
+&& export NIX_CONFIG='extra-experimental-features = nix-command flakes' \
+&& nix -vv registry pin nixpkgs github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd
+
 (! test -d "$HOME/.config/home-manager" && mkdir -pv "$HOME/.config/home-manager") \
 && cd "$HOME/.config/home-manager" \
 && nix \
@@ -27,6 +39,7 @@ sh \
 
 nix \
 run \
+--no-write-lock-file \
 github:nix-community/home-manager/83665c39fa688bd6a1f7c43cf7997a70f6a109f9 \
 -- \
 switch --flake "$HOME/.config/home-manager"#"$(id -un)"
@@ -47,36 +60,3 @@ nix build --no-link --print-build-logs --print-out-paths '.#homeConfigurations.x
 ```bash
 nix build --no-link --print-build-logs --print-out-paths '.#homeConfigurations.aarch64-linux.vagrant.activationPackage'
 ```
-
-
-
-### Extra commands
-
-```bash
-ls -alh /nix/var/nix/temproots/
-```
-
-```bash
-nix --option keep-derivations false store gc -v
-```
-
-
-```bash
-nix show-config | grep keep
-```
-
-
-```bash
-file $(readlink -f .profiles/dev)
-```
-
-
-```bash
-rm -frv .profiles
-```
-
-
-```bash
-rm -fr .git
-```
-

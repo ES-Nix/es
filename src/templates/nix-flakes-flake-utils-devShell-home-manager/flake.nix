@@ -1,5 +1,5 @@
 {
-  description = " ";
+  description = "Nix flake template with nixpkgs, flake-utils, home-manager, devShell and overlay";
   /*
     nix \
     flake \
@@ -26,7 +26,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     {
       inherit (self) outputs;
@@ -34,7 +33,7 @@
       overlays.default = final: prev: {
         inherit self final prev;
 
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
       };
     } //
     flake-utils.lib.eachSystem suportedSystems
@@ -64,16 +63,14 @@
 
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
-              foo-bar
+              fooBar
               # python312
-
               # bashInteractive
               pleaseKeepMyInputs
             ];
 
             shellHook = ''
               test -d .profiles || mkdir -v .profiles
-
               test -L .profiles/dev \
               || nix develop .# --impure --profile .profiles/dev --command true
 
@@ -103,7 +100,7 @@
                     nix
                     zsh
 
-                    foo-bar
+                    fooBar
                     hello
                     nano
                     file
