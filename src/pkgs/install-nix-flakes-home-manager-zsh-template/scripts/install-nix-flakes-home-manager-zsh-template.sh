@@ -19,7 +19,7 @@ github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
 nixpkgs#bashInteractive \
 nixpkgs#coreutils \
 nixpkgs#gnused \
-nixpkgs#nixStatic \
+nixpkgs#nix \
 nixpkgs#gitMinimal \
 nixpkgs#home-manager \
 --command \
