@@ -15,7 +15,7 @@ shell \
 --keep USER \
 --override-flake \
 nixpkgs \
-github:NixOS/nixpkgs/d12251ef6e8e6a46e05689eeccd595bdbd3c9e60 \
+github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
 nixpkgs#bashInteractive \
 nixpkgs#coreutils \
 nixpkgs#gnused \
@@ -47,10 +47,9 @@ test -f /home/"$USER"/.config/home-manager/flake.nix || echo 'not found flake.ni
 
 sed -i 's/.*userName = ".*";/userName = "'"$USER"'";/' /home/"$USER"/.config/home-manager/flake.nix
 
-git config init.defaultBranch \
-|| git config --global init.defaultBranch main
-
-git init && git add .
+(git config init.defaultBranch || git config --global init.defaultBranch main) \
+&& git init \
+&& git add .
 
 #"$OLD_PWD"/nix \
 #--extra-experimental-features nix-command \
@@ -71,7 +70,8 @@ home-manager \
 switch \
 -b backup \
 --print-build-logs \
---option warn-dirty false
+--option warn-dirty false \
+--verbose
 
 /home/"$USER"/.nix-profile/bin/zsh \
 -lc 'nix flake --version' \
