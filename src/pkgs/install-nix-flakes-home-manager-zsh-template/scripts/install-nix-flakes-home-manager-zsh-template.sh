@@ -22,6 +22,7 @@ nixpkgs#gnused \
 nixpkgs#nix \
 nixpkgs#gitMinimal \
 nixpkgs#home-manager \
+nixpkgs#zsh \
 --command \
 bash \
 <<'COMMANDS'
