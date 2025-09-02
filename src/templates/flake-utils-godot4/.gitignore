@@ -1,8 +1,14 @@
 # Godot 4+ specific ignores
 .godot/
-.DS_Store
-.idea*
-result*
-.profiles/*
-.direnv/*
-.venv/*
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+secrets/*.yaml
+.idea/
+.env
+.direnv/
+.profiles/
+*.qcow2
+*.nixos-test-history

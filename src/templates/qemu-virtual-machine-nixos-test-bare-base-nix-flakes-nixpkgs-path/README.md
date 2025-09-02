@@ -7,12 +7,14 @@ nix run --impure --refresh --verbose .#
 
 
 ```bash
-nix fmt . \ 
+nix fmt . \
 && nix flake show '.#' \
 && nix flake metadata '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
-&& nix develop '.#' --command sh -c 'true' \
-&& nix flake check --verbose '.#'
+&& nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+&& nix develop --ignore-environment '.#' --command sh -c 'true' \
+&& nix develop --ignore-environment '.#' --command sh -c 'source $stdenv/setup && phases="unpackPhase" genericBuild' \
+&& nix flake check --all-systems --impure --verbose '.#'
 ```
 
 
@@ -79,6 +81,18 @@ nix-instantiate --eval --expr '(builtins.getFlake "nixpkgs").sourceInfo.outPath'
 
 nix-instantiate --eval --expr '( import (builtins.getFlake "nixpkgs") {} ).lib.version'
 ```
+
+NIX_ABORT_ON_WARN=true
+NIX_ABORT_ON_WARN=1
+
+
+nix --option warn-dirty false --option abort-on-warn true fmt . \
+&& nix --option warn-dirty false --option abort-on-warn true flake show '.#' \
+&& nix --option warn-dirty false --option abort-on-warn true flake metadata '.#' \
+&& nix --option warn-dirty false --option abort-on-warn true build --no-link --print-build-logs --print-out-paths '.#' \
+&& nix --option warn-dirty false --option abort-on-warn true develop '.#' --command sh -c 'true' \
+&& nix --option warn-dirty false --option abort-on-warn true flake check --all-systems --verbose '.#' \
+&& git add .
 
 
 TODO:

@@ -25,7 +25,7 @@
     home-manager = {
       url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
-    };    
+    };
   };
 
   outputs = allAttrs@{ self, nixpkgs, flake-utils, home-manager, ... }:
@@ -45,7 +45,103 @@
 
         f00Bar = prev.hello;
 
-        
+        hm =
+          let
+            userName = "vagrant";
+            homeDirectory = "/home/${userName}";
+          in
+          home-manager.lib.homeManagerConfiguration {
+            pkgs = final;
+            modules = [
+              ({ pkgs, ... }:
+                {
+                  home.stateVersion = "25.05";
+                  home.username = "${userName}";
+                  home.homeDirectory = "${homeDirectory}";
+
+                  programs.home-manager.enable = true;
+
+                  home.packages = with pkgs; [
+                    git
+                    nix
+                    # path # TODO: Why it breaks??
+                    zsh
+                    direnv
+                    starship
+
+                    f00Bar
+                    nano
+                    file
+                    which
+                    (writeScriptBin "hms" ''
+                      #! ${pkgs.runtimeShell} -e
+                        nix \
+                        build \
+                        --no-link \
+                        --print-build-logs \
+                        --print-out-paths \
+                        "$HOME"'/.config/home-manager#homeConfigurations.'"$(id -un)".activationPackage
+
+                        home-manager switch --flake "$HOME/.config/home-manager"#"$(id -un)"
+                    '')
+                  ];
+
+                  nix = {
+                    enable = true;
+                    package = pkgs.nix;
+                    # package = pkgs.nixVersions.nix_2_29;
+                    extraOptions = ''
+                      experimental-features = nix-command flakes
+                    '';
+                    settings = {
+                      bash-prompt-prefix = "(nix:$name)\\040";
+                      keep-build-log = true;
+                      keep-derivations = true;
+                      keep-env-derivations = true;
+                      keep-failed = true;
+                      keep-going = true;
+                      keep-outputs = true;
+                      nix-path = "nixpkgs=flake:nixpkgs";
+                      tarball-ttl = 2419200; # 60 * 60 * 24 * 7 * 4 = one month
+                    };
+                    registry.nixpkgs.flake = nixpkgs;
+                  };
+
+                  programs.zsh = {
+                    enable = true;
+                    enableCompletion = true;
+                    dotDir = ".config/zsh";
+                    autosuggestion.enable = true;
+                    syntaxHighlighting.enable = true;
+                    envExtra = ''
+                      if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
+                        . ~/.nix-profile/etc/profile.d/nix.sh
+                      fi
+                    '';
+                    shellAliases = {
+                      l = "ls -alh";
+                    };
+                    sessionVariables = {
+                      # https://discourse.nixos.org/t/what-is-the-correct-way-to-set-nix-path-with-home-manager-on-ubuntu/29736
+                      NIX_PATH = "nixpkgs=${pkgs.path}";
+                      LANG = "en_US.utf8";
+                    };
+                    oh-my-zsh = {
+                      enable = true;
+                      plugins = [
+                        "colored-man-pages"
+                        "colorize"
+                        "direnv"
+                        "zsh-navigation-tools"
+                      ];
+                      theme = "robbyrussell";
+                    };
+                  };
+                }
+              )
+            ];
+            extraSpecialArgs = { nixpkgs = nixpkgs; };
+          };
       };
     } //
     flake-utils.lib.eachSystem suportedSystems
@@ -71,8 +167,10 @@
           packages = {
             inherit (pkgsAllowUnfree)
               f00Bar
+              # hmActivationPackage
               ;
             default = pkgsAllowUnfree.f00Bar;
+            # vagrant33 = self.homeConfigurations.vagrant;
           };
 
           devShells.default = pkgsAllowUnfree.mkShell {
@@ -93,6 +191,7 @@
               || nix build --impure .#devShells."$system".default --out-link .profiles/dev-shell-"$system"-default
 
               hello
+              echo
             '';
           };
 
@@ -101,11 +200,12 @@
               f00Bar
               ;
             default = pkgsAllowUnfree.f00Bar;
+            # vagrant33 = self.overlays.default.hm.vagrant.activationPackage;
           };
         }
       )
 
     // {
-      #
+      # homeConfigurations.vagrant = self.overlays.default.hm.vagrant;
     };
 }

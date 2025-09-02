@@ -8,7 +8,7 @@ nix fmt . \
 && nix flake metadata --impure '.#' \
 && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop --impure '.#' --command sh -c 'true' \
-&& nix flake check --impure --verbose '.#' \
+&& nix flake check --all-systems --impure --verbose '.#' \
 && git add .
 ```
 

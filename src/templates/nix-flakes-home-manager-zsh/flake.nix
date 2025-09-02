@@ -86,7 +86,7 @@
                       virtualisation.writableStore = true; # TODO: hardening
                     };
 
-                  documentation.enable = lib.mkForce false;
+                  # documentation.enable = lib.mkForce false;
                   security.sudo.wheelNeedsPassword = false; # TODO: hardening
                   # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
                   users.extraGroups.nixgroup.gid = 999;

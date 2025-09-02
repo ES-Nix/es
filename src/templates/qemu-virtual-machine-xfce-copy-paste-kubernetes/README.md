@@ -27,12 +27,17 @@ Refs.:
 
 
 ```bash
-nix fmt . \
-&& nix flake show --impure '.#' \
-&& nix flake metadata --impure '.#' \
-&& nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
-&& nix develop --impure '.#' --command sh -c 'true' \
-&& nix flake check --impure --verbose '.#'
+OPTIONS=( 
+    --option warn-dirty false
+    --option abort-on-warn true
+)
+nix "${OPTIONS[@]}" fmt . \
+&& nix "${OPTIONS[@]}" flake show --impure '.#' \
+&& nix "${OPTIONS[@]}" flake metadata --impure '.#' \
+&& nix "${OPTIONS[@]}" build --impure --no-link --print-build-logs --print-out-paths '.#' \
+&& nix "${OPTIONS[@]}" build --impure --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+&& nix "${OPTIONS[@]}" develop --impure '.#' --command sh -c 'true' \
+&& nix "${OPTIONS[@]}" flake check --all-systems --impure --verbose '.#'
 ```
 
 

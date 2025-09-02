@@ -21,16 +21,29 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/afb2b21ba489196da32cd9f0072e0dce6588a20a' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+    
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgsPy3921.url = "github:NixOS/nixpkgs/50ab793786d9de88ee30ec4e4c24fb4236fc2674";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }: {
+  outputs = { self, nixpkgs, nixpkgsPy3921, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
         foo-bar = prev.hello;
+
+        python3921 = (import nixpkgsPy3921 {
+          system = prev.system;
+        }).python39;
 
         OCIImagePosgresAmd64 = prev.dockerTools.pullImage {
           finalImageTag = "17.0-alpine3.20";
@@ -297,13 +310,13 @@
 
                     jetbrains.pycharm-community
                     # python39
+                    python3921
                     # cbc
                     # z3
                     (python311.withPackages (pyPkgs: with pyPkgs; [
                       matplotlib
                       pyomo
-                    ]
-                    ))
+                    ]))
                     # (python311.withPackages (pyPkgs: with pyPkgs; [
                     #     numpy
                     #     deep-translator

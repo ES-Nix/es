@@ -25,7 +25,19 @@
   outputs = { self, nixpkgs, flake-utils, flake-registry }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
+
+        runGnericTests = prev.writeShellApplication {
+          name = "run-generic-tests";
+          runtimeInputs = [ ];
+          text = ././src/utils/scripts/run-generic-tests.sh;
+        };
+
+        runAllTests = prev.writeShellScriptBin "run-all-tests" ''
+          ${final.lib.getExe final.runGnericTests}
+        '';
+
         fooBar = prev.hello;
+        fooBar2 = prev.hello.inputDerivation;
 
         flake-registry = flake-registry;
 
@@ -210,7 +222,6 @@
         # "aarch64-darwin"
         # "x86_64-darwin"
       ];
-
     in
     flake-utils.lib.eachSystem suportedSystems (system:
       let
@@ -227,6 +238,7 @@
         packages = {
           inherit (pkgs)
             fooBar
+            runAllTests
             testNixOSBare
             testNixOSBareNixpkgsPath
             testNixOSBareNixShellHelloPaths
@@ -240,6 +252,16 @@
             type = "app";
             program = "${pkgs.lib.getExe pkgs.testNixOSBareDriverInteractive}";
             meta.description = "";
+          };
+          # runGnericTest = {
+          #   type = "app";
+          #   program = "${pkgs.lib.getExe pkgs.runGnericTest}";
+          #   meta.description = "Run generic tests: fmt, show, metadata, build, develop, check";
+          # };
+          runAllTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.runAllTests}";
+            meta.description = "Run all tests: generic + specific";
           };
         };
 
