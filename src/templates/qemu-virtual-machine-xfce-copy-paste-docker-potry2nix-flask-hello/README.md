@@ -67,6 +67,12 @@ nix flake check '.#'
 
 https://discourse.nixos.org/t/python-packaging-with-poetry-and-nix/26602
 
+
+```bash
+nix profile install nixpkgs#poetry
+```
+
+Bootstraping:
 ```bash
 mkdir -v app-drf \
 && cd app-drf \
@@ -79,24 +85,13 @@ mkdir -v app-drf \
     add \
     djangorestframework==3.15.2 \
 && poetry lock \
-&& poetry show --tree
-```
-
-
-```bash
-source .venv/bin/activate
-```
-
-```bash
-django-admin startproject minitwitter .
-```
-
-```bash
-python manage.py migrate
-```
-
-```bash
-python manage.py runserver
+&& poetry show --tree \
+&& ls -alh \
+&& source .venv/bin/activate \
+&& django-admin startproject pr0j3ct . \
+&& python manage.py migrate \
+&& ls -alh \
+&& python manage.py runserver
 ```
 
 
@@ -105,10 +100,37 @@ curl http://127.0.0.1:8000/ | grep -q 'The install worked successfully! Congratu
 echo $?
 ```
 
+### TODO: django rest with uv
+
+https://discourse.nixos.org/t/python-packaging-with-poetry-and-nix/26602
+
+
+Bootstraping:
 ```bash
-mkdir -pv dj-jwt-ah \
-&& cd $_ \
-&& django-admin startproject myabcproject . \
-&& python manage.py runserver
+nix profile install nixpkgs#uv nixpkgs#python311
+
+export UV_PYTHON_PREFERENCE="only-system"
+
+rm -frv ~/test-uv; mkdir -v ~/test-uv \
+&& cd ~/test-uv \
+&& uv init example-app \
+&& cd example-app \
+&& uv venv --python 3.11 \
+&& uv lock \
+&& uv tree \
+&& uv add djangorestframework==3.15.2 \
+&& uv lock \
+&& uv tree \
+&& source .venv/bin/activate \
+&& django-admin startproject pr0j3ct . \
+&& python manage.py migrate \
+&& ls -alh \
+&& python manage.py runserver \
+&& deactivate
 ```
 
+
+```bash
+curl http://127.0.0.1:8000/ | grep -q 'The install worked successfully! Congratulations!'
+echo $?
+```

@@ -50,7 +50,7 @@
           packages = {
             myapp = mkPoetryApplication { projectDir = cleanPythonSources { src = ./.; }; }
               // { meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.scripts); };
-            
+
             default = self.packages.${system}.myapp;
 
             myappOCIImage =

@@ -137,18 +137,15 @@
                 prepareVagrantVms
                 vagrant
               ];
-
               config.virtualisation.libvirtd.enable = true;
-              # config.virtualisation.libvirtd.nss.enable = true;
-              # config.programs.dconf.enable = true;
-
               config.environment.variables = {
                 VAGRANT_DEFAULT_PROVIDER = "libvirt";
-                # HOME = "root";
               };
 
               # journalctl --user --unit copy-vagrant.service -b -f
               # journalctl copy-vagrant.service -b -f
+              # systemctl status copy-vagrant.service
+              # systemctl show -p ActiveEnterTimestamp copy-vagrant.service
               # TODO: config.systemd vs config.systemd.user
               config.systemd.services.copy-vagrant = {
                 path = with pkgs; [
@@ -170,6 +167,9 @@
                     && mkdir -pv "$BASE_DIR"/{alpine,almalinux,archlinux,debian,fedora,nixos,ubuntu} \
                     && cd "$BASE_DIR" \
                     && cp -v "${pkgs.vagrantfileAlpineMinimal}" alpine/Vagrantfile \
+                    && ls -alh "$BASE_DIR"/alpine/ \
+                    && PROVIDER=libvirt \
+                    && vagrant box list --no-color --no-tty \
                     && vagrant \
                         box \
                         add \
@@ -178,13 +178,14 @@
                         --force \
                         --debug \
                         --provider \
-                        libvirt \
+                        $PROVIDER --no-color --no-tty \
+                    && ls -alh "$BASE_DIR"/alpine/ \
                     && echo 123456789 \
                     && vagrant \
                         box \
                         list \
                         --provider \
-                        libvirt \
+                        $PROVIDER \
                     && echo 987654321
                 '';
                 after = [ "libvirtd.service" "network.target" ];
@@ -206,24 +207,34 @@
               machineWithVagrant.wait_for_unit("multi-user.target")
               machineWithVagrant.wait_for_unit("copy-vagrant")
 
-              machineWithVagrant.succeed("type prepare-vagrant-vms")
-              machineWithVagrant.succeed("type vagrant")
+              # machineWithVagrant.succeed("type prepare-vagrant-vms")
+              # machineWithVagrant.succeed("type vagrant")
 
-              machineWithVagrant.succeed("touch /dev/kvm")
-              machineWithVagrant.succeed("test -d /tmp")
+              # machineWithVagrant.succeed("touch /dev/kvm")
+              # machineWithVagrant.succeed("test -d /tmp")
               # print(machineWithVagrant.succeed("env | sort"))
-              machineWithVagrant.succeed("id >&2")
+              # machineWithVagrant.succeed("id >&2")
 
-              # assert 'libvirt' == machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER")
-              machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER")
-              machineWithVagrant.succeed("systemctl is-enabled libvirtd.service >&2")
+              # machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER >&2")
+              # assert 'libvirt' in machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER")
+              # machineWithVagrant.succeed("systemctl is-enabled libvirtd.service >&2")
 
+              machineWithVagrant.succeed("journalctl --unit libvirtd.service --boot --no-pager >&2")
+              machineWithVagrant.succeed("""
+                journalctl --unit copy-vagrant.service --boot --no-pager >&2
+              """)
+              # machineWithVagrant.succeed("""
+              #   journalctl --user --unit copy-vagrant.service --boot --catalog --no-pager --full >&2
+              # """)
+
+              # machineWithVagrant.wait_until_succeeds("vagrant box list | grep -q alpine")
               # machineWithVagrant.succeed("vagrant box list >&2")
-              # machineWithVagrant.succeed("prepare-vagrant-vms >&2 &")
+              # machineWithVagrant.execute("cd /root/vagrant-examples/libvirt/alpine/ && vagrant up >&2")
+              
+              # machineWithVagrant.succeed("prepare-vagrant-vms >&2")
               # machineWithVagrant.succeed("vagrant box list >&2")
 
-              # machineWithVagrant.wait_until_succeeds("vagrant box list | grep -q alpine319 >&2")
-              machineWithVagrant.succeed("journalctl --unit copy-vagrant -b >&2")
+              # machineWithVagrant.succeed("journalctl --unit copy-vagrant --boot >&2")
 
               # machineWithVagrant.succeed("cd /root/vagrant-examples/libvirt/alpine && vagrant box list && vagrant up")
               # machineWithVagrant.wait_until_succeeds("vagrant ssh -- -t 'id && cat /etc/os-release'")
@@ -284,6 +295,7 @@
                   };
 
                 # journalctl --user --unit copy-vagrant-examples-vagrant-up.service -b -f
+                # journalctl --user --unit copy-vagrant-examples-vagrant-up.service --boot --catalog --no-pager --full
                 systemd.user.services.copy-vagrant-examples-vagrant-up = {
                   path = with pkgs; [
                     curl
@@ -307,13 +319,13 @@
                       && vagrant \
                           box \
                           add \
-                          "${pkgs.alpine322.meta.boxName}" \
-                          "${pkgs.alpine322}" \
+                          "${pkgs.alpine319.meta.boxName}" \
+                          "${pkgs.alpine319}" \
                           --force \
                           --debug \
                           --provider \
                           $PROVIDER \
-                      && vagrant box list
+                      && vagrant box list | grep -F 'generic/alpine319 (libvirt, 0)'
                   '';
                   wantedBy = [ "default.target" ];
                 };
@@ -487,7 +499,7 @@
             myvm
             testVagrantWithLibvirt
             ;
-          default = pkgs.automatic-vm;
+          default = pkgs.testVagrantWithLibvirt;
         };
 
         apps.default = {
@@ -510,7 +522,7 @@
             automatic-vm
             # testVagrantWithLibvirt
             ;
-          # default = pkgs.testVagrantWithLibvirt;
+          default = pkgs.testVagrantWithLibvirt;
         };
 
         devShells.default = with pkgs; mkShell {

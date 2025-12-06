@@ -289,7 +289,7 @@
         apps.default = {
           type = "app";
           program = "${pkgs.lib.getExe pkgs.automatic-vm}"
-meta.description = "Run the NixOS VM";
+            meta.description = "Run the NixOS VM";
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -299,7 +299,7 @@ meta.description = "Run the NixOS VM";
             f00Bar
             automatic-vm
             ;
-            default = pkgs.hello;
+          default = pkgs.hello;
         };
 
         devShells.default = with pkgs; mkShell {

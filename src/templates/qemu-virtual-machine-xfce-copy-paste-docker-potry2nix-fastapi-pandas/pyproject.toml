@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "3.11"
 fastapi = {extras = ["standard"], version = "^0.115.12"}
 uvicorn = "^0.34.2"
 pydantic-core = "^2.34.1"

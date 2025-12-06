@@ -83,8 +83,8 @@
             # config.vm.box = "gnome-shell-box/alpine321"
 
             config.vm.provider :libvirt do |v|
-              v.cpus = 3
-              v.memory = "2048"
+              v.cpus = 6
+              v.memory = "14048"
             end
 
             #
@@ -116,7 +116,7 @@
 
               # https://unix.stackexchange.com/a/400140
               echo
-              df -h /tmp && sudo mount -o remount,size=9G /tmp/ && df -h /tmp
+              df -h /tmp && sudo mount -o remount,size=14G /tmp/ && df -h /tmp
               echo
               mkdir -pv /etc/sudoers.d \
               && echo 'vagrant:1' | chpasswd \
@@ -288,7 +288,7 @@
                     virtualisation.docker.enable = true;
                     virtualisation.podman.enable = true;
 
-                    virtualisation.memorySize = 1024 * 9; # Use MiB memory.
+                    virtualisation.memorySize = 1024 * 18; # Use MiB memory.
                     virtualisation.diskSize = 1024 * 50; # Use MiB memory.
                     virtualisation.cores = 7; # Number of cores.
                     virtualisation.graphics = true;
@@ -347,6 +347,30 @@
                   wantedBy = [ "default.target" ];
                 };
 
+                users.users.root = {
+                  password = "1";
+                  extraGroups = [
+                    "kvm"
+                    "libvirtd"
+                    "qemu-libvirtd"
+                    "root"
+                    "vboxsf"
+                    "wheel"
+                  ];
+                  packages = with pkgs; [
+                    file
+                    firefox
+                    git
+                    jq
+                    lsof
+                    findutils
+                    xdotool
+                    vagrant
+                    prepareVagrantVms
+                    runVagrantAlpine
+                    foo-bar
+                  ];
+                };
                 security.sudo.wheelNeedsPassword = false; # TODO: hardening
                 # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
                 users.extraGroups.nixgroup.gid = 999;

@@ -16,7 +16,7 @@ nix fmt . \
 ```bash
 file $(readlink -f $(which hello))
 readelf -h $(readlink -f $(which hello))
-objdump -a  $(readlink -f $(which hello))
+objdump -a $(readlink -f $(which hello))
 ```
 
 

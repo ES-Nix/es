@@ -42,3 +42,21 @@ PRETTY_NAME="Alpine Linux v3.19"
 cd "$HOME"/vagrant-examples/libvirt/alpine/
 vagrant destroy --force; vagrant destroy --force && vagrant up && vagrant ssh
 ```
+
+
+ss -lx | grep libvirt
+
+
+virsh version
+virsh capabilities
+virsh list --all
+
+
+sudo virsh -c qemu:///system capabilities
+sudo virsh pool-list --all
+sudo virsh net-list --all
+
+
+journalctl --unit libvirtd.service --no-pager
+
+systemctl is-active libvirtd.socket

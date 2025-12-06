@@ -69,61 +69,6 @@ echo aaaqqq > /tmp/xchg/f00.txt
 cat "$(ls -td /tmp/nix-vm.* | head -n1)/xchg/f00"
 ```
 
-### TODO: django rest with poetry
-
-
-```bash
-mkdir -v app-drf \
-&& cd app-drf \
-&& poetry config virtualenvs.in-project true \
-&& poetry config virtualenvs.path . \
-&& poetry init --no-interaction  \
-&& poetry lock \
-&& poetry show --tree \
-&& poetry \
-    add \
-    djangorestframework==3.15.2 \
-&& poetry lock \
-&& poetry show --tree
-```
-
-
-```bash
-source .venv/bin/activate
-```
-
-```bash
-django-admin startproject minitwitter .
-```
-
-```bash
-python manage.py migrate
-```
-
-```bash
-python manage.py runserver
-```
-
-
-```bash
-curl http://127.0.0.1:8000/ | grep -q 'The install worked successfully! Congratulations!'
-echo $?
-```
-
-```bash
-mkdir -pv dj-jwt-ah \
-&& cd $_ \
-&& django-admin startproject myabcproject . \
-&& python manage.py runserver
-```
-
-
-
-
-- https://en.wikipedia.org/wiki/Specials_(Unicode_block)
-- https://stackoverflow.com/questions/18760943/character-code-of-unknown-character-character-e-g-square-or-question-mark-romb
-- https://www.fileformat.info/info/unicode/char/fffd/index.htm
-
 
 
 ```bash
