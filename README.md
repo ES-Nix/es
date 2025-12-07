@@ -41,18 +41,18 @@ TODO: better name things, consistenciy and case conventions
 # Defines a multi-line bash array of templates
 TEMPLATE_FOLDERS_RELATIVE_PATH=(
     './src/templates/pandoc-latex'
-    # './src/templates/nginx'
-    # './src/templates/nixos-build-vm-systemd-self-hosted-runner-for-gitHub-actions'
-    # './src/templates/nixos-build-vm-kubernetes-self-hosted-runner-for-gitHub-actions'
-    # './src/templates/nixos-tests-hello-systemd-service'
-    # './src/templates/poetry2nix-basic-flask'
-    # './src/templates/poetry2nix-basic'
-    # './src/templates/qemu-virtual-machine-xfce-copy-paste-docker'
-    # './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-flask'
-    # './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-podman-flask'
-    # './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-python-script-and-package'
-    # './src/templates/minimal-busybox-sandbox-shell'
-    # './src/templates/nginx'
+    './src/templates/nginx'
+    './src/templates/nixos-build-vm-systemd-self-hosted-runner-for-gitHub-actions'
+    './src/templates/nixos-build-vm-kubernetes-self-hosted-runner-for-gitHub-actions'
+    './src/templates/nixos-tests-hello-systemd-service'
+    './src/templates/poetry2nix-basic-flask'
+    './src/templates/poetry2nix-basic'
+    './src/templates/qemu-virtual-machine-xfce-copy-paste-docker'
+    './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-flask'
+    './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-podman-flask'
+    './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-python-script-and-package'
+    './src/templates/minimal-busybox-sandbox-shell'
+    './src/templates/nginx'
     # './src/templates/flake-utils-godot4'
     # './src/templates/nix-flakes-flake-utils-devShell'
     # './src/templates/nix-flakes-flake-utils-devShell-home-manager#homeConfigurations.x86_64-linux.vagrant.activationPackage'
@@ -167,7 +167,7 @@ nix flake show '.#' \
 && nix flake metadata '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop '.#' --command sh -c 'true' \
-&& nix flake check --verbose '.#'
+&& nix flake check --all-systems --verbose '.#'
 ```
 
 ```bash

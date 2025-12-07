@@ -133,38 +133,44 @@
         formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
         apps = {
-          installStartConfigTemplate = flake-utils.lib.mkApp {
-            name = "install-start-config-template";
-            drv = self.packages."${suportedSystem}".installStartConfigTemplate;
+          installStartConfigTemplate = {
+            type = "app";
+            program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".installStartConfigTemplate}";
+            meta.description = "Run the ";
           };
 
-          installTemplateNixFlakesHomeManagerZsh = flake-utils.lib.mkApp {
-            name = "install-nix-flakes-home-manager-zsh-template";
-            drv = self.packages."${suportedSystem}".installNixFlakesHomeManagerZshTemplate;
+          installTemplateNixFlakesHomeManagerZsh = {
+            type = "app";
+            program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".installNixFlakesHomeManagerZshTemplate}";
+            meta.description = "Run the ";
           };
 
-          installQEMUVirtualMachineDockerTemplate = flake-utils.lib.mkApp {
-            name = self.packages."${suportedSystem}".installQEMUVirtualMachineDockerTemplate.name;
-            drv = self.packages."${suportedSystem}".installQEMUVirtualMachineDockerTemplate;
+          installQEMUVirtualMachineDockerTemplate = {
+            type = "app";
+            program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".installQEMUVirtualMachineDockerTemplate}";
+            meta.description = "Run the ";
           };
 
-          installQEMUVirtualMachineXfceCopyPasteTemplate =
-            let
-              p = self.packages."${suportedSystem}".installQEMUVirtualMachineXfceCopyPasteTemplate;
-            in
-            flake-utils.lib.mkApp {
-              name = p.name;
-              drv = p;
-            };
+          installQEMUVirtualMachineXfceCopyPasteTemplate = {
+            type = "app";
+            program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".installQEMUVirtualMachineXfceCopyPasteTemplate}";
+            meta.description = "Run the ";
+          };
 
-          installQEMUVirtualMachineXfceCopyPasteMinimalTemplate =
-            let
-              p = self.packages."${suportedSystem}".installQEMUVirtualMachineXfceCopyPasteMinimalTemplate;
-            in
-            flake-utils.lib.mkApp {
-              name = p.name;
-              drv = p;
-            };
+          installQEMUVirtualMachineXfceCopyPasteMinimalTemplate = {
+            type = "app";
+            program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".installQEMUVirtualMachineXfceCopyPasteMinimalTemplate}";
+            meta.description = "Run the ";
+          };
+
+          # installQEMUVirtualMachineXfceCopyPasteMinimalTemplate =
+          #   let
+          #     p = self.packages."${suportedSystem}".installQEMUVirtualMachineXfceCopyPasteMinimalTemplate;
+          #   in
+          #   flake-utils.lib.mkApp {
+          #     name = p.name;
+          #     drv = p;
+          #   };
 
         };
       }

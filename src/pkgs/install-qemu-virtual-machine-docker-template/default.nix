@@ -32,5 +32,6 @@ pkgs.stdenv.mkDerivation rec {
     wrapProgram $out/bin/${name} \
       --prefix PATH : "${pkgs.lib.makeBinPath propagatedNativeBuildInputs }"
   '';
+  meta.mainProgram = name;
 
 }
