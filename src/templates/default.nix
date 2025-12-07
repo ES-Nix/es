@@ -16,7 +16,7 @@
 
   devShellHello = {
     description = "It is an nix flake example of a devShell and uses flake-utils to support multiple architectures";
-    path = ./nix-flakes-flake-utils-dev-shell;
+    path = ./nix-flakes-flake-utils-devshell;
   };
 
   devShellHomeManagerFlakeUtils = {
@@ -54,9 +54,9 @@
   #   path = ./qemu-virtual-machine-xfce-copy-paste;
   # };
 
-  QEMUVirtualMachineXfceCopyPasteK8s = {
+  QEMUVirtualMachineXfceCopyPasteKubernetes = {
     description = "QEMU Virtual Machine with xfce and copy/paste and k8s";
-    path = ./qemu-virtual-machine-xfce-copy-paste-k8s;
+    path = ./qemu-virtual-machine-xfce-copy-paste-kubernetes;
   };
 
   QEMUVirtualMachineDocker = {
