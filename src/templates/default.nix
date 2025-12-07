@@ -21,7 +21,7 @@
 
   devShellHomeManagerFlakeUtils = {
     description = "Example of a devShell, uses flake-utils to support multiple architectures";
-    path = ./nix-flakes-flake-utils-devShell-home-manager;
+    path = ./nix-flakes-flake-utils-devshell-home-manager;
   };
 
   poetry2nixBasic = {
