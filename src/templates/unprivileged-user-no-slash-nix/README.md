@@ -20,15 +20,16 @@ For x86_64-linux:
 # )"
 # echo $BUILD_ID
 
-BUILD_ID=311316992
+BUILD_ID=313290523
 curl -L https://hydra.nixos.org/build/$BUILD_ID/download-by-type/file/binary-dist > nix \
-&& echo bb305539368007a66b1117c033dfac39a4c640e9a8590bed460a9302a88dc8a9'  'nix \
+&& echo e95f16f84987096586abe959c80bb910d26a7fa7707c42802400be999b6ad5ab'  'nix \
 | sha256sum -c \
 && chmod +x nix \
 && ./nix --version
 ```
 Refs.:
 - https://hydra.nixos.org/build/311316992
+- https://hydra.nixos.org/build/313290523
 
 
 For aarch64-linux:
@@ -42,15 +43,16 @@ For aarch64-linux:
 # )"
 # echo $BUILD_ID
 
-BUILD_ID=311250514
+BUILD_ID=312837149
 curl -L https://hydra.nixos.org/build/$BUILD_ID/download-by-type/file/binary-dist > nix \
-&& echo c348064240e178d53679079e6b1025294bcd49d15d5c3558702d7ae7f7bc7663'  'nix \
+&& echo 8fda1192c5f93415206b7028c4afe694611d1a5525bfcb5f3f2d57cc87df0d56'  'nix \
 | sha256sum -c \
 && chmod +x nix \
 && ./nix --version
 ```
 Refs.:
 - https://hydra.nixos.org/build/311250514
+- https://hydra.nixos.org/build/312837149
 
 
 2)
