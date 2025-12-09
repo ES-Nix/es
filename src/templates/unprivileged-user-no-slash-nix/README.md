@@ -14,21 +14,21 @@ For x86_64-linux:
 # BUILD_ID="$(
 # hydra-check \
 # --arch x86_64-linux \
-# --channel nix maintenance-2.28/buildStatic.nix-cli \
+# --channel nix maintenance-2.32/buildStatic.nix-cli \
 # --json \
-# | jq -r '."maintenance-2.28/buildStatic.nix-cli.x86_64-linux".[0].build_id'
+# | jq -r '."maintenance-2.32/buildStatic.nix-cli.x86_64-linux".[0].build_id'
 # )"
 # echo $BUILD_ID
 
-BUILD_ID=297111184
+BUILD_ID=311316992
 curl -L https://hydra.nixos.org/build/$BUILD_ID/download-by-type/file/binary-dist > nix \
-&& echo 7838348c0e560855921cfa97051161bd63e29ee7ef4111eedc77228e91772958'  'nix \
+&& echo bb305539368007a66b1117c033dfac39a4c640e9a8590bed460a9302a88dc8a9'  'nix \
 | sha256sum -c \
 && chmod +x nix \
 && ./nix --version
 ```
 Refs.:
-- https://hydra.nixos.org/build/297111184
+- https://hydra.nixos.org/build/311316992
 
 
 For aarch64-linux:
@@ -36,19 +36,21 @@ For aarch64-linux:
 # BUILD_ID="$(
 # hydra-check \
 # --arch aarch64-linux \
-# --channel nix maintenance-2.28/buildStatic.nix-cli \
+# --channel nix maintenance-2.32/buildStatic.nix-cli \
 # --json \
-# | jq -r '."maintenance-2.28/buildStatic.nix-cli.aarch64-linux".[0].build_id'
+# | jq -r '."maintenance-2.32/buildStatic.nix-cli.aarch64-linux".[0].build_id'
 # )"
 # echo $BUILD_ID
 
-BUILD_ID=297111173
+BUILD_ID=311250514
 curl -L https://hydra.nixos.org/build/$BUILD_ID/download-by-type/file/binary-dist > nix \
-&& echo a559d9c4c144859251ab5441cf285f1c38861e4bb46509e38229474368286467'  'nix \
+&& echo c348064240e178d53679079e6b1025294bcd49d15d5c3558702d7ae7f7bc7663'  'nix \
 | sha256sum -c \
 && chmod +x nix \
 && ./nix --version
 ```
+Refs.:
+- https://hydra.nixos.org/build/311250514
 
 
 2)
