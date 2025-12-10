@@ -2,10 +2,28 @@
 
 
 ```bash
-BUILD_ID=297111184
-curl -L https://hydra.nixos.org/build/$BUILD_ID/download-by-type/file/binary-dist > nix \
-&& (echo 7838348c0e560855921cfa97051161bd63e29ee7ef4111eedc77228e91772958'  'nix \
-| sha256sum -c) \
+ARCH=$(uname -m)
+
+case "$ARCH" in
+    x86_64)
+        BUILD_ID="313290523"
+        EXPECTED_SHA256SUM=e95f16f84987096586abe959c80bb910d26a7fa7707c42802400be999b6ad5ab
+        HM_ATTR=pedro-pedro-G3
+        ;;
+    aarch64)
+        BUILD_ID="312837149"
+        EXPECTED_SHA256SUM=8fda1192c5f93415206b7028c4afe694611d1a5525bfcb5f3f2d57cc87df0d56
+        HM_ATTR=bob
+        ;;
+    *)
+        echo "Error: Unsupported architecture 'ARCH'" >&2
+        exit 1
+        ;;
+esac
+
+(test -f nix || curl -L https://hydra.nixos.org/build/"$BUILD_ID"/download-by-type/file/binary-dist > nix) \
+&& echo "$EXPECTED_SHA256SUM"'  'nix \
+| sha256sum -c \
 && chmod +x nix \
 && ./nix --version \
 && ./nix \
