@@ -12,33 +12,35 @@ github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
 && ((direnv &>/dev/null ) && direnv deny QEMUVirtualMachineDocker || true) \
 && cd QEMUVirtualMachineDocker
 
-rm -fv nixos.qcow2
-nix run --impure --refresh --verbose .#vm
-
-chmod -v 0600 id_ed25519
-
-ssh-add -l 1> /dev/null 2> /dev/null || eval $(ssh-agent -s)
-# There could be an race condition in here?
-(ssh-add -L | grep -q "$(cat id_ed25519.pub)") || ssh-add -v id_ed25519
-
-ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null;
-
-#while ! ssh -o ConnectTimeout=1 -oStrictHostKeyChecking=accept-new -p 10022 nixuser@localhost -- sh -c 'true' ; do 
-#  echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
-#  sleep 1
-#done
+(lsof -i :10022 1> /dev/null 2> /dev/null && kill "$(pgrep .qemu-system)") \
+&& rm -fv nixos.qcow2 \
+&& nix run --impure --refresh --verbose .#vm \
+&& echo \
+&& chmod -v 0600 id_ed25519 \
+&& (ssh-add -l 1> /dev/null 2> /dev/null || eval $(ssh-agent -s)) \
+&& echo 'There could be an race condition in here?' \
+&& (ssh-add -L | grep -q "$(cat id_ed25519.pub)") || ssh-add -v id_ed25519 \
+&& (ssh-add -L | grep -q "$(cat id_ed25519.pub)") \
+&& ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null
 
 for i in {1..500}; do
   ssh -o ConnectTimeout=1 -oStrictHostKeyChecking=accept-new -p 10022 nixuser@localhost -- sh -c 'true' \
   && break
   
-  ! $((i % 5)) && echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
-  sleep 0.2
+  ! ((i % 5)) && echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
+  sleep 0.1
 done
 
-
 direnv allow || true
-nix develop .# --command docker images
+nix --option warn-dirty false develop .# --command docker images
+```
+
+
+```bash
+#while ! ssh -o ConnectTimeout=1 -oStrictHostKeyChecking=accept-new -p 10022 nixuser@localhost -- sh -c 'true' ; do 
+#  echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
+#  sleep 1
+#done
 ```
 
 
