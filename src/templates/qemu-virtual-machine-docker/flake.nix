@@ -155,7 +155,7 @@ lock \
 
               nixpkgs.config.allowUnfree = true;
 
-boot.readOnlyNixStore = true;
+              # boot.readOnlyNixStore = true;
               nix = {
                 extraOptions = "experimental-features = nix-command flakes";
                 package = pkgs.nix;
