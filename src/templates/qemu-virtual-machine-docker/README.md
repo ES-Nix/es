@@ -7,7 +7,7 @@ run \
 --refresh \
 --override-input \
 nixpkgs \
-github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
+github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4 \
 github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
 && ((direnv &>/dev/null ) && direnv deny QEMUVirtualMachineDocker || true) \
 && cd QEMUVirtualMachineDocker \
