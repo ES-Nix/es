@@ -43,9 +43,16 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/25e53aa156d47bad5082ff7618f5feb1f5e02d01' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     # nixpkgs-darwin-stable.url = "github:nixos/nixpkgs/nixpkgs-22.11-darwin";
     # nixpkgs-linux-unstable.url = "nixpkgs/nixos-unstable";
@@ -92,7 +99,7 @@
             nixpkgs-fmt # find . -type f -iname '*.nix' -exec nixpkgs-fmt {} \;
             patchelf
             poetry
-            python3Full
+            python3
             tmate
 
             pleaseKeepMyInputs
@@ -133,6 +140,12 @@
         formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
         apps = {
+          # allTests = {
+          #   type = "app";
+          #   program = "${pkgs.lib.getExe pkgs.allTests}";
+          #   meta.description = "Run all tests";
+          # };
+
           installStartConfigTemplate = {
             type = "app";
             program = "${pkgsAllowUnfree.lib.getExe self.packages."${suportedSystem}".installStartConfigTemplate}";
