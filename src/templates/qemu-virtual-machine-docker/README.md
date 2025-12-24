@@ -2,6 +2,8 @@
 
 
 ```bash
+&& { direnv &>/dev/null && direnv deny QEMUVirtualMachineDocker || true } \
+
 nix \
 run \
 --refresh \
@@ -9,38 +11,44 @@ run \
 nixpkgs \
 github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4 \
 github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
-&& ((direnv &>/dev/null ) && direnv deny QEMUVirtualMachineDocker || true) \
 && cd QEMUVirtualMachineDocker \
 && stat id_ed25519 \
-&& (lsof -i :10022 1> /dev/null 2> /dev/null && kill "$(pgrep .qemu-system)") \
 && rm -fv nixos.qcow2 \
 && chmod -v 0600 id_ed25519 \
 && stat id_ed25519 \
+&& nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+&& nix \
+      build \
+      --no-link \
+      --print-build-logs \
+      --print-out-paths \
+      .#nixosConfigurations.vm.config.system.build.vm \
 && nix run --impure --refresh --verbose .#vm \
 && echo \
 && chmod -v 0600 id_ed25519 \
 && { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval $(ssh-agent -s) } \
 && echo 'There could be an race condition in here?' \
-&& (ssh-add -L | grep -q "$(cat id_ed25519.pub)") || ssh-add -v id_ed25519 \
-&& (ssh-add -L | grep -q "$(cat id_ed25519.pub)") \
-&& ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null
-
-for i in {1..500}; do
+&& { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || ssh-add -v id_ed25519 } \
+&& { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || echo 'erro in ssh-add -L' } \
+&& ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null \
+&& for i in {1..500}; do
   ssh \
       -o ConnectTimeout=1 \
       -oStrictHostKeyChecking=accept-new \
       -p 10022 \
       nixuser@localhost \
          -- \
-         sh -c 'true' \
+         sh -c 'true' 1>/dev/null 2>/dev/null \
   && break
   
   ! ((i % 11)) && echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
-  sleep 0.2
-done
-
-direnv allow || true
-nix --option warn-dirty false develop .# --command docker images
+  sleep 0.1
+done \
+&& { direnv allow || true } \
+&& nix --option warn-dirty false develop .# --command docker images
 ```
 
 

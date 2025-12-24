@@ -48,7 +48,7 @@ lock \
                 virtualisation.docker.enable = true;
 
                 virtualisation.memorySize = 1024 * 3; # Use maximum of RAM MiB memory.
-                virtualisation.diskSize = 1024 * 16; # Use maximum of hard disk MiB memory.
+                virtualisation.diskSize = 1024 * 10; # Use maximum of hard disk MiB memory.
                 virtualisation.cores = 4; # Number of cores.
 
                 # https://discourse.nixos.org/t/nixpkgs-support-for-linux-builders-running-on-macos/24313/2
@@ -204,6 +204,7 @@ lock \
 
           # Too much hardcoded?
           export DOCKER_HOST=ssh://nixuser@localhost:10022
+          lsof -i :10022 1> /dev/null 2> /dev/null && kill "$(pgrep .qemu-system)"
 
           test -d .profiles || mkdir -v .profiles
 
