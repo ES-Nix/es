@@ -17,13 +17,21 @@
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
-    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'   
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input home-manager 'github:nix-community/home-manager/f63d0fe9d81d36e5fc95497217a72e02b8b7bcab' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
   */
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -45,6 +53,21 @@
 
         f00Bar = prev.hello;
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
         hm =
           let
             userName = "vagrant";
@@ -53,9 +76,9 @@
           home-manager.lib.homeManagerConfiguration {
             pkgs = final;
             modules = [
-              ({ pkgs, ... }:
+              ({ config, pkgs, ... }:
                 {
-                  home.stateVersion = "25.05";
+                  home.stateVersion = "25.11";
                   home.username = "${userName}";
                   home.homeDirectory = "${homeDirectory}";
 
@@ -110,7 +133,7 @@
                   programs.zsh = {
                     enable = true;
                     enableCompletion = true;
-                    dotDir = ".config/zsh";
+                    dotDir = "${config.home.homeDirectory}";
                     autosuggestion.enable = true;
                     syntaxHighlighting.enable = true;
                     envExtra = ''
@@ -142,6 +165,8 @@
             ];
             extraSpecialArgs = { nixpkgs = nixpkgs; };
           };
+
+        hmActivationPackage = final.hm.activationPackage;
       };
     } //
     flake-utils.lib.eachSystem suportedSystems
@@ -164,13 +189,21 @@
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
+          apps = {
+            allTests = {
+              type = "app";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.allTests}";
+              meta.description = "Run all tests";
+            };
+          };
+
           packages = {
             inherit (pkgsAllowUnfree)
               f00Bar
-              # hmActivationPackage
+              hm
+              hmActivationPackage
               ;
-            default = pkgsAllowUnfree.f00Bar;
-            # vagrant33 = self.homeConfigurations.vagrant;
+            default = pkgsAllowUnfree.hmActivationPackage;
           };
 
           devShells.default = pkgsAllowUnfree.mkShell {
@@ -198,14 +231,15 @@
           checks = {
             inherit (pkgsAllowUnfree)
               f00Bar
+              hmActivationPackage
               ;
-            default = pkgsAllowUnfree.f00Bar;
-            # vagrant33 = self.overlays.default.hm.vagrant.activationPackage;
+            default = pkgsAllowUnfree.hmActivationPackage;
           };
         }
       )
 
     // {
-      # homeConfigurations.vagrant = self.overlays.default.hm.vagrant;
+      # home-manager build --flake '.#vagrant' --no-out-link --dry-run
+      homeConfigurations.vagrant = self.outputs.packages.x86_64-linux.hm;
     };
 }
