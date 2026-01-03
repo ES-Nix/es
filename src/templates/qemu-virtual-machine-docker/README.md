@@ -23,7 +23,7 @@ github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
       --print-build-logs \
       --print-out-paths \
       .#nixosConfigurations.vm.config.system.build.vm \
-&& nix run --impure --refresh --verbose .#vm \
+&& nix run --impure --refresh --verbose .# \
 && stat id_ed25519 \
 && rm -fv nixos.qcow2 \
 && chmod -v 0600 id_ed25519 \

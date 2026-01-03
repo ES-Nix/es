@@ -13,9 +13,13 @@
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd'
+
+    25.05:
+
+    25.11:
   */
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
   };
 
   outputs = all@{ self, nixpkgs, ... }:
@@ -167,7 +171,7 @@
               environment.systemPackages = with pkgs; [
               ];
 
-              system.stateVersion = "23.11";
+              system.stateVersion = "24.11";
             }
           )
         ];
@@ -176,14 +180,11 @@
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
 
       # Utilized by `nix run .#<name>`
-      apps.x86_64-linux.vm = {
-        type = "app";
-        program = "${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm";
-      };
-
-      apps.x86_64-linux.default = {
-        type = "app";
-        program = "${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm";
+      apps.x86_64-linux = {
+        default = {
+          type = "app";
+          program = "${pkgsAllowUnfree.lib.getExe self.nixosConfigurations.vm.config.system.build.vm}";
+        };
       };
 
       packages.x86_64-linux.default = self.nixosConfigurations.vm.config.system.build.vm;
