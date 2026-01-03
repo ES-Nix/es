@@ -1,19 +1,19 @@
 {
   description = "VM";
 
-/*
-24.05:
-nix \
-flake \
-lock \
---override-input nixpkgs github:NixOS/nixpkgs/b134951a4c9f3c995fd7be05f3243f8ecd65d798
+  /*
+    24.05:
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs github:NixOS/nixpkgs/b134951a4c9f3c995fd7be05f3243f8ecd65d798
 
-24.11:
+    24.11:
     nix \
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd'
-*/
+  */
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs";
   };
@@ -202,14 +202,13 @@ lock \
         shellHook = ''
           export TMPDIR=/tmp
 
+          test -d .profiles || mkdir -v .profiles
+          test -L .profiles/dev \
+          || nix develop --impure .# --profile .profiles/dev --command true
+
           # Too much hardcoded?
           export DOCKER_HOST=ssh://nixuser@localhost:10022
-          lsof -i :10022 1> /dev/null 2> /dev/null && kill "$(pgrep .qemu-system)"
-
-          test -d .profiles || mkdir -v .profiles
-
-          test -L .profiles/dev \
-          || nix develop --impure .# --profile .profiles/dev --command true             
+          # lsof -i :10022 1> /dev/null 2> /dev/null && kill "$(pgrep .qemu-system)"
         '';
       };
     };

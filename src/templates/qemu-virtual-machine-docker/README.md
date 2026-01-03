@@ -2,7 +2,8 @@
 
 
 ```bash
-&& { direnv &>/dev/null && direnv deny QEMUVirtualMachineDocker || true } \
+# && { direnv &>/dev/null && direnv deny QEMUVirtualMachineDocker || true } \
+# && { direnv allow || true; } \
 
 nix \
 run \
@@ -12,10 +13,6 @@ nixpkgs \
 github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4 \
 github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
 && cd QEMUVirtualMachineDocker \
-&& stat id_ed25519 \
-&& rm -fv nixos.qcow2 \
-&& chmod -v 0600 id_ed25519 \
-&& stat id_ed25519 \
 && nix \
     flake \
     lock \
@@ -27,14 +24,29 @@ github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
       --print-out-paths \
       .#nixosConfigurations.vm.config.system.build.vm \
 && nix run --impure --refresh --verbose .#vm \
+&& stat id_ed25519 \
+&& rm -fv nixos.qcow2 \
+&& chmod -v 0600 id_ed25519 \
+&& stat id_ed25519 \
+&& nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+&& for i in {1..600}; do
+  pgrep qemu \
+  && break
+  ! ((i % 11)) && echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
+  sleep 0.1
+done \
+&& pgrep qemu \
 && echo \
 && chmod -v 0600 id_ed25519 \
-&& { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval $(ssh-agent -s) } \
+&& { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval $(ssh-agent -s); } || true \
 && echo 'There could be an race condition in here?' \
-&& { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || ssh-add -v id_ed25519 } \
-&& { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || echo 'erro in ssh-add -L' } \
+&& { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || ssh-add -v id_ed25519; } \
+&& { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || echo 'erro in ssh-add -L'; } \
 && ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null \
-&& for i in {1..500}; do
+&& for i in {1..600}; do
   ssh \
       -o ConnectTimeout=1 \
       -oStrictHostKeyChecking=accept-new \
@@ -43,12 +55,15 @@ github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
          -- \
          sh -c 'true' 1>/dev/null 2>/dev/null \
   && break
-  
+
   ! ((i % 11)) && echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
   sleep 0.1
 done \
-&& { direnv allow || true } \
 && nix --option warn-dirty false develop .# --command docker images
+```
+
+```bash
+kill $(pgrep qemu)
 ```
 
 
@@ -59,15 +74,6 @@ done \
 #done
 ```
 
-
-```bash
-nix \
-build \
---no-link \
---print-build-logs \
---print-out-paths \
-.#nixosConfigurations.vm.config.system.build.vm
-```
 
 ```bash
 direnv deny
@@ -88,114 +94,5 @@ docker images
 
 # ssh-keyscan -H -p 10022 -t ecdsa localhost >> ~/.ssh/known_hosts
 ```
-
-https://stackoverflow.com/a/73644766
-
-
-nix flake lock --override-input nixpkgs github:NixOS/nixpkgs/219951b495fc2eac67b1456824cc1ec1fd2ee659
-
-
-
-```bash
-cat > Containerfile << 'EOF'
-FROM docker.io/library/alpine:3.19.1
-
-RUN apk update \
- && apk \
-        add \
-        --no-cache \
-        ca-certificates \
-        curl \
-        shadow \
- && mkdir -pv -m 0700 /home/abcuser \
- && addgroup abcgroup --gid 4455 \
- && adduser \
-        -g '"An unprivileged user with an group"' \
-        -D \
-        -h /home/abcuser \
-        -G abcgroup \
-        -u 3322 \
-        abcuser \
- && echo \
- && apk del shadow
-
-# If it is uncommented nix profile works!
-RUN mkdir -pv -m 1735 /nix/var/nix && chown -Rv abcuser:abcgroup /nix
-
-ENV PATH=/home/abcuser/.nix-profile/bin:/home/abcuser/.local/bin:"$PATH"
-
-USER abcuser
-WORKDIR /home/abcuser
-ENV USER="abcuser"
-ENV NIX_CONFIG="extra-experimental-features = nix-command flakes"
-
-ENV HYDRA_BUILD_ID=297111184
-ENV NIXPKGS_COMMIT=fd487183437963a59ba763c0cc4f27e3447dd6dd
-
-RUN mkdir -pv "$HOME"/.local/bin \
- && cd "$HOME"/.local/bin \
- && curl -L https://hydra.nixos.org/build/"$HYDRA_BUILD_ID"/download-by-type/file/binary-dist > nix \
- && chmod -v +x nix \
- && nix flake --version \
- && nix \
-      registry \
-      pin \
-      nixpkgs github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
- && nix \
-    run \
-    --refresh \
-    --override-input \
-    nixpkgs \
-    github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd \
-    github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
- && cd QEMUVirtualMachineDocker \
- && nix develop '.#' --command 'true' \
- && nix \
-    build \
-    --print-build-logs \
-    --print-out-paths \
-    '.#nixosConfigurations.vm.config.system.build.vm' \
- && nix \
-    store \
-    gc \
-    --verbose \
-    --option keep-build-log false \
-    --option keep-derivations false \
-    --option keep-env-derivations false \
-    --option keep-failed false \
-    --option keep-going false \
-    --option keep-outputs false \
- && nix store optimise --verbose
-EOF
-
-
-podman \
-build \
---file=Containerfile \
---tag=alpine-with-static-nix .
-
-
-podman \
-run \
---device=/dev/kvm:rw \
---interactive=true \
---tty=true \
---rm=true \
-localhost/alpine-with-static-nix:latest \
-sh \
--l
-```
-
-
-```bash
-docker \
-run \
---device=/dev/kvm:rw \
---interactive=true \
---tty=true \
---rm=true \
---user=app_user:app_group \
---workdir=/home/app_user \
-vm-no-graphical-oci-image:0.0.1 \
-sh 
-```
+Refs.:
+- https://stackoverflow.com/a/73644766
