@@ -53,6 +53,76 @@
               '';
             } // { meta.mainProgram = name; };
 
+          healthCheck = let name = "health-check"; in final.writeShellApplication
+            {
+              name = name;
+              runtimeInputs = with final; [ openssh ];
+              text = ''
+                ssh \
+                  -o ConnectTimeout=1 \
+                  -oStrictHostKeyChecking=accept-new \
+                  -p 10022 \
+                  nixuser@localhost \
+                    -- \
+                    sh <<<'docker images' 1>/dev/null 2>/dev/null
+              '';
+            } // { meta.mainProgram = name; };
+
+          cleanPort = let name = "clean-port"; in final.writeShellApplication
+            {
+              name = name;
+              runtimeInputs = with final; [ coreutils lsof nixOsVm ];
+              text = ''
+                lsof -i :10022 \
+                && kill "$(pgrep .qemu-system)" \
+                || echo 'No QEMU process running.'          
+              '';
+            } // { meta.mainProgram = name; };
+
+          qdocker = let name = "qdocker"; in final.writeShellApplication
+            {
+              name = name;
+              runtimeInputs = with final; [
+                bashInteractive
+                nixOsVm
+                docker
+                healthCheck
+                cleanPort
+              ];
+              text = ''
+                # set +x
+
+                if ! health-check 
+                then
+                  clean-port 
+                  "${ final.nixOsVm.meta.mainProgram }" 
+
+                  chmod -v 0600 id_ed25519 \
+                  && { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval "$(ssh-agent -s)"; } || true \
+                  && { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || ssh-add -v id_ed25519; } \
+                  && { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || echo 'erro in ssh-add -L'; } \
+                  && { ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null  || true; } \
+                  && for i in {1..600}; do
+                    ssh \
+                        -o ConnectTimeout=1 \
+                        -oStrictHostKeyChecking=accept-new \
+                        -p 10022 \
+                        nixuser@localhost \
+                          -- \
+                          sh <<<'docker images' 1>/dev/null 2>/dev/null \
+                    && break
+
+                    ! ((i % 11)) && echo Iteration "$i", date "$(date +'%d/%m/%Y %H:%M:%S:%3N')"
+                    sleep 0.1
+                  done \
+                  && echo 'Connected to VM via SSH.'
+                fi
+
+                export DOCKER_HOST=ssh://nixuser@localhost:10022
+                docker "$@"
+              '';
+            } // { meta.mainProgram = name; };
+
           nixOsVm = self.nixosConfigurations.nixOsVmWithDocker.config.system.build.vm;
         })
       ];
@@ -65,6 +135,8 @@
       };
     in
     {
+      overlays.default = overlays.default;
+
       nixosConfigurations.nixOsVmWithDocker = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
@@ -224,12 +296,31 @@
           program = "${pkgs.lib.getExe pkgs.nixOsVm}";
           meta.description = "QEMU NixOS Virtual Machine with Docker enabled";
         };
+        qdocker = {
+          type = "app";
+          program = "${pkgs.lib.getExe pkgs.qdocker}";
+          meta.description = "Connect to the QEMU NixOS Virtual Machine with Docker enabled";
+        };
       };
 
       packages.x86_64-linux = {
+        inherit (pkgs)
+          allTests
+          fooBar
+          nixOsVm
+          qdocker
+          ;
         default = pkgs.nixOsVm;
-        nixOsVm = pkgs.nixOsVm;
-        fooBar = pkgs.fooBar;
+      };
+
+      checks.x86_64-linux = {
+        inherit (pkgs)
+          allTests
+          fooBar
+          nixOsVm
+          qdocker
+          ;
+        default = pkgs.nixOsVm;
       };
 
       devShells.x86_64-linux.default = pkgs.mkShell {
@@ -240,7 +331,7 @@
           nixpkgs-fmt
           which
 
-          docker
+          qdocker
           fooBar
         ];
 
@@ -252,7 +343,7 @@
           || nix develop --impure .# --profile .profiles/dev --command true
 
           # Too much hardcoded?
-          export DOCKER_HOST=ssh://nixuser@localhost:10022
+          # export DOCKER_HOST=ssh://nixuser@localhost:10022
         '';
       };
     };

@@ -18,7 +18,6 @@ github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
 && rm -fv nixos.qcow2 \
 && chmod -v 0600 id_ed25519 \
 && { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval $(ssh-agent -s); } || true \
-&& echo 'There could be an race condition in here?' \
 && { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || ssh-add -v id_ed25519; } \
 && { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || echo 'erro in ssh-add -L'; } \
 && { ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null  || true; } \
@@ -29,7 +28,7 @@ github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
       -p 10022 \
       nixuser@localhost \
          -- \
-         sh  <<<'docker images' 1>/dev/null 2>/dev/null \
+         sh <<<'docker images' 1>/dev/null 2>/dev/null \
   && break
 
   ! ((i % 11)) && echo Iteration $i, date $(date +'%d/%m/%Y %H:%M:%S:%3N')
