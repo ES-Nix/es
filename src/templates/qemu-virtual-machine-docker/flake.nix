@@ -15,11 +15,21 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd'
 
     25.05:
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/40ee5e1944bebdd128f9fbada44faefddfde29bd'
 
     25.11:
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852'
+    
   */
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
   };
 
   outputs = all@{ self, nixpkgs, ... }:
@@ -171,7 +181,7 @@
               environment.systemPackages = with pkgs; [
               ];
 
-              system.stateVersion = "24.11";
+              system.stateVersion = "25.11";
             }
           )
         ];
@@ -179,7 +189,6 @@
 
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
 
-      # Utilized by `nix run .#<name>`
       apps.x86_64-linux = {
         default = {
           type = "app";

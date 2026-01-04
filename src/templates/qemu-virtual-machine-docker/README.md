@@ -10,13 +10,13 @@ run \
 --refresh \
 --override-input \
 nixpkgs \
-github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4 \
+github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852 \
 github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
 && cd QEMUVirtualMachineDocker \
 && nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
 && nix \
       build \
       --no-link \
@@ -24,14 +24,8 @@ github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
       --print-out-paths \
       .#nixosConfigurations.vm.config.system.build.vm \
 && nix run --impure --refresh --verbose .# \
-&& stat id_ed25519 \
 && rm -fv nixos.qcow2 \
 && chmod -v 0600 id_ed25519 \
-&& stat id_ed25519 \
-&& nix \
-    flake \
-    lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
 && for i in {1..600}; do
   pgrep qemu \
   && break
@@ -53,7 +47,7 @@ done \
       -p 10022 \
       nixuser@localhost \
          -- \
-         sh -c 'true' 1>/dev/null 2>/dev/null \
+         sh  <<<'docker images' 1>/dev/null 2>/dev/null \
   && break
 
   ! ((i % 11)) && echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
