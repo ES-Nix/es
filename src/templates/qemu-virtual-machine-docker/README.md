@@ -32,9 +32,6 @@ github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
   ! ((i % 11)) && echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
   sleep 0.1
 done \
-&& pgrep qemu \
-&& echo \
-&& chmod -v 0600 id_ed25519 \
 && { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval $(ssh-agent -s); } || true \
 && echo 'There could be an race condition in here?' \
 && { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || ssh-add -v id_ed25519; } \
@@ -53,6 +50,13 @@ done \
   ! ((i % 11)) && echo $(date +'%d/%m/%Y %H:%M:%S:%3N')
   sleep 0.1
 done \
+&& ssh \
+     -o ConnectTimeout=1 \
+     -oStrictHostKeyChecking=accept-new \
+     -p 10022 \
+     nixuser@localhost \
+       -- \
+       sh  <<<'docker images' \
 && nix --option warn-dirty false develop .# --command docker images
 ```
 
