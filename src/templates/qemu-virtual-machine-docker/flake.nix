@@ -226,7 +226,11 @@
         };
       };
 
-      packages.x86_64-linux.default = pkgs.nixOsVm;
+      packages.x86_64-linux = {
+        default = pkgs.nixOsVm;
+        nixOsVm = pkgs.nixOsVm;
+        fooBar = pkgs.fooBar;
+      };
 
       devShells.x86_64-linux.default = pkgs.mkShell {
         packages = with pkgs; [

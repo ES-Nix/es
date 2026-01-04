@@ -14,12 +14,6 @@ github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
-&& nix \
-      build \
-      --no-link \
-      --print-build-logs \
-      --print-out-paths \
-      .#nixosConfigurations.vm.config.system.build.vm \
 && nix run --impure --refresh --verbose .# \
 && rm -fv nixos.qcow2 \
 && chmod -v 0600 id_ed25519 \
@@ -45,7 +39,15 @@ done \
 && nix --option warn-dirty false develop .# --command docker images
 ```
 
+
 ```bash
+nix \
+      build \
+      --no-link \
+      --print-build-logs \
+      --print-out-paths \
+      .#nixosConfigurations.nixOsVmWithDocker.config.system.build.vm
+
 kill $(pgrep qemu)
 
 lsof -i :10022 1> /dev/null 2> /dev/null && kill "$(pgrep .qemu-system)"
