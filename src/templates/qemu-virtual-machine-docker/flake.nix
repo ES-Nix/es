@@ -34,14 +34,38 @@
 
   outputs = all@{ self, nixpkgs, ... }:
     let
-      pkgsAllowUnfree = import nixpkgs {
+      overlays.default = nixpkgs.lib.composeManyExtensions [
+        (final: prev: {
+          fooBar = prev.hello;
+
+          allTests = let name = "all-tests"; in final.writeShellApplication
+            {
+              name = name;
+              runtimeInputs = with final; [ ];
+              text = ''
+                nix fmt . \
+                && nix flake show '.#' \
+                && nix flake metadata '.#' \
+                && nix build --no-link --print-build-logs --print-out-paths '.#' \
+                && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+                && nix develop '.#' --command sh -c 'true' \
+                && nix flake check --all-systems --verbose '.#'
+              '';
+            } // { meta.mainProgram = name; };
+
+          nixOsVm = self.nixosConfigurations.nixOsVmWithDocker.config.system.build.vm;
+        })
+      ];
+
+      pkgs = import nixpkgs {
         system = "x86_64-linux";
         # system = "aarch64-linux";
+        overlays = [ overlays.default ];
         config = { allowUnfree = true; };
       };
     in
     {
-      nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.nixOsVmWithDocker = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           (
@@ -190,16 +214,22 @@
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
 
       apps.x86_64-linux = {
+        allTests = {
+          type = "app";
+          program = "${pkgs.lib.getExe pkgs.allTests}";
+          meta.description = "Run all tests for this flake";
+        };
         default = {
           type = "app";
-          program = "${pkgsAllowUnfree.lib.getExe self.nixosConfigurations.vm.config.system.build.vm}";
+          program = "${pkgs.lib.getExe pkgs.nixOsVm}";
+          meta.description = "QEMU NixOS Virtual Machine with Docker enabled";
         };
       };
 
-      packages.x86_64-linux.default = self.nixosConfigurations.vm.config.system.build.vm;
+      packages.x86_64-linux.default = pkgs.nixOsVm;
 
-      devShells.x86_64-linux.default = pkgsAllowUnfree.mkShell {
-        buildInputs = with pkgsAllowUnfree; [
+      devShells.x86_64-linux.default = pkgs.mkShell {
+        packages = with pkgs; [
           bashInteractive
           coreutils
           file
@@ -207,6 +237,7 @@
           which
 
           docker
+          fooBar
         ];
 
         shellHook = ''
@@ -218,7 +249,6 @@
 
           # Too much hardcoded?
           export DOCKER_HOST=ssh://nixuser@localhost:10022
-          # lsof -i :10022 1> /dev/null 2> /dev/null && kill "$(pgrep .qemu-system)"
         '';
       };
     };
