@@ -53,32 +53,6 @@
               '';
             } // { meta.mainProgram = name; };
 
-          healthCheck = let name = "health-check"; in final.writeShellApplication
-            {
-              name = name;
-              runtimeInputs = with final; [ openssh ];
-              text = ''
-                ssh \
-                  -o ConnectTimeout=1 \
-                  -oStrictHostKeyChecking=accept-new \
-                  -p 10022 \
-                  nixuser@localhost \
-                    -- \
-                    sh <<<'docker images' 1>/dev/null 2>/dev/null
-              '';
-            } // { meta.mainProgram = name; };
-
-          cleanPort = let name = "clean-port"; in final.writeShellApplication
-            {
-              name = name;
-              runtimeInputs = with final; [ coreutils lsof nixOsVm ];
-              text = ''
-                lsof -i :10022 \
-                && kill "$(pgrep .qemu-system)" \
-                || echo 'No QEMU process running.'          
-              '';
-            } // { meta.mainProgram = name; };
-
           qdocker = let name = "qdocker"; in final.writeShellApplication
             {
               name = name;
@@ -86,16 +60,25 @@
                 bashInteractive
                 nixOsVm
                 docker
-                healthCheck
-                cleanPort
+                openssh
               ];
               text = ''
-                # set +x
+                set +x
 
-                if ! health-check 
+                ssh \
+                -o ConnectTimeout=1 \
+                -oStrictHostKeyChecking=accept-new \
+                -p 10022 \
+                nixuser@localhost \
+                  -- \
+                  sh <<<'docker images' 1>/dev/null 2>/dev/null
+
+                if ! $? -eq 0;
                 then
-                  clean-port 
-                  "${ final.nixOsVm.meta.mainProgram }" 
+                  lsof -t -i tcp:10022 -s tcp:listen || echo 'No process running on port 10022.'
+                  # kill "$(pgrep .qemu-system)"
+
+                  ${ final.nixOsVm.meta.mainProgram }
 
                   chmod -v 0600 id_ed25519 \
                   && { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval "$(ssh-agent -s)"; } || true \
