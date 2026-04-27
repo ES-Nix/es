@@ -1,4 +1,14 @@
 
+```bash
+nix \
+profile \
+add \
+--override-input \
+nixpkgs \
+github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852 \
+'github:ES-Nix/es/?dir=src/templates/qemu-virtual-machine-docker#qdocker'
+```
+
 
 ```bash
 nix \

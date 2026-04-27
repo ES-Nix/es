@@ -43,13 +43,18 @@
               name = name;
               runtimeInputs = with final; [ ];
               text = ''
-                nix fmt . \
-                && nix flake show '.#' \
-                && nix flake metadata '.#' \
-                && nix build --no-link --print-build-logs --print-out-paths '.#' \
-                && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
-                && nix develop '.#' --command sh -c 'true' \
-                && nix flake check --all-systems --verbose '.#'
+                OPTIONS=( 
+                    --option warn-dirty false
+                    --option abort-on-warn true
+                )
+
+                nix "''${OPTIONS[@]}" fmt . \
+                && nix "''${OPTIONS[@]}" flake show '.#' \
+                && nix "''${OPTIONS[@]}" flake metadata '.#' \
+                && nix "''${OPTIONS[@]}" build --no-link --print-build-logs --print-out-paths '.#' \
+                && nix "''${OPTIONS[@]}" build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+                && nix "''${OPTIONS[@]}" develop '.#' --command sh -c 'true' \
+                && nix "''${OPTIONS[@]}" flake check --all-systems --verbose '.#'
               '';
             } // { meta.mainProgram = name; };
 
@@ -65,6 +70,15 @@
               text = ''
                 set +x
 
+                pgrep qemu
+                if ! $? -eq 0;
+                then
+                  lsof -t -i tcp:10022 -s tcp:listen || echo 'No process running on port 10022.'
+
+                  # ''${ final.nixOsVm.meta.mainProgram }
+                  ${ final.nixOsVm }/bin/run-nixos-vm 
+                fi
+
                 ssh \
                 -o ConnectTimeout=1 \
                 -oStrictHostKeyChecking=accept-new \
@@ -75,16 +89,34 @@
 
                 if ! $? -eq 0;
                 then
-                  lsof -t -i tcp:10022 -s tcp:listen || echo 'No process running on port 10022.'
-                  # kill "$(pgrep .qemu-system)"
 
-                  ${ final.nixOsVm.meta.mainProgram }
+                  if [ nix eval '.#' 1>/dev/null 2>/dev/null ]; then
+                    FULL_PATH=.
+                  else
+                    FULL_PATH=~/.ssh/
+                  fi
+
+                  cat > $FULL_PATH/id_ed25519 << 'EOF'
+                  -----BEGIN OPENSSH PRIVATE KEY-----
+                  b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+                  QyNTUxOQAAACA1DxhUBScQRGqAfmpppIJ75c9EplEzXzGdpTpltpTPcAAAANjielu+4npb
+                  vgAAAAtzc2gtZWQyNTUxOQAAACA1DxhUBScQRGqAfmpppIJ75c9EplEzXzGdpTpltpTPcA
+                  AAAEDvZDuZeGx8qmOMpJqBXCjv6nwcSkQoBjjboiTWE3GwgDUPGFQFJxBEaoB+ammkgnvl
+                  z0SmUTNfMZ2lOmW2lM9wAAAAVWdpdCBlbWFpbCBpZiBhdmFpbGFibGUgZnJvbSBjb25maW
+                  c6IC4gPGxvZ2luPkA8aG9zdG5hbWU+OiAxMDAwQHVidW50dTIzMDQubG9jYWxkb21haW4=
+                  -----END OPENSSH PRIVATE KEY-----
+                  EOF
+
+                  cat > $FULL_PATH/id_ed25519.pub << 'EOF'
+                  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w
+                  EOF                  
 
                   chmod -v 0600 id_ed25519 \
                   && { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval "$(ssh-agent -s)"; } || true \
-                  && { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || ssh-add -v id_ed25519; } \
-                  && { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || echo 'erro in ssh-add -L'; } \
-                  && { ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null  || true; } \
+                  && { ssh-add -L | grep -q "$(cat $FULL_PATH/id_ed25519.pub)" || ssh-add -v $FULL_PATH/id_ed25519; } \
+                  && { ssh-add -L | grep -q "$(cat $FULL_PATH/id_ed25519.pub)" || echo 'erro in ssh-add -L'; } \
+                  && { ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null  || true; }  \
+                  && ssh-keyscan -H -p 10022 -t ecdsa localhost >> ~/.ssh/known_hosts 1>/dev/null 2>/dev/null \
                   && for i in {1..600}; do
                     ssh \
                         -o ConnectTimeout=1 \
