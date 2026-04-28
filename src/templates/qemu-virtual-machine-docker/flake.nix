@@ -79,9 +79,8 @@
                                   if ! $? -eq 0;
                                   then
                                     lsof -t -i tcp:10022 -s tcp:listen || echo 'No process running on port 10022.'
-
-                                    # ''${ final.nixOsVm.meta.mainProgram }
-                                    ${ final.nixOsVm }/bin/run-nixos-vm 
+                                    echo 'Starting the NixOS VM with Docker enabled...'
+                                    ${ final.nixOsVm.meta.mainProgram }                                    
                                   fi
 
                                   ssh \
