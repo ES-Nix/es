@@ -70,7 +70,7 @@
                 procps
               ];
               text = ''
-                                  set +x
+                                  # set +x
 
                                   pgrep qemu
                                   if ! $? -eq 0;
