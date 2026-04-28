@@ -90,15 +90,16 @@
                                   nixuser@localhost \
                                     -- \
                                     sh <<<'docker images' 1>/dev/null 2>/dev/null
-
-                                  if ! $? -eq 0;
+                                  if $? -eq 0;
+                                    export DOCKER_HOST=ssh://nixuser@localhost:10022
+                                    docker $@                                  
                                   then
 
-                                    if [ nix eval '.#' 1>/dev/null 2>/dev/null ]; then
-                                      FULL_PATH=.
-                                    else
-                                      FULL_PATH=~/.ssh/
-                                    fi
+                                  if [ nix eval '.#' 1>/dev/null 2>/dev/null ]; then
+                                    FULL_PATH=.
+                                  else
+                                    FULL_PATH=~/.ssh/
+                                  fi
 
                 cat > $FULL_PATH/id_ed25519 << 'EOF'
                 -----BEGIN OPENSSH PRIVATE KEY-----
@@ -115,7 +116,7 @@
                 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w
                 EOF
 
-                                    chmod -v 0600 id_ed25519 \
+                                    chmod -v 0600 $FULL_PATH/id_ed25519 \
                                     && { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval "$(ssh-agent -s)"; } || true \
                                     && { ssh-add -L | grep -q "$(cat $FULL_PATH/id_ed25519.pub)" || ssh-add -v $FULL_PATH/id_ed25519; } \
                                     && { ssh-add -L | grep -q "$(cat $FULL_PATH/id_ed25519.pub)" || echo 'erro in ssh-add -L'; } \
