@@ -76,7 +76,7 @@
                                   # set +x
 
                                   pgrep qemu
-                                  if $?;
+                                  if ! $?;
                                   then
                                     lsof -t -i tcp:10022 -s tcp:listen || echo 'No process running on port 10022.'
                                     echo 'Starting the NixOS VM with Docker enabled...'
@@ -138,7 +138,7 @@
                                   fi
 
                                   export DOCKER_HOST=ssh://nixuser@localhost:10022
-                                  docker "$@"
+                                  docker $@
               '';
             } // { meta.mainProgram = name; };
 
