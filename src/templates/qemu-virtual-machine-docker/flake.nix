@@ -109,7 +109,7 @@
 
                   cat > $FULL_PATH/id_ed25519.pub << 'EOF'
                   ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w
-                  EOF                  
+                  EOF
 
                   chmod -v 0600 id_ed25519 \
                   && { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval "$(ssh-agent -s)"; } || true \
