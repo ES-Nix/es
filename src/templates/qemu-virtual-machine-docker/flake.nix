@@ -98,7 +98,7 @@
                                   if [ nix eval '.#' 1>/dev/null 2>/dev/null ]; then
                                     FULL_PATH=.
                                   else
-                                    FULL_PATH=~/.ssh/
+                                    FULL_PATH=~/.ssh
                                   fi
 
                 cat > $FULL_PATH/id_ed25519 << 'EOF'
