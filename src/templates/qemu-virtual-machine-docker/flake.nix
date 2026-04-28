@@ -70,6 +70,9 @@
                 procps
               ];
               text = ''
+                                  set +e          # disable errexit
+                                  set +u          # disable nounset
+                                  set +o pipefail # disable pipefail              
                                   # set +x
 
                                   pgrep qemu
