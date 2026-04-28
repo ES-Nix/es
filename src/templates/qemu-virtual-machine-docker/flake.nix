@@ -91,15 +91,16 @@
                                     -- \
                                     sh <<<'docker images' 1>/dev/null 2>/dev/null
                                   if $? -eq 0;
-                                    export DOCKER_HOST=ssh://nixuser@localhost:10022
-                                    docker $@                                  
                                   then
-
-                                  if [ nix eval '.#' 1>/dev/null 2>/dev/null ]; then
-                                    FULL_PATH=.
+                                    export DOCKER_HOST=ssh://nixuser@localhost:10022
+                                    docker "$@"
+                                    exit $?
                                   else
-                                    FULL_PATH=~/.ssh
-                                  fi
+                                    if [ nix eval '.#' 1>/dev/null 2>/dev/null ]; then
+                                      FULL_PATH=.
+                                    else
+                                      FULL_PATH=~/.ssh
+                                    fi
 
                 cat > $FULL_PATH/id_ed25519 << 'EOF'
                 -----BEGIN OPENSSH PRIVATE KEY-----
@@ -139,7 +140,8 @@
                                   fi
 
                                   export DOCKER_HOST=ssh://nixuser@localhost:10022
-                                  docker $@
+                                  docker "$@"
+                                fi
               '';
             } // { meta.mainProgram = name; };
 
