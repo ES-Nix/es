@@ -67,6 +67,7 @@
                 nixOsVm
                 docker
                 openssh
+                procps
               ];
               text = ''
                                   set +x
