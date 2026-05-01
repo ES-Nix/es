@@ -137,7 +137,7 @@
                                       sleep 0.1
                                     done \
                                     && echo 'Connected to VM via SSH.'
-                                  fi
+                fi
 
                                 export DOCKER_HOST=ssh://nixuser@localhost:10022
                                 docker "$@"
