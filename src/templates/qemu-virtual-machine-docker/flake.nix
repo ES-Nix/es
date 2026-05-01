@@ -75,8 +75,7 @@
                                   set +o pipefail # disable pipefail              
                                   # set +x
 
-                                  pgrep qemu
-                                  if $?;
+                                  if pgrep qemu; [ "$?" -eq 1 ];
                                   then
                                     lsof -t -i tcp:10022 -s tcp:listen || echo 'No process running on port 10022.'
                                     echo 'Starting the NixOS VM with Docker enabled...'
