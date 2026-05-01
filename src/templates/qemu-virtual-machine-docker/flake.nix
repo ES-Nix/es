@@ -139,9 +139,9 @@
                                     && echo 'Connected to VM via SSH.'
                                   fi
 
-                                  export DOCKER_HOST=ssh://nixuser@localhost:10022
-                                  docker "$@"
-                                fi
+                                export DOCKER_HOST=ssh://nixuser@localhost:10022
+                                docker "$@"
+                                
               '';
             } // { meta.mainProgram = name; };
 
