@@ -216,7 +216,6 @@
 
         nixOsVm = final.nixOsVmWithDocker.config.system.build.vm;
 
-
         hm =
           let
             userName = "vagrant";
@@ -232,6 +231,12 @@
                   home.homeDirectory = "${homeDirectory}";
 
                   programs.home-manager.enable = true;
+
+                  home.activation = {
+                    startPythonHttpServer = home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                      "${pkgs.lib.getExe pkgs.runNixOSVm}"
+                    '';
+                  };
 
                   home.packages = with pkgs; [
                     git
