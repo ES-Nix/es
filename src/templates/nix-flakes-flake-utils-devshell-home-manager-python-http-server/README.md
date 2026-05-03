@@ -1,4 +1,8 @@
 
+```bash
+rm -frv ~/.config/home-manager/
+```
+
 
 ```bash
 mkdir -pv devShellHomeManagerFlakeUtilsPython3HttpServer \

@@ -41,8 +41,8 @@
       suportedSystems = [
         "x86_64-linux"
         "aarch64-linux"
-        "aarch64-darwin"
-        "x86_64-darwin"
+        # "aarch64-darwin"
+        # "x86_64-darwin"
       ];
     in
     {
@@ -59,14 +59,29 @@
             runtimeInputs = with final; [ ];
             text = ''
               nix fmt . \
-              && nix flake show '.#' \
+              && nix flake show --all-systems '.#' \
               && nix flake metadata '.#' \
               && nix build --no-link --print-build-logs --print-out-paths '.#' \
               && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
               && nix develop '.#' --command sh -c 'true' \
-              && nix flake check --all-systems --verbose '.#'
+              && nix flake check --all-systems --verbose '.#' \
+              && home-manager build --flake '.#vagrant' --no-out-link --dry-run \
+              && nix build --no-link --print-build-logs --print-out-paths \
+                   '.#homeConfigurations.vagrant.activationPackage'
             '';
           } // { meta.mainProgram = name; };
+
+        hms = (final.writeScriptBin "hms" ''
+          #! ${final.runtimeShell} -e
+            nix \
+            build \
+            --no-link \
+            --print-build-logs \
+            --print-out-paths \
+            "$HOME"'/.config/home-manager#homeConfigurations.'"$(id -un)".activationPackage
+
+            home-manager switch --flake "$HOME/.config/home-manager"#"$(id -un)"
+        '');
 
         hm =
           let
@@ -87,26 +102,16 @@
                   home.packages = with pkgs; [
                     git
                     nix
+                    nano
+                    file
+                    which                    
                     # path # TODO: Why it breaks??
                     zsh
                     direnv
                     starship
 
                     f00Bar
-                    nano
-                    file
-                    which
-                    (writeScriptBin "hms" ''
-                      #! ${pkgs.runtimeShell} -e
-                        nix \
-                        build \
-                        --no-link \
-                        --print-build-logs \
-                        --print-out-paths \
-                        "$HOME"'/.config/home-manager#homeConfigurations.'"$(id -un)".activationPackage
-
-                        home-manager switch --flake "$HOME/.config/home-manager"#"$(id -un)"
-                    '')
+                    hms
                   ];
 
                   nix = {
@@ -167,6 +172,8 @@
           };
 
         hmActivationPackage = final.hm.activationPackage;
+
+        homeManager = home-manager.packages.${final.stdenv.hostPlatform.system}.home-manager;
       };
     } //
     flake-utils.lib.eachSystem suportedSystems
@@ -199,8 +206,9 @@
 
           packages = {
             inherit (pkgsAllowUnfree)
+              allTests
               f00Bar
-              hm
+              # hm
               hmActivationPackage
               ;
             default = pkgsAllowUnfree.hmActivationPackage;
@@ -208,6 +216,8 @@
 
           devShells.default = pkgsAllowUnfree.mkShell {
             packages = with pkgsAllowUnfree; [
+              # home-manager
+              homeManager
               f00Bar
               python313
               uv
@@ -223,13 +233,13 @@
               test -L .profiles/dev-shell-default \
               || nix build --impure .#devShells."$system".default --out-link .profiles/dev-shell-"$system"-default
 
-              hello
-              echo
+              home-manager --version
             '';
           };
 
           checks = {
             inherit (pkgsAllowUnfree)
+              allTests
               f00Bar
               hmActivationPackage
               ;
@@ -238,8 +248,17 @@
         }
       )
 
-    // {
-      # home-manager build --flake '.#vagrant' --no-out-link --dry-run
-      homeConfigurations.vagrant = self.outputs.packages.x86_64-linux.hm;
-    };
+    //
+    { homeConfigurations.vagrant = (import nixpkgs { overlays = [ self.overlays.default ]; system = "aarch64-linux"; }).hm; }
+    //
+    { homeConfigurations.vagrant = (import nixpkgs { overlays = [ self.overlays.default ]; system = "x86_64-linux"; }).hm; };
+  # flake-utils.lib.eachSystem suportedSystems
+  #   (suportedSystem:
+  #     {
+  #       # home-manager build --flake '.#vagrant' --no-out-link --dry-run
+  #       # nix build --no-link --print-build-logs --print-out-paths '.#homeConfigurations.vagrant.activationPackage'
+  #       # homeConfigurations.vagrant = self.outputs.packages.x86_64-linux.hm;
+
+  #       homeConfigurations.vagrant = (import nixpkgs { overlays = [ self.overlays.default ]; system = suportedSystem; }).hm;
+  #     });
 }

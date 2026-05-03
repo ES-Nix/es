@@ -106,15 +106,16 @@
                   home.packages = with pkgs; [
                     git
                     nix
+                    nano
+                    file
+                    which                    
                     # path # TODO: Why it breaks??
                     zsh
                     direnv
                     starship
 
                     f00Bar
-                    nano
-                    file
-                    which
+                    hms
                     python3HttpServer
                   ];
 
