@@ -73,7 +73,7 @@
             #! ${final.runtimeShell} -e
 
             curl localhost:6789 \
-            && echo 'Server is up' \
+            && echo 'Server localhost:6789 is up!' \
             && exit 0
 
             echo 'Starting server...' \
@@ -99,9 +99,7 @@
 
                   home.activation = {
                     startPythonHttpServer = home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-                      set -x
-                      echo $PATH
-                      "${pkgs.python3HttpServer.meta.mainProgram}"
+                      "${pkgs.lib.getExe pkgs.python3HttpServer}"
                     '';
                   };
 
