@@ -114,6 +114,11 @@ let
       path = ./nix-flakes-flake-utils-devshell-home-manager-nixosvm;
     };
 
+    devShellHomeManagerFlakeUtilsPython3HttpServer = {
+      description = "Example of: home-manager, NixOS QEMU VM, devShell, and flake-utils to support multiple architectures";
+      path = ./nix-flakes-flake-utils-devshell-home-manager-python-http-server;
+    };
+
     poetry2nixBasic = {
       description = "Basic poetry2nix pure python3 script example";
       path = ./poetry2nix-basic;
