@@ -1,17 +1,12 @@
-
+# 
 
 
 
 ```bash
-nix flake show '.#' \
-&& nix flake metadata '.#' \
-&& nix build --no-link --print-build-logs --print-out-paths '.#' \
-&& nix develop '.#' --command sh -c 'true' \
-&& nix flake check --verbose '.#'
+nix run '.#allTests'
 ```
 
 
-1)
 ```bash
 rm -fv nixos.qcow2; 
 nix \
@@ -22,7 +17,6 @@ run \
 ```
 
 
-2)
 ```bash
 prepare-vagrant-vms \
 && cd "$HOME"/vagrant-examples/libvirt/nixos/ \
@@ -54,7 +48,6 @@ ALMALINUX_MANTISBT_PROJECT_VERSION="9.5"
 REDHAT_SUPPORT_PRODUCT="AlmaLinux"
 REDHAT_SUPPORT_PRODUCT_VERSION="9.5"
 SUPPORT_END=2032-06-01
-
 ```
 
 
@@ -66,3 +59,10 @@ vagrant destroy --force; vagrant destroy --force && vagrant up && vagrant ssh
 vagrant ssh -c 'sudo dnf install -y python3 && python3 --version'
 ```
 
+While not "solved" https://github.com/vagrant-libvirt/vagrant-libvirt/pull/1835
+is expected!
+```bash
+[fog][WARNING] Unrecognized arguments: libvirt_ip_command
+```
+Refs.:
+- https://github.com/vagrant-libvirt/vagrant-libvirt/pull/1835

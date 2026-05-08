@@ -104,7 +104,7 @@
                     nix
                     nano
                     file
-                    which                    
+                    which
                     # path # TODO: Why it breaks??
                     zsh
                     direnv

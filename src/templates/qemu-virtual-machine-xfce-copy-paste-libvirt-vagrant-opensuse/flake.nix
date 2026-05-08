@@ -33,16 +33,23 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'  
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         opensuse = prev.fetchurl {
           # alvistack/opensuse-tumbleweed
@@ -60,6 +67,9 @@
               # v.memorybacking :access, :mode => "shared"
               # https://github.com/vagrant-libvirt/vagrant-libvirt/issues/1460
             end
+
+            # Force Vagrant to use a clean SSH config file, so that it doesn't mess with the host's SSH config.
+            config.ssh.extra_args = ["-F", "/dev/null"]
 
             config.vm.synced_folder '.', '/home/vagrant/code'
 
@@ -91,7 +101,7 @@
         '';
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -208,7 +218,7 @@
                     vagrant
                     prepareVagrantVms
                     runVagrantDebian
-                    foo-bar
+                    fooBar
                   ];
                   shell = pkgs.bash;
                   uid = 1234;
@@ -276,7 +286,7 @@
                   vagrant
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.11";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -286,7 +296,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           /*
@@ -326,6 +336,21 @@
             '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -354,27 +379,34 @@
           inherit (pkgs)
             myvm
             ;
-          default = pkgs.automatic-vm;
+          default = pkgs.automaticVm;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            automatic-vm
+            automaticVm
             ;
         };
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
-            automatic-vm
+            fooBar
+            automaticVm
           ];
           shellHook = ''
             test -d .profiles || mkdir -v .profiles

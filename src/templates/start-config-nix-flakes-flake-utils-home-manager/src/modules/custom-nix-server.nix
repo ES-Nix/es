@@ -20,13 +20,9 @@ let
 in
 with lib;
 {
-
-
   environment.systemPackages = with pkgs; [
-
     figlet
     sqlite
-
     awscli
     # aws-iam-authenticator
 
@@ -89,8 +85,6 @@ with lib;
     wantedBy = [ "multi-user.target" ];
   };
 
-
-
   networking.hostName = mkForce "binarycache";
   networking.domain = "example.com";
 
@@ -109,7 +103,6 @@ with lib;
       };
     };
   };
-
 
   # journalctl -f -u nix-serve.service
   # journalctl -xefu nix-serve
@@ -181,13 +174,10 @@ with lib;
 
   '';
 
-
   services.qemuGuest.enable = true;
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ]; # in terminal: nixos-option boot.binfmt.emulatedSystems
 
   hardware.opengl.enable = true;
   hardware.opengl.driSupport = true;
   hardware.opengl.driSupport32Bit = true;
-
-
 }

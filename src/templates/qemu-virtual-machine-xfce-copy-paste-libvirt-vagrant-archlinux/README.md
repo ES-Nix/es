@@ -1,20 +1,11 @@
-
+# 
 
 
 
 ```bash
-export NIXPKGS_ALLOW_UNFREE=1
-
-nix flake metadata '.#'
-nix flake show '.#'
-
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
-
-nix flake check --verbose '.#'
+nix run '.#allTests'
 ```
 
-
-1)
 ```bash
 rm -fv nixos.qcow2; 
 nix \
@@ -25,18 +16,15 @@ run \
 ```
 
 
-2)
 ```bash
-prepare-vagrant-vms \
-&& cd "$HOME"/vagrant-examples/libvirt/alpine/ \
+cd "$HOME"/vagrant-examples/libvirt/alpine/ \
 && vagrant up \
 && vagrant ssh
+```
 
-
-vagrant ssh -- -t 'id && cat /etc/os-release'
+```bash
+# vagrant ssh -- -t 'id && cat /etc/os-release'
 vagrant ssh -c 'id && cat /etc/os-release'
-
-PRETTY_NAME="Alpine Linux v3.19"
 ```
 
 

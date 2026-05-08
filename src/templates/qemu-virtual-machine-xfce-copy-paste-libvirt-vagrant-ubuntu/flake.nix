@@ -19,16 +19,23 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/b134951a4c9f3c995fd7be05f3243f8ecd65d798' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'  
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         ubuntu2204 = prev.fetchurl {
           url = "https://app.vagrantup.com/generic/boxes/ubuntu2204/versions/4.3.8/providers/libvirt.box";
@@ -68,6 +75,9 @@
             # 
             # config.vm.network :public_network, :bridge => 'br0', :dev => 'br0'
 
+            # Force Vagrant to use a clean SSH config file, so that it doesn't mess with the host's SSH config.
+            config.ssh.extra_args = ["-F", "/dev/null"]
+
             config.vm.synced_folder '.', '/home/vagrant/code'
 
             config.vm.provision "shell", inline: <<-SHELL
@@ -96,6 +106,14 @@
                 # export PATH="$HOME"/.nix-profile/bin:"$HOME"/.local/bin:"$PATH"
                 # echo $PATH
                 # wget -qO- http://ix.io/4Bqg | sh -
+
+                # curl -L https://raw.githubusercontent.com/PedroRegisPOAR/dotfiles/main/bootstrap-nixosvm.sh | "$SHELL"
+
+                # curl -L https://raw.githubusercontent.com/PedroRegisPOAR/dotfiles/main/bootstrap.sh | "$SHELL"
+
+                # curl -L https://raw.githubusercontent.com/PedroRegisPOAR/dotfiles/395240440c5f51b9898ea916802ec1927e04a1c1/bootstrap.sh | "$SHELL"
+
+                # curl -L https://raw.githubusercontent.com/PedroRegisPOAR/dotfiles/main/bootstrap-unprivileged.sh | "$SHELL"
               '
 
               mkdir -pv /etc/sudoers.d \
@@ -130,7 +148,7 @@
         '';
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -276,7 +294,7 @@
                     vagrant
                     prepareVagrantVms
                     runVagrantUbuntu
-                    foo-bar
+                    fooBar
                   ];
                   shell = pkgs.bash;
                   uid = 1234;
@@ -342,7 +360,7 @@
                   vagrant
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.11";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -352,7 +370,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           /*
@@ -392,6 +410,21 @@
             '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -422,29 +455,36 @@
             # ubuntu2404
             myvm
             ;
-          default = pkgs.automatic-vm;
+          default = pkgs.automaticVm;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            automatic-vm
+            automaticVm
             # ubuntu2204
             ;
-          default = pkgs.automatic-vm;
+          default = pkgs.automaticVm;
         };
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
-            automatic-vm
+            fooBar
+            automaticVm
             # ubuntu2204
           ];
 

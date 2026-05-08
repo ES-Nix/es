@@ -11,11 +11,7 @@ init \
 --template \
 github:ES-nix/es#flakesUtilsGodot4 \
 && git add . \
-&& nix flake show '.#' \
-&& nix flake metadata '.#' \
-&& nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
-&& nix flake check --impure --verbose '.#' \
-&& nix develop --impure '.#' --command true \
+&& nix run '.#allTests' \
 && nix develop --impure '.#' --command nixGL godot4 --rendering-driver opengl3
 ```
 Refs.:
@@ -296,6 +292,7 @@ RUN apk update \
     add \
     --no-cache \
     ca-certificates \
+    curl \
     tzdata \
     shadow \
  && mkdir -pv /home/nixuser \
@@ -310,14 +307,14 @@ RUN apk update \
     nixuser \
  && echo \
  && echo 'Start kvm stuff...' \
- && getent group kvm || groupadd kvm \
+ && { getent group kvm || groupadd kvm; } \
  && usermod --append --groups kvm nixuser \
  && echo 'End kvm stuff!' \
  && echo 'Start tzdata stuff' \
  && (test -d /etc || mkdir -pv /etc) \
  && cp -v /usr/share/zoneinfo/$TZ /etc/localtime \
  && echo $TZ > /etc/timezone \
- && apk del tzdata shadow \
+ && apk del tzdata \
  && echo 'End tzdata stuff!' 
 
 # sudo sh -c 'mkdir -pv /nix/var/nix && chmod -v 0777 /nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix'
@@ -430,3 +427,415 @@ Why NixOS does not have `/etc/localtime`?
 So the volume `--volume=/etc/localtime:/etc/localtime:ro` just breaks!?!
 
 
+```bash
+cat > Dockerfile << 'EOF'
+FROM docker.io/library/alpine:3.21.2
+
+RUN echo 'Creating user and group' \
+ && addgroup abcgroup \
+ && adduser abcuser --home /home/abcuser --disabled-password --gecos "" --shell /bin/sh \
+ && echo abcuser:10000:5000 > /etc/subuid \
+ && echo abcuser:10000:5000 > /etc/subgid \
+ && echo 'User and group created!'
+
+USER abcuser
+WORKDIR /home/abcuser
+EOF
+
+docker \
+build \
+--file=Containerfile \
+--tag=unprivileged-alpine .
+
+
+docker \
+run \
+--interactive=true \
+--network=none \
+--tty=true \
+--rm=true \
+--volume="$(pwd)":/code:rw \
+--workdir=/code \
+unprivileged-alpine
+```
+
+```bash
+env | sort
+su -l abcuser -c id
+su -l abcuser -c sh -c 'env | sort'
+
+docker rm container-alpine -f
+docker \
+run \
+--annotation=run.oci.keep_original_groups=1 \
+--device=/dev/kvm:rw \
+--hostname=container-alpine \
+--interactive=true \
+--name=container-alpine \
+--network=host \
+--privileged=true \
+--tty=false \
+--rm=false \
+--volume="$(pwd)":/home/abcuser/code:ro \
+docker.io/library/alpine:3.23.2 \
+sh <<'COMMANDS'
+echo 'Creating user and group' \
+&& addgroup abcgroup \
+&& adduser abcuser --home /home/abcuser --disabled-password --gecos "" --shell /bin/sh \
+&& echo abcuser:10000:5000 > /etc/subuid \
+&& echo abcuser:10000:5000 > /etc/subgid \
+&& echo 'User and group created!'
+
+su -l abcuser -c sh -c \
+'
+./code/nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#hello
+'
+COMMANDS
+
+docker diff container-alpine
+docker rm container-alpine -f
+
+getent group kvm \
+&& groupmod -g $(stat -c '%g' /dev/kvm) kvm \
+&& getent group kvm \
+&& chown -v 1234:999 /dev/kvm \
+&& touch /dev/kvm
+```
+
+```bash
+docker \
+run \
+--hostname=container-nix-flakes \
+--interactive=true \
+--name=container-nix-flakes \
+--tty=false \
+--rm=false \
+docker.io/nixpkgs/nix-flakes \
+sh <<'COMMANDS'
+nix run github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852#pkgsStatic.nix -- run github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852#hello
+COMMANDS
+
+docker diff container-nix-flakes
+
+docker rm container-nix-flakes
+
+
+docker \
+run \
+--hostname=container-nix-flakes \
+--interactive=true \
+--name=container-nix-flakes \
+--tty=true \
+--rm=true \
+--volume="$(pwd)":/home/abcuser/code:ro \
+docker.io/nixpkgs/nix-flakes 
+```
+
+
+
+```bash
+docker \
+run \
+--security-opt seccomp=unconfined \
+--interactive=true \
+--platform linux/arm64 \
+--privileged=true \
+--rm=true \
+--tty=false \
+docker.io/library/alpine:3.23.2 \
+sh <<'COMMANDS'
+uname -a
+addgroup abcgroup \
+&& adduser abcuser --home /home/abcuser --disabled-password --gecos "" --shell /bin/sh
+
+apk add --no-cache curl
+
+su -l abcuser -c sh -c \
+'
+curl -L https://hydra.nixos.org/build/312837149/download-by-type/file/binary-dist > nix \
+&& chmod +x nix \
+&& ./nix --version
+
+./nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#hello
+'
+COMMANDS
+
+
+docker \
+run \
+--interactive=true \
+--platform linux/amd64 \
+--privileged=true \
+--rm=true \
+--tty=false \
+docker.io/library/alpine:3.23.2 \
+sh <<'COMMANDS'
+uname -a
+addgroup abcgroup \
+&& adduser abcuser --home /home/abcuser --disabled-password --gecos "" --shell /bin/sh
+
+apk add --no-cache curl
+
+su -l abcuser -c sh -c \
+'
+curl -L https://hydra.nixos.org/build/313290523/download-by-type/file/binary-dist > nix \
+&& chmod +x nix \
+&& ./nix --version
+
+./nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#hello
+'
+COMMANDS
+```
+
+
+
+```bash
+cat > Containerfile << 'EOF'
+FROM docker.io/library/ubuntu:24.04
+
+RUN apt-get update -y \
+ && apt-get install --assume-yes --no-install-recommends --no-install-suggests \
+     adduser \
+     ca-certificates \
+     curl \
+     file \
+ && apt-get -y autoremove \
+ && apt-get -y clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN addgroup abcgroup --gid 4455  \
+ && adduser -q \
+     --gecos '"An unprivileged user with an group"' \
+     --disabled-password \
+     --ingroup abcgroup \
+     --uid 3322 \
+     abcuser
+
+# If is added nix statically compiled works!
+# RUN mkdir -pv /nix/var/nix && chmod -v 0777 /nix && chown -Rv abcuser:abcgroup /nix
+
+USER abcuser
+WORKDIR /home/abcuser
+ENV USER="abcuser"
+ENV PATH=/home/abcuser/.nix-profile/bin:/home/abcuser/.local/bin:"$PATH"
+ENV NIX_CONFIG="extra-experimental-features = nix-command flakes"
+
+RUN mkdir -pv "$HOME"/.local/bin \
+ && cd "$HOME"/.local/bin \
+ && curl -L https://hydra.nixos.org/build/316101186/download-by-type/file/binary-dist > nix \
+ && chmod -v +x nix
+EOF
+
+
+podman \
+build \
+--file=Containerfile \
+--tag=unprivileged-ubuntu24 .
+
+podman \
+run \
+--interactive=true \
+--tty=true \
+--rm=true \
+localhost/unprivileged-ubuntu24:latest \
+bash \
+-c \
+'
+# Works
+nix flake --version
+nix run nixpkgs#hello
+
+# Broken
+nix profile add nixpkgs#hello
+file ~/.nix-profile
+ls -Alh ~/.local/share/nix/root/nix/var/nix/profiles/per-user/
+hello
+'
+```
+
+
+```bash
+cat > Containerfile << 'EOF'
+FROM docker.io/library/ubuntu:24.04
+
+RUN apt-get update -y \
+ && apt-get install --assume-yes --no-install-recommends --no-install-suggests \
+     adduser \
+     ca-certificates \
+     curl \
+     file \
+ && apt-get -y autoremove \
+ && apt-get -y clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# RUN addgroup abcgroup --gid 4455  \
+#  && adduser -q \
+#      --gecos '"An unprivileged user with an group"' \
+#      --disabled-password \
+#      --ingroup abcgroup \
+#      --uid 3322 \
+#      abcuser
+
+# If is added nix statically compiled works!
+RUN mkdir -pv /nix/var/nix && chmod -v 1735 /nix && chown -Rv ubuntu:ubuntu /nix
+
+USER ubuntu
+WORKDIR /home/ubuntu
+ENV USER="ubuntu"
+ENV PATH=/home/ubuntu/.nix-profile/bin:/home/ubuntu/.local/bin:"$PATH"
+ENV NIX_CONFIG="extra-experimental-features = nix-command flakes"
+
+RUN cd /home/ubuntu \
+ && ls -alh \
+ && curl -L https://raw.githubusercontent.com/PedroRegisPOAR/dotfiles/main/bootstrap.sh > bootstrap.sh \
+ && chmod +x bootstrap.sh \
+ && ./bootstrap.sh
+
+# RUN mkdir -pv "$HOME"/.local/bin \
+#  && cd "$HOME"/.local/bin \
+#  && curl -L https://hydra.nixos.org/build/316101186/download-by-type/file/binary-dist > nix \
+#  && chmod -v +x nix
+EOF
+
+docker \
+build \
+--file=Containerfile \
+--tag=unprivileged-ubuntu24 .
+
+docker \
+run \
+--device=/dev/kvm:rw \
+--interactive=true \
+--tty=true \
+--rm=true \
+unprivileged-ubuntu24:latest \
+bash \
+-c \
+'
+# Works
+nix flake --version
+nix run nixpkgs#hello
+
+# Broken
+nix profile add nixpkgs#hello
+file ~/.nix-profile
+ls -Alh ~/.local/share/nix/root/nix/var/nix/profiles/per-user/
+hello
+'
+```
+
+
+
+
+docker \
+run \
+--annotation=run.oci.keep_original_groups=1 \
+--device=/dev/kvm:rw \
+--hostname=container-nix \
+--interactive=true \
+--name=container-alpine-with-ca-certificates-tzdata \
+--privileged=false \
+--tty=false \
+--rm=true \
+--volume="$(pwd)":/home/abcuser/.local/bin:ro \
+docker.io/library/alpine:3.21.2 \
+sh <<'COMMANDS'
+echo 'Creating user and group' \
+&& addgroup abcgroup \
+&& adduser abcuser --home /home/abcuser --disabled-password --gecos "" --shell /bin/sh \
+&& echo abcuser:10000:5000 > /etc/subuid \
+&& echo abcuser:10000:5000 > /etc/subgid \
+&& echo 'User and group created!'
+
+su -l abcuser -c sh -c './code/nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#hello'
+COMMANDS
+
+
+docker \
+run \
+--annotation=run.oci.keep_original_groups=1 \
+--device=/dev/kvm:rw \
+--hostname=container-nix \
+--interactive=true \
+--name=container-alpine-with-ca-certificates-tzdata \
+--privileged=true \
+--tty=false \
+--rm=true \
+--volume="$(pwd)":/home/abcuser/.local/bin:ro \
+docker.io/library/alpine:3.21.2 \
+sh <<'COMMANDS'
+echo 'Creating user and group' \
+&& addgroup abcgroup \
+&& adduser abcuser --home /home/abcuser --disabled-password --gecos "" --shell /bin/sh \
+&& echo abcuser:10000:5000 > /etc/subuid \
+&& echo abcuser:10000:5000 > /etc/subgid \
+&& echo 'User and group created!'
+
+su -l abcuser -c sh -c \
+'
+export PATH=~/.nix-profile/bin:~/.local/bin:"$PATH"
+nix --version
+# nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#hello
+'
+COMMANDS
+
+
+
+
+docker \
+run \
+--interactive=true \
+--privileged=true \
+--tty=false \
+--rm=true \
+--volume="$(pwd)":/home/abcuser/code:ro \
+docker.io/library/alpine:3.21.2 \
+sh <<'COMMANDS'
+addgroup abcgroup \
+&& adduser abcuser --home /home/abcuser --disabled-password --gecos "" --shell /bin/sh
+
+su -l abcuser -c sh -c \
+'
+export PATH=~/.nix-profile/bin:~/code:"$PATH"
+nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#hello
+'
+COMMANDS
+
+
+docker \
+run \
+--interactive=true \
+--name=container-alpine \
+--privileged=true \
+--tty=false \
+--rm=true \
+--volume="$(pwd)":/home/abcuser/.local/bin:ro \
+docker.io/library/alpine:3.21.2 \
+sh <<'COMMANDS'
+addgroup abcgroup \
+&& adduser abcuser --home /home/abcuser --disabled-password --gecos "" --shell /bin/sh
+
+su -l abcuser -c sh -c \
+'
+~/.local/bin/nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#hello
+'
+COMMANDS
+
+
+docker \
+run \
+--interactive=true \
+--name=container-alpine \
+--privileged=true \
+--tty=false \
+--rm=true \
+docker.io/library/alpine:3.21.2 \
+sh <<'COMMANDS'
+addgroup abcgroup \
+&& adduser abcuser --home /home/abcuser --disabled-password --gecos "" --shell /bin/sh
+apk add --no-cache curl
+su -l abcuser -c sh -c \
+'
+curl -L https://raw.githubusercontent.com/PedroRegisPOAR/dotfiles/main/bootstrap-unprivileged.sh | "$SHELL"
+'
+COMMANDS

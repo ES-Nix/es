@@ -20,6 +20,21 @@
       overlays.default = final: prev: {
         f00Bar = prev.hello;
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
         nixosConfiguration = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
@@ -302,6 +317,7 @@
     {
       packages = forAllSystems (pkgs: {
         inherit (pkgs)
+          allTests
           f00Bar
           nixosConfigurationBuildVm
           ;
@@ -310,6 +326,7 @@
 
       checks = forAllSystems (pkgs: {
         inherit (pkgs)
+          allTests
           f00Bar
           homeManagerVagrant
           nixosConfigurationBuildVm

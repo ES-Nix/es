@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "This is an 'nix flake' :)";
 
   /*
     nix \
@@ -31,17 +31,31 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
-    
+
+
+    25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+  
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         # docker manifest inspect riscv64/python:3.9.19-alpine | jq -r '.manifests.[0].digest' | cut -d':' -f2
         OCIImageAlpineRiscv64 = prev.dockerTools.pullImage {
@@ -132,7 +146,7 @@
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -228,7 +242,7 @@
                     jq
                     lsof
                     findutils
-                    foo-bar
+                    fooBar
                     # riscv64MuslPython39
                     riscv64MuslPython312
                   ];
@@ -262,7 +276,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           text = ''
@@ -284,6 +298,29 @@
             kill $PID_QEMU
           '';
         };
+
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              OPTIONS=( 
+                  --option warn-dirty false
+                  --option abort-on-warn true
+              )
+
+              nix "''${OPTIONS[@]}" fmt . \
+              && nix "''${OPTIONS[@]}" flake show --all-systems '.#' \
+              && nix "''${OPTIONS[@]}" flake metadata '.#' \
+              && nix "''${OPTIONS[@]}" build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix "''${OPTIONS[@]}" develop '.#' --command sh -c 'true' \
+              && nix "''${OPTIONS[@]}" flake check --all-systems --verbose '.#'
+
+              test "$1" = "rebuild" \
+              && nix "''${OPTIONS[@]}" \
+                   build --no-link --print-build-logs --print-out-paths --rebuild '.#'
+            '';
+          } // { meta.mainProgram = name; };
 
       })
     ];
@@ -308,33 +345,42 @@
       {
         packages = {
           inherit (pkgs)
-            testBinfmtMany
+            allTests
+            automaticVm
             myvm
-            automatic-vm
+            testBinfmtMany
             ;
           default = pkgs.testBinfmtMany;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests for this flake";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
+            allTests
             OCIImageAlpineRiscv64
             testBinfmtMany
-            automatic-vm
+            automaticVm
             ;
           default = pkgs.testBinfmtMany;
         };
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
+            fooBar
           ];
           shellHook = ''
             test -d .profiles || mkdir -v .profiles

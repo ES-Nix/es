@@ -80,15 +80,41 @@
 
       suportedSystems = [
         "x86_64-linux"
-        "aarch64-linux"
-        # "aarch64-darwin"
+        "aarch64-linux" # Why nix flake show '.#' breaks?
+        "aarch64-darwin"
+        "x86_64-darwin"
       ];
 
     in
     flake-utils.lib.eachSystem suportedSystems
       (suportedSystem:
       let
-        pkgsAllowUnfree = import nixpkgs { system = suportedSystem; config = { allowUnfree = true; }; };
+        overlays.default = nixpkgs.lib.composeManyExtensions [
+          (final: prev: {
+            f00Bar = prev.hello;
+            allTests = let name = "all-tests"; in final.writeShellApplication
+              {
+                name = name;
+                runtimeInputs = with final; [ ];
+                text = ''
+                  nix fmt . \
+                  && nix flake show --all-systems '.#' \
+                  && nix flake metadata '.#' \
+                  && nix build --no-link --print-build-logs --print-out-paths '.#' \
+                  && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+                  && nix develop '.#' --command sh -c 'true' \
+                  && nix flake check --all-systems --verbose '.#'
+                '';
+              } // { meta.mainProgram = name; };
+          }
+          )
+        ];
+
+        pkgsAllowUnfree = import nixpkgs {
+          system = suportedSystem;
+          config = { allowUnfree = true; };
+          overlays = [ overlays.default ];
+        };
 
         # https://gist.github.com/tpwrules/34db43e0e2e9d0b72d30534ad2cda66d#file-flake-nix-L28
         pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
@@ -101,6 +127,7 @@
             bashInteractive
             coreutils
             curl
+            figlet
             gh
             gnumake
             nixpkgs-fmt # find . -type f -iname '*.nix' -exec nixpkgs-fmt {} \;
@@ -118,22 +145,21 @@
             echo -e 'Science' | "${pkgsAllowUnfree.figlet}/bin/figlet" | cat
 
             test -d .profiles || mkdir -v .profiles
-
             test -L .profiles/dev \
             || nix develop .# --profile .profiles/dev --command true
 
             test -L .profiles/dev-shell-default \
-            || nix build $(nix eval --impure --raw .#devShells."$system".default.drvPath) --out-link .profiles/dev-shell-"$system"-default
+            || nix build $(nix --option warn-dirty false eval --impure --raw .#devShells."${suportedSystem}".default.drvPath) --out-link .profiles/dev-shell-"$system"-default
           '';
         };
 
-        checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
-
-        packages.default = self.packages."${suportedSystem}".hello;
-
-        packages.hello = pkgsAllowUnfree.hello;
-        packages.hello-unfree = pkgsAllowUnfree.hello-unfree;
-        packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
+        # checks."${suportedSystem}" = {
+        #   allTests = {
+        #     type = "check";
+        #     program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree."${suportedSystem}".allTests}";
+        #     meta.description = "Run all tests";
+        #   };
+        # };
 
         packages.installStartConfigTemplate = (import ./src/pkgs/install-start-config-template { pkgs = pkgsAllowUnfree; });
         packages.installNixFlakesHomeManagerZshTemplate = (import ./src/pkgs/install-nix-flakes-home-manager-zsh-template { pkgs = pkgsAllowUnfree; });
@@ -141,17 +167,17 @@
         packages.installQEMUVirtualMachineDockerTemplate = (import ./src/pkgs/install-qemu-virtual-machine-docker-template { pkgs = pkgsAllowUnfree; });
         packages.installQEMUVirtualMachineXfceCopyPasteTemplate = (import ./src/pkgs/install-qemu-virtual-machine-xfce-copy-paste-template { pkgs = pkgsAllowUnfree; });
         packages.installQEMUVirtualMachineXfceCopyPasteMinimalTemplate = (import ./src/pkgs/install-qemu-virtual-machine-xfce-copy-paste-minimal-template { pkgs = pkgsAllowUnfree; });
-
         packages.sendToCacheInstallStartConfigTemplate = (import ./src/pkgs/send-to-cache-install-start-config-template { pkgs = pkgsAllowUnfree; });
+        packages.default = pkgsAllowUnfree.hello-unfree;
 
         formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
         apps = {
-          # allTests = {
-          #   type = "app";
-          #   program = "${pkgs.lib.getExe pkgs.allTests}";
-          #   meta.description = "Run all tests";
-          # };
+          allTests = {
+            type = "app";
+            program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.allTests}";
+            meta.description = "Run all tests";
+          };
 
           installStartConfigTemplate = {
             type = "app";
@@ -191,7 +217,6 @@
           #     name = p.name;
           #     drv = p;
           #   };
-
         };
       }
       )

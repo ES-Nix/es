@@ -1,6 +1,6 @@
 { self, pkgs }:
 
-pkgs.nixosTest {
+pkgs.testers.nixosTest {
   name = "hello-boots";
   nodes.machineWithHelloService = { config, pkgs, ... }: {
     imports = [
@@ -10,7 +10,7 @@ pkgs.nixosTest {
       enable = true;
     };
 
-    system.stateVersion = "24.05";
+    system.stateVersion = "25.11";
   };
   globalTimeout = 2 * 60;
   testScript = ''

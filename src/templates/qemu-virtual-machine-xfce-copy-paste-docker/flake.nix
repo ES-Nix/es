@@ -24,7 +24,15 @@
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/afb2b21ba489196da32cd9f0072e0dce6588a20a' \
-    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+      
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -43,7 +51,32 @@
       overlays.default = final: prev: {
         inherit self final prev;
 
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
+
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              # exit 1
+              OPTIONS=( 
+                  --option warn-dirty false
+                  --option abort-on-warn false
+              )
+
+              nix "''${OPTIONS[@]}" fmt . \
+              && nix "''${OPTIONS[@]}" flake show --all-systems --impure '.#' \
+              && nix "''${OPTIONS[@]}" flake metadata --impure '.#' \
+              && nix "''${OPTIONS[@]}" build --impure --no-link --print-build-logs --print-out-paths '.#' \
+              && nix "''${OPTIONS[@]}" develop --impure '.#' --command sh -c 'true' \
+              && nix "''${OPTIONS[@]}" flake check --all-systems --impure --verbose '.#'
+
+              # test "''${1:-}" = "rebuild" \
+              # && nix "''${OPTIONS[@]}" \
+              #      build --no-link --print-build-logs --print-out-paths --rebuild '.#'
+              # exit 0
+            '';
+          } // { meta.mainProgram = name; };
       };
     } //
     (
@@ -76,8 +109,8 @@
 
           packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
-          packages.default = packages.automatic-vm;
-          packages.automatic-vm = pkgsAllowUnfree.writeShellApplication {
+          packages.default = packages.automaticVm;
+          packages.automaticVm = pkgsAllowUnfree.writeShellApplication {
             name = "run-nixos-vm";
             runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
             /*
@@ -117,10 +150,17 @@
             '';
           };
 
-          apps.default = {
-            type = "app";
-            program = "${self.packages."${system}".automatic-vm}/bin/run-nixos-vm";
-            meta.description = "Run the NixOS QEMU virtual machine";
+          apps = {
+            allTests = {
+              type = "app";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.allTests}";
+              meta.description = "Run all tests for this flake";
+            };
+            default = {
+              type = "app";
+              program = "${self.packages."${system}".automaticVm}/bin/run-nixos-vm";
+              meta.description = "Run the NixOS QEMU virtual machine";
+            };
           };
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
@@ -153,7 +193,9 @@
     )
     // {
       nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
-        system = builtins.currentSystem;
+        # system = builtins.currentSystem; # «error: attribute 'currentSystem' missing»
+        # system = "aarch64-linux";
+        system = "x86_64-linux";
 
         modules = [
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
@@ -235,7 +277,7 @@
                   file
                   firefox
                   jq
-                  foo-bar
+                  fooBar
                 ];
                 shell = pkgs.bash;
                 uid = 1234;
@@ -256,7 +298,7 @@
 
               nix.extraOptions = "experimental-features = nix-command flakes";
 
-              system.stateVersion = "24.05";
+              system.stateVersion = "25.11";
             })
 
           { nixpkgs.overlays = [ self.overlays.default ]; }

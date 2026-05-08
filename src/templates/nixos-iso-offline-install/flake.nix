@@ -48,7 +48,15 @@
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/9a094440e02a699be5c57453a092a8baf569bdad' \
-    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+  
   */
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
@@ -60,8 +68,23 @@
       (final: prev: {
         fooBar = prev.hello;
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
         nixos-offline-install-iso-in-qcow2 = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ./custom-self-install-iso.nix
           ];
@@ -209,16 +232,22 @@
           default = pkgs.ISONixOSSelfOfflineInstallISOInQcow2;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.run-nixos-offline-install-iso-in-qcow2}";
-          meta.description = "Run NixOS self offline install ISO in .qcow2 in QEMU";
-        };
-
-        apps.run = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.runQEMUNixOS}";
-          meta.description = "Run a NixOS in QEMU";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests for this flake";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.run-nixos-offline-install-iso-in-qcow2}";
+            meta.description = "Run NixOS self offline install ISO in .qcow2 in QEMU";
+          };
+          run = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.runQEMUNixOS}";
+            meta.description = "Run a NixOS in QEMU";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -228,7 +257,7 @@
             ISONixOSSelfOfflineInstallISOInQcow2
             run-nixos-offline-install-iso-in-qcow2
             runQEMUNixOS
-            # testISOIntall
+            # testISOIntall # TODO: fix test
             ;
           default = pkgs.runQEMUNixOS;
         };

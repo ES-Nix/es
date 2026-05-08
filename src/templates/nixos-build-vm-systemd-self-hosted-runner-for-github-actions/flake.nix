@@ -31,6 +31,8 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' 
+
+    
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -50,7 +52,21 @@
       overlays.default = final: prev: {
         inherit self final prev;
 
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
+
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems --allow-import-from-derivation --all-systems --impure --refresh .# \
+              && nix flake metadata --impure '.#' \
+              && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+              && nix develop --impure '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --impure --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
       };
 
     } //
@@ -85,8 +101,8 @@
 
           packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
-          packages.default = packages.automatic-vm;
-          packages.automatic-vm = pkgsAllowUnfree.writeShellApplication {
+          packages.default = packages.automaticVm;
+          packages.automaticVm = pkgsAllowUnfree.writeShellApplication {
             name = "run-nixos-vm";
             runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
             /*
@@ -120,10 +136,17 @@
             '';
           };
 
-          apps.default = {
-            type = "app";
-            program = "${self.packages."${system}".automatic-vm}/bin/run-nixos-vm";
-            meta.description = "Run NixOS VM with systemd GitHub Actions Runner";
+          apps = {
+            allTests = {
+              type = "app";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.allTests}";
+              meta.description = "Run all tests for this flake";
+            };
+            default = {
+              type = "app";
+              program = "${self.packages."${system}".automaticVm}/bin/run-nixos-vm";
+              meta.description = "Run NixOS VM with systemd GitHub Actions Runner";
+            };
           };
 
           # nix fmt
@@ -302,7 +325,7 @@
                   direnv
                   file
                   firefox
-                  foo-bar
+                  fooBar
                   gh
                   git
                   gnumake

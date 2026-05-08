@@ -143,7 +143,7 @@ in
   boot.tmp.tmpfsSize = "95%";
   boot.tmp.useTmpfs = true;
 
-  boot.readOnlyNixStore = true;
+  # boot.nixStoreMountOpts = [ "ro,nodev,nosuid,noexec" ]; # ?
 
   # https://nixos.wiki/wiki/Firewall
   networking.firewall = {

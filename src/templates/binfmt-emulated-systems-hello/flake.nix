@@ -36,7 +36,14 @@
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/9a094440e02a699be5c57453a092a8baf569bdad' \
-    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -46,7 +53,7 @@
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         helloAarch64Multiplatform = prev.pkgsCross.aarch64-multiplatform.hello;
         helloArmv7lHfMultiplatform = prev.pkgsCross.armv7l-hf-multiplatform.hello;
@@ -168,7 +175,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 64-bit LSB executable, MIPS, MIPS64 rel2 version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 64-bit LSB pie executable, MIPS, MIPS64 rel2 version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloMips64elLinuxGnuabi64Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -189,7 +196,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 32-bit LSB executable, MIPS, N32 MIPS64 rel2 version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 32-bit LSB pie executable, MIPS, N32 MIPS64 rel2 version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloMips64elLinuxGnuabin32Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -209,7 +216,7 @@
                   assert expected in result, f"expected = {expected}, result = {result}"
 
               with subtest("file"):
-                  expected = '/bin/hello.exe: PE32+ executable for MS Windows 5.02 (console), x86-64 (stripped to external PDB), 9 sections'
+                  expected = '/bin/hello.exe: PE32+ executable (console) x86-64 (stripped to external PDB), for MS Windows, 10 sections'
                   result = machine.succeed("file ${helloMingwW64Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -235,7 +242,7 @@
 
               #
               with subtest("file"):
-                  expected = 'PE32 executable for MS Windows 4.00 (console), Intel i386 (stripped to external PDB), 7 sections'
+                  expected = '/bin/hello.exe: PE32 executable (console) Intel 80386 (stripped to external PDB), for MS Windows, 8 sections'
                   result = machine.succeed("file ${helloMingw32Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -262,7 +269,7 @@
 
               #
               with subtest("arm64 file"):
-                  expected = 'ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter'
+                  expected = '/bin/hello: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloAarch64MultiplatformExe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -283,7 +290,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked, interpreter'
+                  expected = '/bin/hello: ELF 32-bit LSB pie executable, ARM, EABI5 version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloArmv7lHfMultiplatformExe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -304,7 +311,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 32-bit LSB pie executable, ARM, EABI5 version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloRaspberryPiExe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -325,7 +332,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 32-bit LSB executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 32-bit LSB pie executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloRiscv32Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -346,7 +353,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 64-bit LSB executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 64-bit LSB pie executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloRiscv64Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -367,7 +374,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 64-bit MSB executable, IBM S/390, version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 64-bit MSB pie executable, IBM S/390, version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloS390xExe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -388,7 +395,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 64-bit MSB executable, 64-bit PowerPC or cisco 7500, OpenPOWER ELF V2 ABI, version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 64-bit MSB pie executable, 64-bit PowerPC or cisco 7500, OpenPOWER ELF V2 ABI, version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloPpc64Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -409,7 +416,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 32-bit LSB executable, Intel i386, version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloGnu32Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -430,7 +437,7 @@
 
               #
               with subtest("file"):
-                  expected = 'ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter'
+                  expected = 'ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter'
                   result = machine.succeed("file ${helloGnu64Exe}")
                   assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -453,7 +460,7 @@
 
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -569,7 +576,7 @@
                     jq
                     lsof
                     findutils
-                    foo-bar
+                    fooBar
                   ];
                   shell = pkgs.bash;
                   uid = 1234;
@@ -601,7 +608,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           text = ''
@@ -630,6 +637,21 @@
             '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -655,15 +677,22 @@
           inherit (pkgs)
             myvm
             testBinfmtMany
-            automatic-vm
+            automaticVm
             ;
           default = pkgs.testBinfmtMany;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests for this flake";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -686,14 +715,14 @@
 
             myvm
             testBinfmtMany
-            automatic-vm
+            automaticVm
             ;
           default = pkgs.testBinfmtMany;
         };
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
+            fooBar
           ];
 
           shellHook = ''

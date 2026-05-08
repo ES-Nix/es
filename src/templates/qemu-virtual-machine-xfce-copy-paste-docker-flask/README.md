@@ -6,7 +6,6 @@ nix run --impure --refresh --verbose .#
 ```
 
 
-
 Invoking in the host:
 ```bash
 run-flask-server
@@ -43,8 +42,6 @@ okular $(nix build --no-link --print-build-logs --print-out-paths '.#checks.x86_
 ```
 
 
-
-
 ```bash
 cat > compose.yaml << 'EOF'
 services:
@@ -73,7 +70,7 @@ docker compose down
 
 ```bash
 nix fmt . \
-&& nix flake show '.#' \
+&& nix flake show --all-systems '.#' \
 && nix flake metadata '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop '.#' --command sh -c 'hello' \

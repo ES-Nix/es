@@ -30,7 +30,7 @@
     timeout = 2;
   };
 
-  boot.readOnlyNixStore = true;
+  # boot.nixStoreMountOpts = [ "ro,nodev,nosuid,noexec" ]; # ?
 
   system.stateVersion = "24.05";
 

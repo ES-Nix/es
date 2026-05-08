@@ -27,16 +27,37 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
+
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
 
         OCIImagePosgresAmd64 = prev.dockerTools.pullImage {
           finalImageTag = "17.0-alpine3.20";
@@ -147,7 +168,7 @@
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
 
             # Allows for not have to download nixpkgs and syncs source code of nixpkgs.
@@ -298,131 +319,136 @@
                       }) ["Plots"]
                     */
                     # (julia.withPackages [
-                    ((julia.withPackages.override {
-                      precompile = false; # Turn off precompilation
-                    }) [
-                      /*
-                          # Begin (MI)NLP Solvers
-                          "Alpine"
-                          "Couenne_jll"
-                          "GLPK"
-                          "HiGHS"
-                          "Ipopt"
-                          "JuMP"
-                          "Juniper"
-                          "Pajarito"
-                          "Pavito"
-                          "SCIP"
-                          # "EAGO"
-                          # "Minotaur"
-                          # "Octeract"
-                          # "SHOT"
-                          # End (MI)NLP Solvers
+                    # TODO: it is broken!
+                    # ((julia.withPackages.override {
+                    #   precompile = false; # Turn off precompilation
+                    # }) [ ])
 
-                          # MIT 
-                          # "Juniper" # (MI)SOCP, (MI)NLP
-                          # "SCS" # LP, QP, SOCP, SDP
-                          # "DAQP" # (Mixed-binary) QP
-                          */
+                    # ((julia.withPackages.override {
+                    #   precompile = false; # Turn off precompilation
+                    # }) [
+                    #   /*
+                    #       # Begin (MI)NLP Solvers
+                    #       "Alpine"
+                    #       "Couenne_jll"
+                    #       "GLPK"
+                    #       "HiGHS"
+                    #       "Ipopt"
+                    #       "JuMP"
+                    #       "Juniper"
+                    #       "Pajarito"
+                    #       "Pavito"
+                    #       "SCIP"
+                    #       # "EAGO"
+                    #       # "Minotaur"
+                    #       # "Octeract"
+                    #       # "SHOT"
+                    #       # End (MI)NLP Solvers
 
-                      # "KNITRO"
-                      # "AmplNLWriter"
-                      # "PolyJuMP"
-                      # "SCS"
-                      # "CDDLib"
-                      # "MosekTools"
-                      # "EAGO_jll"
-                      # "PATHSolver.jl"
-                      "DAQP"
+                    #       # MIT 
+                    #       # "Juniper" # (MI)SOCP, (MI)NLP
+                    #       # "SCS" # LP, QP, SOCP, SDP
+                    #       # "DAQP" # (Mixed-binary) QP
+                    #       */
 
-                      /*
-                          # Other tools
-                          "ArgParse" 
-                          # "Arpack"          
-                          "BenchmarkProfiles"
-                          "BenchmarkTools"
-                          "Catalyst"
-                          "CategoricalArrays"
-                          "Chain"
-                          "Clustering"      
-                          "Colors"
-                          "ComponentArrays"
-                          "Crayons" # Needed for OhMyREPL color scheme
-                          "CSV"          
-                          "Dagitty"
-                          "DataFrames"   
-                          "DataStructures"  
-                          "Dates"
-                          "DiffEqFlux"
-                          "DifferentialEquations"
-                          "Distances"       
-                          "Distributions"
-                          "FFTW"
-                          "FileIO"
-                          "FourierTools"
-                          "Graphs"
-                          "Gurobi"          
-                          "HDF5"            
-                          "IJulia"
-                          "ImageShow"
-                          "IndexFunArrays"
-                          "InteractiveUtils"
-                          "IterativeSolvers"
-                          "JuliaFormatter"
-                          "Juno"            
-                          "LanguageServer"
-                          "LaTeXStrings"    
-                          "LazySets"
-                          "LightGraphs"     
-                          "LinearAlgebra" 
-                          "LinearMaps"      
-                          "Markdown"
-                          "Measures"
-                          "Metaheuristics"
-                          "MethodOfLines"
-                          "ModelingToolkit"
-                          "NDTools"
-                          "NonlinearSolve"
-                          "OhMyREPL"
-                          "Optim"
-                          "Optimization"
-                          "OptimizationPolyalgorithms"
-                          "OrdinaryDiffEq"
-                          "Parameters"
-                          "Plots"         
-                          "PlotThemes"
-                          "Pluto"
-                          "PlutoUI"
-                          "PrettyTables"
-                          "Printf"
-                          "PyCall"
-                          "PyPlot"          
-                          "Random"                                          
-                          "Roots"
-                          "ScikitLearn"
-                          "SpecialFunctions"
-                          "SQLite"
-                          "StatsPlots"
-                          "TestImages"
-                          "TimeZones"
-                          "TypedPolynomials" 
-                          "UrlDownload"
-                          "VegaLite"  # to make some nice plots
-                          "XLSX"
-                          "ZipFile"
-                          */
-                      # "Atom"            
-                      # "Flux.Losses"
-                      # "Flux"
-                      # "GraphViz"
-                      # "ImageMagick"
-                      # "IntervalArithmetic"
-                      # "JLD"             
-                      # "JLD2"
-                      # "MathOptInterface"
-                      # "UnicodePlots"
-                    ])
-                    # # 
+                    #   # "KNITRO"
+                    #   # "AmplNLWriter"
+                    #   # "PolyJuMP"
+                    #   # "SCS"
+                    #   # "CDDLib"
+                    #   # "MosekTools"
+                    #   # "EAGO_jll"
+                    #   # "PATHSolver.jl"
+                    #   # "DAQP"
+
+                    #   /*
+                    #       # Other tools
+                    #       "ArgParse" 
+                    #       # "Arpack"          
+                    #       "BenchmarkProfiles"
+                    #       "BenchmarkTools"
+                    #       "Catalyst"
+                    #       "CategoricalArrays"
+                    #       "Chain"
+                    #       "Clustering"      
+                    #       "Colors"
+                    #       "ComponentArrays"
+                    #       "Crayons" # Needed for OhMyREPL color scheme
+                    #       "CSV"          
+                    #       "Dagitty"
+                    #       "DataFrames"   
+                    #       "DataStructures"  
+                    #       "Dates"
+                    #       "DiffEqFlux"
+                    #       "DifferentialEquations"
+                    #       "Distances"       
+                    #       "Distributions"
+                    #       "FFTW"
+                    #       "FileIO"
+                    #       "FourierTools"
+                    #       "Graphs"
+                    #       "Gurobi"          
+                    #       "HDF5"            
+                    #       "IJulia"
+                    #       "ImageShow"
+                    #       "IndexFunArrays"
+                    #       "InteractiveUtils"
+                    #       "IterativeSolvers"
+                    #       "JuliaFormatter"
+                    #       "Juno"            
+                    #       "LanguageServer"
+                    #       "LaTeXStrings"    
+                    #       "LazySets"
+                    #       "LightGraphs"     
+                    #       "LinearAlgebra" 
+                    #       "LinearMaps"      
+                    #       "Markdown"
+                    #       "Measures"
+                    #       "Metaheuristics"
+                    #       "MethodOfLines"
+                    #       "ModelingToolkit"
+                    #       "NDTools"
+                    #       "NonlinearSolve"
+                    #       "OhMyREPL"
+                    #       "Optim"
+                    #       "Optimization"
+                    #       "OptimizationPolyalgorithms"
+                    #       "OrdinaryDiffEq"
+                    #       "Parameters"
+                    #       "Plots"         
+                    #       "PlotThemes"
+                    #       "Pluto"
+                    #       "PlutoUI"
+                    #       "PrettyTables"
+                    #       "Printf"
+                    #       "PyCall"
+                    #       "PyPlot"          
+                    #       "Random"                                          
+                    #       "Roots"
+                    #       "ScikitLearn"
+                    #       "SpecialFunctions"
+                    #       "SQLite"
+                    #       "StatsPlots"
+                    #       "TestImages"
+                    #       "TimeZones"
+                    #       "TypedPolynomials" 
+                    #       "UrlDownload"
+                    #       "VegaLite"  # to make some nice plots
+                    #       "XLSX"
+                    #       "ZipFile"
+                    #       */
+                    #   # "Atom"            
+                    #   # "Flux.Losses"
+                    #   # "Flux"
+                    #   # "GraphViz"
+                    #   # "ImageMagick"
+                    #   # "IntervalArithmetic"
+                    #   # "JLD"             
+                    #   # "JLD2"
+                    #   # "MathOptInterface"
+                    #   # "UnicodePlots"
+                    # ])
+                    # 
                     # bonmin
                     cbc
                     # clp
@@ -448,7 +474,7 @@
 
                     glib
 
-                    jetbrains.pycharm-community
+                    jetbrains.pycharm-oss
                     # python39
                     # cbc
                     # z3
@@ -524,14 +550,14 @@
                     dbeaver-bin
                     pgcli
 
-                    foo-bar
+                    fooBar
 
                     xclip
                     xsel
                     xorg.xev
 
                     nodejs
-                    linuxPackages_latest.perf
+                    perf
 
                     (writeShellApplication {
                       name = "get-rsa-keys"; # TODO: bad name?! Rename?
@@ -910,7 +936,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           /*
@@ -948,7 +974,6 @@
             kill $PID_QEMU
           '';
         };
-
       })
     ];
   } // (
@@ -971,32 +996,41 @@
       {
         packages = {
           inherit (pkgs)
+            allTests
             myvm
-            automatic-vm
+            automaticVm
             ;
-          default = pkgs.automatic-vm;
+          default = pkgs.automaticVm;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
+
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            automatic-vm
+            automaticVm
             ;
-          default = pkgs.automatic-vm;
+          default = pkgs.automaticVm;
         };
 
         devShells.default = with pkgs; mkShell {
           # nix eval --json nixpkgs#mkShell.__functionArgs
           packages = [
-            foo-bar
-            automatic-vm
+            fooBar
+            automaticVm
           ];
 
           shellHook = ''

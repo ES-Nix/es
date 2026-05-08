@@ -13,11 +13,7 @@ nix run --impure --refresh --verbose .#testNixOSBareDriverInteractive
 
 
 ```bash
-nix flake show '.#' \
-&& nix flake metadata '.#' \
-&& nix build --no-link --print-build-logs --print-out-paths '.#' \
-&& nix develop '.#' --command sh -c 'true' \
-&& nix flake check --verbose '.#'
+nix run '.#allTests'
 ```
 
 
@@ -26,6 +22,19 @@ nix flake show '.#' \
 ```bash
 python3 --version \
 && python3 -m venv .venv \
+&& which python3 \
+&& which .venv/bin/python \
+&& .venv/bin/python -m pip install numpy==2.4.4 \
+&& .venv/bin/python -c 'import numpy as np'
+
+python3 -c 'import numpy as np; print(np.show_runtime()), np.equal((-39+22j), np.dot([2+3j, 2+4j], [5j, 6j]))'
+```
+
+```bash
+bash -c '
+python3 -m venv .venv \
 && source .venv/bin/activate \
-&& python3 -m pip install numpy
+&& pip install numpy==2.4.4 \
+&& python -c "import numpy as np"
+'
 ```

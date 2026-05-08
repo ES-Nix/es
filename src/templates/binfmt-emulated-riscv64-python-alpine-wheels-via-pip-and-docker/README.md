@@ -2,15 +2,7 @@
 
 
 ```bash
-nix flake show '.#'
-nix flake metadata '.#'
-
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#' --rebuild
-
-nix fmt '.#'
-
-# nix flake check --verbose '.#'
+nix run '.#allTests'
 ```
 
 
@@ -26,11 +18,6 @@ pandas
 ```
 Refs.:
 - https://lf-rise.atlassian.net/wiki/spaces/HOME/pages/75628548/Project+RP011+Python+Package+Support+for+RISC-V+riscv64?utm_content=313418783&utm_medium=social&utm_source=linkedin&hss_channel=lcp-97448757
-
-
-
-
-
 
 
 
@@ -86,7 +73,6 @@ python3 -c "import mmh3; assert mmh3.hash128(bytes(123)) == 12600004825691960057
 ```
 
 
-
 ```bash
 docker \
 run \
@@ -104,7 +90,6 @@ pip install --root-user-action=ignore --no-index --find-links '.' mmh3-4.1.0-cp3
 python3 -c "import mmh3; assert mmh3.hash128(bytes(123)) == 126000048256919600573431412872524959502"
 '
 ```
-
 
 
 ```bash

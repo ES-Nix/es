@@ -13,6 +13,13 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/afb2b21ba489196da32cd9f0072e0dce6588a20a' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -43,21 +50,18 @@
               config.virtualisation.docker.enable = true;
               config.boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_6;
             };
-
           nodes.machine2 =
             { config, pkgs, lib, modulesPath, ... }:
             {
               config.virtualisation.docker.enable = true;
               config.boot.kernelPackages = pkgs.linuxPackages_latest;
             };
-
           nodes.machine3 =
             { config, pkgs, lib, modulesPath, ... }:
             {
               config.virtualisation.docker.enable = true;
               config.boot.kernelPackages = pkgs.linuxPackages_testing;
             };
-
           nodes.machine4 =
             { config, pkgs, lib, modulesPath, ... }:
             {
@@ -73,18 +77,18 @@
             machine1.wait_for_unit("default.target")
             machine1.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_6_6"):
-                expected = '6.6.92'
-                result_1 = machine1.succeed("uname -r")
+                expected = '6.6.119'
+                result_1 = machine1.succeed("uname -r").strip()
                 result_2 = machine1.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
-                """)
-                assert expected in result_1, f"expected = {expected}, result = {result_1}"
-                assert expected in result_2, f"expected = {expected}, result = {result_2}"
+                """).strip()
+                assert expected == result_1, f"expected = {expected}, result = {result_1}"
+                assert expected == result_2, f"expected = {expected}, result = {result_2}"
 
             machine2.wait_for_unit("default.target")
             machine2.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_latest"):
-                expected = '6.14.8'
+                expected = '6.18.2'
                 result_1 = machine2.succeed("uname -r")
                 result_2 = machine2.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -95,7 +99,7 @@
             machine3.wait_for_unit("default.target")
             machine3.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_latest"):
-                expected = '6.15.0-rc7'
+                expected = '6.19.0-rc1'
                 result_1 = machine3.succeed("uname -r")
                 result_2 = machine3.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -106,7 +110,7 @@
             machine4.wait_for_unit("default.target")
             machine4.succeed("docker load <${final.OCIImageAlpineAmd64}")
             with subtest("linux_latest"):
-                expected = '6.12.28-hardened1'
+                expected = '6.12.5'
                 result_1 = machine4.succeed("uname -r")
                 result_2 = machine4.succeed("""
                   docker run -it --rm --platform linux/amd64 amd64/busybox:1.37.0-musl sh -c 'uname -r'
@@ -115,6 +119,21 @@
                 assert expected in result_2, f"expected = {expected}, result = {result_2}"
           '';
         };
+
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
 
       })
     ];
@@ -141,6 +160,14 @@
             testDockerAndMultiKernels
             ;
           default = pkgs.testDockerAndMultiKernels;
+        };
+
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests for this flake";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;

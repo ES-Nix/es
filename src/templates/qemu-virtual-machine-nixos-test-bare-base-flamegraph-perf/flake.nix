@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "NixOS test for perf flamegraphs. This is a minimal example of how to use perf and inferno to generate flamegraphs in a NixOS test. It includes a test that runs perf with stress-ng and generates a flamegraph, which is then copied from the VM to the host. The test also checks that the flamegraph file was created and is a valid SVG file.";
 
   /*
     nix \
@@ -13,9 +13,16 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # github:NixOS/nixpkgs/nixos-25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'  
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -29,7 +36,7 @@
           nodes = {
             machineABCZ = { config, pkgs, ... }: {
               environment.systemPackages = with final; [
-                linuxPackages_latest.perf # https://discourse.nixos.org/t/which-perf-package/22399/5
+                perf # linuxPackages_latest.perf # https://discourse.nixos.org/t/which-perf-package/22399/5
                 file
 
                 librsvg
@@ -74,7 +81,7 @@
                 # })
                 # pandoc
 
-                linuxPackages_latest.perf # https://discourse.nixos.org/t/which-perf-package/22399/5
+                perf # linuxPackages_latest.perf # https://discourse.nixos.org/t/which-perf-package/22399/5
                 file
 
                 librsvg
@@ -153,6 +160,21 @@
           '';
         };
         testNixOSPerfFlameGraphsDriverInteractive = final.testNixOSPerfFlameGraphs.driverInteractive;
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -185,9 +207,15 @@
         };
 
         apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
           default = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.testNixOSPerfFlameGraphsDriverInteractive}";
+            meta.description = "Run the NixOS perf flamegraph test in interactive mode";
           };
         };
 

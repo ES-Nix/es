@@ -1,22 +1,28 @@
 {
-  description = "";
+  description = "A Nix flake that defines a NixOS VM with XFCE desktop environment, configured to run Vagrant with VirtualBox provider and an Ubuntu 22.04 box.";
 
   /*
     nix \
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/b134951a4c9f3c995fd7be05f3243f8ecd65d798' \
-    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         ubuntu2204Virtualbox = prev.fetchurl {
           url = "https://app.vagrantup.com/generic/boxes/ubuntu2204/versions/4.3.8/providers/virtualbox.box";
@@ -50,18 +56,31 @@
               apt-get \
               update
 
+              # --no-install-recommends \
+              # --no-install-suggests \
               sudo \
               apt-get \
               install \
-              --no-install-recommends \
-              --no-install-suggests \
               --yes \
               linux-headers-$(uname -r) \
               build-essential \
               dkms \
               xfce4 \
               virtualbox-guest-utils \
-              virtualbox-guest-x11
+              virtualbox-guest-x11 \
+              \
+              adduser \
+              ca-certificates \
+              curl \
+              dbus-x11 \
+              sudo \
+              tar \
+              terminator \
+              wget \
+              x11-apps \
+              xfce4 \
+              xfce4-session \
+              xz-utils
             SHELL
             # Permit anyone to start the GUI
             # config.vm.provision "shell", inline: <<-SHELL
@@ -94,7 +113,7 @@
         '';
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -256,7 +275,7 @@
                     vagrant
                     prepareVagrantVms
                     runVagrantUbuntu
-                    foo-bar
+                    fooBar
 
                     # (pkgs.makeAutostartItem {
                     #   name = "virtualbox";
@@ -338,7 +357,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           /*
@@ -378,6 +397,21 @@
             '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --impure --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop --impure '.#' --command sh -c 'true' \
+              && nix flake check --impure --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -394,9 +428,11 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
-            "vagrant"
-          ];
+          # TODO: it is not working, it is still complaining about vagrant and virtualbox being unfree
+          # config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+          #   "vagrant"
+          #   "Oracle_VirtualBox_Extension_Pack"
+          # ];
           overlays = [ self.overlays.default ];
         };
       in
@@ -406,28 +442,35 @@
             ubuntu2204Virtualbox
             myvm
             ;
-          default = pkgs.automatic-vm;
+          default = pkgs.automaticVm;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            automatic-vm
+            automaticVm
             # ubuntu2204Virtualbox
             ;
         };
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
-            automatic-vm
+            fooBar
+            automaticVm
             # ubuntu2204Virtualbox
           ];
 

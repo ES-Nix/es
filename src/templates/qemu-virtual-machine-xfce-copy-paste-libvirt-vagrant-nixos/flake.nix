@@ -33,34 +33,66 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'  
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
-        nixos2305 = prev.fetchurl {
-          url = "https://app.vagrantup.com/hennersz/boxes/nixos-23.05-flakes/versions/23.05.231106000354/providers/libvirt/unknown/vagrant.box";
-          hash = "sha256-x76icAXDReYe9xppwr6b77hTO44EWvBtSx+j41bvMVA=";
+        nixosImage = prev.fetchurl {
+          # url = "https://app.vagrantup.com/hennersz/boxes/nixos-23.05-flakes/versions/23.05.231106000354/providers/libvirt/unknown/vagrant.box";
+          # hash = "sha256-x76icAXDReYe9xppwr6b77hTO44EWvBtSx+j41bvMVA=";
+          # meta.boxName = "hennersz/nixos-23.05-flakes";
+
+          # url = "https://vagrantcloud.com/gnome-shell-box/boxes/nixos/versions/2026.2.0/providers/libvirt/amd64/vagrant.box";
+          # hash = "sha256-9ZhLG1mrVJQx4pX+2dLlRCRwjAQK+Gz+1/7fu2z9ums=";
+          # meta.boxName = "gnome-shell-box/nixos";
+
+          url = "https://vagrantcloud.com/boxen/boxes/nixos-25.05/versions/2025.08.20.12/providers/libvirt/amd64/vagrant.box";
+          hash = "sha256-BrWGaSndbzbYDMbcHnyAuYPnPsAngVlhKB+H1u9f5Bk=";
+          meta.boxName = "boxen/nixos-25.05";
         };
 
         vagrantfileNixos = prev.writeText "vagrantfile-nixos" ''
                     Vagrant.configure("2") do |config|
-                      config.vm.box = "hennersz/nixos-23.05-flakes"
+                      # config.vm.box = "''${final.nixosImage.meta.boxName}";
+                      config.vm.box = "${final.nixosImage.meta.boxName}"
+                      # config.vm.box = "boxen/nixos-25.05"                      
 
                       config.vm.provider :libvirt do |v|
-                        v.cpus=4
-                        v.memory = "4096"
+                        v.cpus=7
+                        v.memory = "12096"
                         # v.memorybacking :access, :mode => "shared"
                         # https://github.com/vagrant-libvirt/vagrant-libvirt/issues/1460
+
+                        # v.graphics_type = "vnc"
+                        # # v.video_type    = "cirrus" # Old-school video (most compatible?)
+                        # v.video_type    = "virtio"
+                        # v.video_accel3d = false
+                        # v.qemu_use_session = false
                       end
 
+                      # https://github.com/hashicorp/vagrant/issues/13688#issuecomment-3014055294
+                      config.vm.allow_fstab_modification = false
+
+                      # Force Vagrant to use a clean SSH config file, so that it doesn't mess with the host's SSH config.
+                      config.ssh.extra_args = ["-F", "/dev/null"]
+
                       config.vm.synced_folder '.', '/home/vagrant/code'
+                      # config.vm.synced_folder ".", "/home/vagrant/code", disabled: true
+                      # config.vm.synced_folder ".", "/vagrant", disabled: true
 
                       config.vm.provision "shell", inline: <<-SHELL
                         ls -alh
@@ -83,11 +115,12 @@
                           }
           _EOF
 
-                        # nix \
+                        # cd /etc/nixos \
+                        # && nix \
                         # flake \
                         # lock \
-                        # --override-input nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8 \
-                        # && sudo nixos-rebuild switch -L
+                        # --override-input nixstable github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852 \
+                        # && sudo nixos-rebuild switch -L --flake .# --show-trace
                       SHELL
                     end
         '';
@@ -114,7 +147,7 @@
         '';
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -137,7 +170,7 @@
                     virtualisation.docker.enable = true;
                     virtualisation.podman.enable = true;
 
-                    virtualisation.memorySize = 1024 * 9; # Use MiB memory.
+                    virtualisation.memorySize = 1024 * 16; # Use MiB memory.
                     virtualisation.diskSize = 1024 * 50; # Use MiB memory.
                     virtualisation.cores = 7; # Number of cores.
                     virtualisation.graphics = true;
@@ -186,8 +219,8 @@
                       && vagrant \
                           box \
                           add \
-                          hennersz/nixos-23.05-flakes \
-                          "${pkgs.nixos2305}" \
+                          ${final.nixosImage.meta.boxName} \
+                          "${pkgs.nixosImage}" \
                           --force \
                           --debug \
                           --provider \
@@ -197,6 +230,31 @@
                   wantedBy = [ "default.target" ];
                 };
 
+                # environment.etc."init.d/nfs-kernel-server" = {
+                #   text = ''
+                #     #!/bin/sh
+                #     # echo $@ >> /home/nixuser/vagrant.log
+                #   '';
+                #   mode = "0774";
+                # };
+
+                # services.qemuGuest.enable = true;
+                # # services.spice-vdagentd.enable = true;
+                # services.spice-webdavd.enable = true;
+
+                # # services.printing.enable = true;
+                # services.pulseaudio.enable = false;
+                # security.rtkit.enable = true;
+                # services.pipewire = {
+                #   enable = true;
+                #   alsa.enable = true;
+                #   alsa.support32Bit = true;
+                #   pulse.enable = true;
+
+                #   # use the example session manager (no others are packaged yet so this is enabled by default,
+                #   # no need to redefine it in your config for now)
+                #   #media-session.enable = true;
+                # };
 
                 security.sudo.wheelNeedsPassword = false; # TODO: hardening
                 # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
@@ -213,11 +271,13 @@
                     "docker"
                     "kvm"
                     "libvirtd"
+                    "networkmanager"
                     "nixgroup"
                     "podman"
                     "qemu-libvirtd"
                     "root"
                     "vboxsf"
+                    "video"
                     "wheel"
                   ];
                   packages = with pkgs; [
@@ -231,7 +291,7 @@
                     vagrant
                     prepareVagrantVms
                     runVagrantNixOS
-                    foo-bar
+                    fooBar
                   ];
                   shell = pkgs.bash;
                   uid = 1234;
@@ -251,6 +311,7 @@
                 virtualisation.libvirtd.enable = true;
                 # virtualisation.services.libvirtd.serviceOverrides = { PrivateUsers="no"; };
 
+                # boot.nixStoreMountOpts = [ "rw" ]; # TODO: What may be missing?
                 nix.extraOptions = "experimental-features = nix-command flakes";
                 nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
                   "vagrant"
@@ -298,7 +359,7 @@
                   vagrant
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.11";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -308,7 +369,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           /*
@@ -327,8 +388,15 @@
               # https://unix.stackexchange.com/a/230442
               # export NO_AT_BRIDGE=1
               # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
-              export LD_LIBRARY_PATH="${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
-
+              # export LD_LIBRARY_PATH="''${prev.libcanberra-gtk3}"/lib/gtk-3.0/modules
+              # 
+              # export GTK_MODULES=""
+              # export GTK_PATH=""
+              # export GTK_PATH=/nonexistent
+              # unset GTK3_MODULES
+              # export GTK3_MODULES
+              # export GTK_MODULES=gail:atk-bridge
+              # export GTK_IM_MODULE=ibus              
               ${final.lib.getExe final.myvm} & PID_QEMU="$!"
 
               export VNC_PORT=3001
@@ -347,6 +415,21 @@
               kill $PID_QEMU
             '';
         };
+
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
 
       })
     ];
@@ -374,31 +457,38 @@
       {
         packages = {
           inherit (pkgs)
-            nixos2305
+            nixosImage
             myvm
             ;
-          default = pkgs.automatic-vm;
+          default = pkgs.automaticVm;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            nixos2305
-            automatic-vm
+            nixosImage
+            automaticVm
             ;
         };
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
-            automatic-vm
+            fooBar
+            automaticVm
           ];
           shellHook = ''
             test -d .profiles || mkdir -v .profiles

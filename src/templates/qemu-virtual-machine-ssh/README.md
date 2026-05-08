@@ -1,0 +1,146 @@
+
+```bash
+nix \
+profile \
+add \
+--override-input \
+nixpkgs \
+github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4 \
+'github:ES-Nix/es/?dir=src/templates/qemu-virtual-machine-docker#qdocker'
+# f560ccec6b1116b22e6ed15f4c510997d99d5852
+qdocker images
+ssh \
+-o ConnectTimeout=1 \
+-oStrictHostKeyChecking=accept-new \
+-p 10022 \
+nixuser@localhost \
+-- \
+sh <<<'docker images'
+
+
+eval "$(ssh-agent -s)"
+ssh-add -l 
+ssh-add -L 
+
+cat "$(readlink -f "$(which qdocker)")"
+
+ssh \
+-o ConnectTimeout=1 \
+-oStrictHostKeyChecking=accept-new \
+-p 10022 \
+nixuser@localhost \
+-- \
+sh <<<'docker images'
+```
+
+
+```bash
+nix \
+run \
+--refresh \
+--override-input \
+nixpkgs \
+github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852 \
+github:ES-nix/es#installQEMUVirtualMachineDockerTemplate \
+&& { direnv &>/dev/null && direnv deny QEMUVirtualMachineDocker || true; } \
+&& cd QEMUVirtualMachineDocker \
+&& nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+&& nix run --impure --refresh --verbose .# \
+&& rm -fv nixos.qcow2 \
+&& chmod -v 0600 id_ed25519 \
+&& { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval $(ssh-agent -s); } || true \
+&& { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || ssh-add -v id_ed25519; } \
+&& { ssh-add -L | grep -q "$(cat id_ed25519.pub)" || echo 'erro in ssh-add -L'; } \
+&& { ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null  || true; } \
+&& for i in {1..600}; do
+  ssh \
+      -o ConnectTimeout=1 \
+      -oStrictHostKeyChecking=accept-new \
+      -p 10022 \
+      nixuser@localhost \
+         -- \
+         sh <<<'docker images' 1>/dev/null 2>/dev/null \
+  && break
+
+  ! ((i % 11)) && echo Iteration $i, date $(date +'%d/%m/%Y %H:%M:%S:%3N')
+  sleep 0.1
+done \
+&& { direnv allow || true; } \
+&& nix --option warn-dirty false develop .# --command docker images
+```
+
+
+```bash
+nix \
+      build \
+      --no-link \
+      --print-build-logs \
+      --print-out-paths \
+      .#nixosConfigurations.nixOsVmWithDocker.config.system.build.vm
+
+kill $(pgrep qemu)
+
+lsof -i :10022 1> /dev/null 2> /dev/null && kill "$(pgrep .qemu-system)"
+
+pgrep qemu
+echo $!
+```
+
+Be careful!
+```bash
+{ kill $(pgrep qemu) || true; } \
+&& { ssh-keygen -R '[localhost]:10022' || true; } \
+&& cd .. \
+&& rm -frv QEMUVirtualMachineDocker
+
+rm -fv ~/.ssh/known_hosts
+```
+
+TODO: is there an way to make it just work or it is not needed?
+```bash
+ssh-keyscan -H -p 10022 -t ecdsa localhost >> ~/.ssh/known_hosts
+```
+Refs.:
+- https://stackoverflow.com/a/73644766
+
+
+kill $(pgrep qemu)
+rm -fv nixos.qcow2
+ssh-keygen -R '[localhost]:10022'
+
+
+if timeout 2 sleep 1; [ "$?" -eq 143 ]; then echo A; else echo B; fi
+if timeout 3 sleep 2; [ "$?" -eq 143 ]; then echo A; else echo B; fi
+
+
+```bash
+cat > ~/.ssh/id_ed25519 << 'EOF'
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+QyNTUxOQAAACA1DxhUBScQRGqAfmpppIJ75c9EplEzXzGdpTpltpTPcAAAANjielu+4npb
+vgAAAAtzc2gtZWQyNTUxOQAAACA1DxhUBScQRGqAfmpppIJ75c9EplEzXzGdpTpltpTPcA
+AAAEDvZDuZeGx8qmOMpJqBXCjv6nwcSkQoBjjboiTWE3GwgDUPGFQFJxBEaoB+ammkgnvl
+z0SmUTNfMZ2lOmW2lM9wAAAAVWdpdCBlbWFpbCBpZiBhdmFpbGFibGUgZnJvbSBjb25maW
+c6IC4gPGxvZ2luPkA8aG9zdG5hbWU+OiAxMDAwQHVidW50dTIzMDQubG9jYWxkb21haW4=
+-----END OPENSSH PRIVATE KEY-----
+EOF
+
+cat > ~/.ssh/id_ed25519.pub << 'EOF'
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w
+EOF
+
+chmod -v 0600 ~/.ssh/id_ed25519 \
+&& { ssh-add -l 1> /dev/null 2> /dev/null ; test $? -eq 2 && eval "$(ssh-agent -s)"; } || true \
+&& { ssh-add -L | grep -q "$(cat ~/.ssh/id_ed25519.pub)" || ssh-add -v ~/.ssh/id_ed25519; } \
+&& { ssh-add -L | grep -q "$(cat ~/.ssh/id_ed25519.pub)" || echo 'erro in ssh-add -L'; } \
+&& { ssh-keygen -R '[localhost]:10022' 1>/dev/null 2>/dev/null || true; } \
+&& ssh-keyscan -H -p 10022 -t ecdsa localhost >> ~/.ssh/known_hosts
+
+```
+
+
+Warning: Permanently added '[localhost]:10022' (ED25519) to the list of known hosts.
+

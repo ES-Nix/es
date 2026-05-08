@@ -7,25 +7,20 @@ Inspired by:
 
 
 ```bash
-nix build --no-link --print-build-logs --print-out-paths '.#checks.x86_64-linux.helloNixosTest'
+nix build --no-link --print-build-logs --print-out-paths \
+'.#checks.x86_64-linux.helloNixosTest'
+
+nix build --no-link --print-build-logs --print-out-paths \
+'.#checks.x86_64-linux.helloNixosTest.driverInteractive'
 ```
 
-TODO: why nix fmt hangs?
-```bash
-nix fmt . \
-&& nix flake show '.#' \
-&& nix flake metadata '.#' \
-&& nix build --no-link --print-build-logs --print-out-paths '.#' \
-&& nix develop '.#' --command sh -c 'true' \
-&& nix flake check --verbose '.#'
-```
-
-
+0] 
+TODO: this flake may have an "default app" that does this?!
 ```bash
 nix run '.#checks.x86_64-linux.helloNixosTest.driverInteractive'
 ```
 
-
+1]
 ```bash
 # In the python prompt, the >>>
 start_all()

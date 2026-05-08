@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "It is for documenting an bug";
 
   /*
     nix \
@@ -40,7 +40,7 @@
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         nginxStatic = prev.pkgsStatic.nginx.overrideAttrs (oldAttrs:
           {
@@ -156,7 +156,7 @@
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -240,7 +240,7 @@
                     jq
                     lsof
                     findutils
-                    foo-bar
+                    fooBar
                     nginxStatic
                   ];
                   shell = pkgs.bash;
@@ -273,7 +273,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           text = ''
@@ -328,14 +328,14 @@
             # testBinfmtMany
             nginxStatic
             myvm
-            automatic-vm
+            automaticVm
             ;
           default = pkgs.testNginxStatic;
         };
 
         apps.default = {
           type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+          program = "${pkgs.lib.getExe pkgs.automaticVm}";
           meta.description = "Run the NixOS VM";
         };
 
@@ -344,13 +344,13 @@
         checks = {
           inherit (pkgs)
             # testNginxStatic
-            # automatic-vm
+            # automaticVm
             ;
         };
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
+            fooBar
           ];
         };
       }

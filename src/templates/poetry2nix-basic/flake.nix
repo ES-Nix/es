@@ -16,9 +16,16 @@
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
     --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'    
 
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'    
+
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -48,6 +55,23 @@
         in
         {
           packages = {
+            allTests = let name = "all-tests"; in pkgs.writeShellApplication
+              {
+                name = name;
+                runtimeInputs = [ ];
+                text = ''
+                  nix fmt . \
+                  && nix flake show --all-systems '.#' \
+                  && nix flake metadata '.#' \
+                  && nix build --no-link --print-build-logs --print-out-paths '.#' \
+                  && nix develop '.#' --command sh -c 'true' \
+                  && nix flake check --all-systems --verbose '.#' \
+                  && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#'
+                '';
+              } // { meta.mainProgram = name; };
+
+            fooBar = pkgs.hello;
+
             myapp = mkPoetryApplication { projectDir = cleanPythonSources { src = ./.; }; }
               // { meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.scripts); };
 
@@ -135,7 +159,7 @@
           apps = {
             default = {
               type = "app";
-              program = "${self.packages.${system}.default}/bin/start";
+              program = "${pkgs.lib.getExe self.packages.${system}.default}";
               meta.description = "";
             };
           };

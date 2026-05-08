@@ -26,7 +26,6 @@
     flake \
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852'
-    
   */
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";

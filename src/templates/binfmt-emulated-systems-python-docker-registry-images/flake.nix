@@ -19,16 +19,23 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/9a094440e02a699be5c57453a092a8baf569bdad' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         # docker manifest inspect arm64v8/python:3.9.19-alpine3.20 | jq -r '.manifests.[0].digest' | cut -d':' -f 2
         # docker inspect arm64v8/python:3.9.19-alpine3.20
@@ -384,7 +391,7 @@
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -518,7 +525,7 @@
                     jq
                     lsof
                     findutils
-                    foo-bar
+                    fooBar
                   ];
                   shell = pkgs.bash;
                   uid = 1234;
@@ -550,7 +557,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           text = ''
@@ -579,6 +586,21 @@
             '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -602,16 +624,23 @@
         packages = {
           inherit (pkgs)
             myvm
-            automatic-vm
+            automaticVm
             testBinfmtManyEmulatedSystems
             ;
           default = pkgs.testBinfmtManyEmulatedSystems;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
+        apps = {
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests for this flake";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -631,7 +660,7 @@
             OCIImageTonistiigiBinfmt
 
             myvm
-            automatic-vm
+            automaticVm
             testBinfmtManyEmulatedSystems
             ;
           default = pkgs.testBinfmtManyEmulatedSystems;
@@ -639,7 +668,7 @@
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
+            fooBar
           ];
 
           shellHook = ''

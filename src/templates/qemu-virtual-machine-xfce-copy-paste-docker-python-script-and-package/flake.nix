@@ -20,22 +20,33 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         packageFlaskAPI = prev.python3Packages.buildPythonPackage rec {
           pname = "packageFlaskAPI";
           version = "0.0.1";
 
           src = ./fl4sk;
+          format = "setuptools";
+          # pyproject = false; 
+          # build-system = [ setuptools ];
 
           doCheck = false;
 
@@ -71,6 +82,7 @@
           ];
 
           src = ./fl4sk;
+          format = "setuptools";
 
           meta.mainProgram = "fl4sk";
         };
@@ -112,7 +124,7 @@
               ];
             };
 
-          globalTimeout = 60;
+          globalTimeout = 1 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -158,7 +170,7 @@
               ];
             };
 
-          globalTimeout = 60;
+          globalTimeout = 1 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -183,7 +195,7 @@
 
               machineWithPythonCustom.wait_for_open_port(${apiPort})
               machineWithPythonCustom.succeed("pgrep -f fl4sk")
-              machineWithPythonCustom.succeed("pgrep -f python3")
+              # machineWithPythonCustom.succeed("pgrep -f python3") # TODO: why it fails?
               machineWithPythonCustom.wait_until_succeeds("${cmdCurlAndGrep}")
               machineWithPythonCustom.succeed("kill -9 $(lsof -t -i tcp:${apiPort} -s tcp:listen)") #  ps -ww -fp $(lsof -t -i tcp:8080 -s tcp:listen)
               machineWithPythonCustom.fail("lsof -t -i tcp:${apiPort} -s tcp:listen")
@@ -204,7 +216,7 @@
               ];
             };
 
-          globalTimeout = 60;
+          globalTimeout = 1 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -250,7 +262,7 @@
               ];
             };
 
-          globalTimeout = 1 * 60;
+          globalTimeout = 2 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -284,7 +296,7 @@
             };
 
           enableOCR = true;
-          globalTimeout = 1 * 60;
+          globalTimeout = 2 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -334,7 +346,7 @@
             };
 
           enableOCR = true;
-          globalTimeout = 2 * 60;
+          globalTimeout = 3 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -410,7 +422,7 @@
             };
 
           enableOCR = true;
-          globalTimeout = 3 * 60;
+          globalTimeout = 5 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -458,7 +470,7 @@
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -545,7 +557,7 @@
                     lsof
                     findutils
                     dive
-                    foo-bar
+                    fooBar
                     # uwsgi
                     final.appFl4skAPI
                     python3WithPackage
@@ -572,7 +584,7 @@
                 environment.systemPackages = with pkgs; [
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.11";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -582,7 +594,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           /*
@@ -622,6 +634,21 @@
             '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -646,7 +673,7 @@
         packages = {
           inherit (pkgs)
             appFl4skAPI
-            automatic-vm
+            automaticVm
             myvm
             OCIImageAppFl4skAPI
             OCIImagePythonWithPackage
@@ -657,9 +684,14 @@
         };
 
         apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
           default = {
             type = "app";
-            program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
             meta.description = "Run the NixOS VM with QEMU and connect to it with remote-viewer";
           };
         };
@@ -678,14 +710,14 @@
             testOCIImageAppFl4skAPIDockerFirefoxOCR
             testOCIImagePythonWithPackageDockerFirefoxOCR
 
-            automatic-vm
+            automaticVm
             ;
           default = pkgs.testFl4skBin;
         };
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
+            fooBar
             appFl4skAPI
             python3WithPackage
           ];

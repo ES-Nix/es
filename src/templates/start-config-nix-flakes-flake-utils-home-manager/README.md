@@ -28,6 +28,17 @@ github:ES-nix/es#installStartConfigTemplate \
 && rm -v ./nix
 ```
 
+TODO: it is not building on vagrant, like the config hardcoded hostname got broken?
+```bash
+nix \
+flake \
+lock \
+--override-input nixpkgs github:NixOS/nixpkgs/c97c47f2bac4fa59e2cbdeba289686ae615f8ed4 \
+--override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+--override-input home-manager github:nix-community/home-manager/f63d0fe9d81d36e5fc95497217a72e02b8b7bcab
+```
+
+
 ```bash
 ./nix \
 --extra-experimental-features nix-command \
@@ -65,7 +76,7 @@ git ls-remote --exit-code --tags --refs https://github.com/NixOS/nixpkgs.git \
 | grep -v 'black'
 ```
 
-It usually points to "the firs commit in an branch":
+It usually points to "the first commit in an branch":
 ```bash
 git ls-remote --exit-code --tags --refs \
 https://github.com/NixOS/nixpkgs.git "refs/tags/22.11" | cut -f1
@@ -122,6 +133,8 @@ xhost + || nix run nixpkgs#xorg.xhost -- +
 docker \
 run \
 --env="DISPLAY=${DISPLAY:-:0}" \
+--hostname=abcuser-container-nix-hm \
+--name=abcuser-container-nix-hm \
 --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw \
 --interactive=true \
 --privileged=true \
@@ -141,8 +154,6 @@ run \
 --rm=true \
 ubuntu-base:latest
 ```
-
-
 
 
 ```bash

@@ -56,6 +56,17 @@
                 # inputs.something.overlays.default
               ];
             }));
+
+      pkgs = forAllSystems (system:
+        import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          overlays = [
+            # overlays.additions
+            overlays.modifications
+            # overlays.unstable-packages
+          ];
+        });
     in
     {
       # Your custom packages and modifications, exported as overlays
@@ -68,13 +79,21 @@
       # });
       formatter = forAllSystems2 (pkgs: pkgs.nixpkgs-fmt);
 
+      apps = forAllSystems (system: {
+        allTests = {
+          type = "app";
+          program = "${pkgs.${system}.lib.getExe pkgs.${system}.allTests}";
+          meta.description = "Run all tests for this flake";
+        };
+      });
+
       packages = forAllSystems (system: {
+        allTests = pkgs.${system}.hello;
         # default = nixpkgs.legacyPackages.${system}.hello;
         default = self.homeConfigurations.vagrant.activationPackage;
       });
 
       checks = forAllSystems (system: {
-        # A simple check that runs 'hello' and checks the output
         default = self.homeConfigurations.vagrant.activationPackage;
       });
 
@@ -84,9 +103,10 @@
         # A shell that can be used to test your configuration
         # and run commands in the context of your system
         default = nixpkgs.legacyPackages.${system}.mkShell {
-          buildInputs = with nixpkgs.legacyPackages.${system}; [
+          packages = with nixpkgs.legacyPackages.${system}; [
             git
             hello
+            # f00Bar
           ];
           shellHook = ''
             test -d .profiles || mkdir -v .profiles

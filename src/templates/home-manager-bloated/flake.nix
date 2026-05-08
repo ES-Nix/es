@@ -8,6 +8,15 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4' \
     --override-input home-manager 'github:nix-community/home-manager/aecd341dfead1c3ef7a3c15468ecd71e8343b7c6' \
     --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input home-manager 'github:nix-community/home-manager/f63d0fe9d81d36e5fc95497217a72e02b8b7bcab' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input nixos-generators 'github:nix-community/nixos-generators/8946737ff703382fda7623b9fab071d037e897d5'
+    
   */
   inputs = {
 
@@ -124,6 +133,22 @@
       checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
 
       formatter = pkgsAllowUnfree.nixpkgs-fmt;
+
+      packages.allTests = let name = "all-tests"; in pkgsAllowUnfree.writeShellApplication
+        {
+          name = name;
+          runtimeInputs = with pkgsAllowUnfree; [ ];
+          text = ''
+            nix fmt . \
+            && nix flake show --all-systems --impure '.#' \
+            && nix flake metadata --impure '.#' \
+            && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+            && nix develop --impure '.#' --command sh -c 'true' \
+            && nix flake check --impure --verbose '.#'
+
+            # && nix build --impure --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+          '';
+        } // { meta.mainProgram = name; };
 
       packages.hello = pkgsAllowUnfree.hello;
       packages.default = pkgsAllowUnfree.hello;

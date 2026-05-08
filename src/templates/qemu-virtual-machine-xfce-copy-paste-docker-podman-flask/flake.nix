@@ -15,9 +15,19 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
     --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'    
+
+    25.11
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'
+
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -31,7 +41,7 @@
       poetry2nix.overlays.default
 
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         myapp = prev.poetry2nix.mkPoetryApplication {
           src = prev.poetry2nix.cleanPythonSources { src = ./.; };
@@ -588,7 +598,7 @@
 
         nixos-vm = nixpkgs.lib.nixosSystem {
           # system = builtins.currentSystem;
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           # system = "x86_64-linux";
 
           modules = [
@@ -724,7 +734,7 @@
                     file
                     firefox
                     jq
-                    foo-bar
+                    fooBar
                     myapp
                   ];
                   shell = pkgs.bash;
@@ -749,7 +759,7 @@
                   file
                 ];
 
-                system.stateVersion = "25.05";
+                system.stateVersion = "25.11";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -759,7 +769,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           /*
@@ -799,10 +809,9 @@
             '';
         };
 
-
         myvmNoGRaphicalPkg = final.nixos-vm-no-graphical.config.system.build.vm;
         nixos-vm-no-graphical = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             (
 
@@ -918,7 +927,8 @@
                 services.sshd.enable = true;
 
                 nixpkgs.config.allowUnfree = true;
-                boot.readOnlyNixStore = true; # TODO: hardening
+                # boot.readOnlyNixStore = true; # TODO: hardening
+                boot.nixStoreMountOpts = [ "ro" "noatime" "nodiratime" ]; # TODO: hardening
                 nix = {
                   extraOptions = "experimental-features = nix-command flakes";
                   package = pkgs.nix;
@@ -930,7 +940,7 @@
                 environment.systemPackages = with pkgs; [
                 ];
 
-                system.stateVersion = "25.05";
+                system.stateVersion = "25.11";
               }
             )
           ];
@@ -996,6 +1006,21 @@
 
 
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -1025,24 +1050,30 @@
         packages.default = pkgs.myapp;
 
         packages.myvm = pkgs.myvm;
-        packages.automatic-vm = pkgs.automatic-vm;
+        packages.automaticVm = pkgs.automaticVm;
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
-        };
-
-        apps.NixOSVMNoGraphical = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.myvmNoGRaphicalPkg}";
-          meta.description = "Run the NixOS VM without graphical interface";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
+          NixOSVMNoGraphical = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.myvmNoGRaphicalPkg}";
+            meta.description = "Run the NixOS VM without graphical interface";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
-          testAutomatic-vm = pkgs.automatic-vm;
+          testautomaticVm = pkgs.automaticVm;
           testMyappOCIImageDockerFirefoxOCR = pkgs.testers.runNixOSTest {
             name = "test-myapp-as-oci-image-docker-firefox-ocr";
             nodes.machineWithDockerFirefoxOCR =
@@ -1150,14 +1181,14 @@
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
-            myapp
+            bashInteractive
+            fooBar
+            # myapp
             # poetry
             # python3Custom
           ];
 
           shellHook = ''
-            echo ''${helloFlaskMinimal}
             test -d .profiles || mkdir -v .profiles
 
             test -L .profiles/dev \

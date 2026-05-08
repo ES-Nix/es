@@ -74,6 +74,9 @@ jobs:
           unshare -Ur -m bash -c 'cat /proc/$$/mounts'
           cat /proc/$$/mountinfo
           # unshare -pfr --mount-proc=/proc echo hi
+          # unshare -pfr --mount-proc=/proc bash -c 'cat /proc/$$/mounts'
+          # unshare -pfr --mount-proc=/proc bash -c 'cat /proc/$$/mountinfo'
+          # unshare --user --map-root-user --mount-proc --pid --fork id
 
       - name: Testa podman
         run: |

@@ -14,7 +14,7 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4' \
     --override-input flake-utils 'github:numtide/flake-utils/c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a'
 
-
+    # Last commit from github:NixOS/nixpkgs/nixos-24.11
     nix \
     flake \
     lock \
@@ -47,7 +47,7 @@
       overlays.default = final: prev: {
         inherit self final prev;
 
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
         latex-demo-document = final.stdenvNoCC.mkDerivation {
           name = "latex-demo-document";
           src = prev.writeTextDir "latex-demo-document.tex" ''
@@ -166,6 +166,23 @@
           '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+
+              # TODO: it errors out "may not be deterministic"
+              # && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+            '';
+          } // { meta.mainProgram = name; };
+
       };
     } //
     flake-utils.lib.eachSystem suportedSystems
@@ -184,6 +201,7 @@
         {
           packages = {
             inherit (pkgsAllowUnfree)
+              allTests
               latex-demo-document
               scriptFirefox
               test-nixos
@@ -194,6 +212,11 @@
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
 
           apps = {
+            allTests = {
+              type = "app";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.allTests}";
+              meta.description = "Run all tests for this flake";
+            };
             default = {
               type = "app";
               program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.scriptFirefox}";
@@ -208,6 +231,7 @@
 
           checks = {
             inherit (pkgsAllowUnfree)
+              allTests
               latex-demo-document
               scriptFirefox
               ;

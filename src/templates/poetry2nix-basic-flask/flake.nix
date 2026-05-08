@@ -8,9 +8,17 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
     --override-input poetry2nix 'github:nix-community/poetry2nix/3c92540611f42d3fb2d0d084a6c694cd6544b609'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/ce2369db77f45688172384bbeb962bc6c2ea6f94'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -43,9 +51,56 @@
             (final: prev: {
               inherit self final prev;
 
-              foo-bar = prev.hello;
+              fooBar = prev.hello;
 
-              myapp = mkPoetryApplication {
+              myapp = mkPoetryApplication
+                {
+                  projectDir = ./.;
+
+                  overrides = defaultPoetryOverrides.extend
+                    (final: prev: {
+                      itsdangerous = prev.itsdangerous.overridePythonAttrs
+                        (
+                          old: {
+                            buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                          }
+                        );
+
+                      jinja2 = prev.jinja2.overridePythonAttrs
+                        (
+                          old: {
+                            buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                          }
+                        );
+
+                    });
+                }
+
+              ;
+            })
+          ];
+        in
+        {
+          packages = {
+            allTests = let name = "all-tests"; in pkgs.writeShellApplication
+              {
+                name = name;
+                runtimeInputs = [ ];
+                text = ''
+                  nix fmt . \
+                  && nix flake show --all-systems '.#' \
+                  && nix flake metadata '.#' \
+                  && nix build --no-link --print-build-logs --print-out-paths '.#' \
+                  && nix develop '.#' --command sh -c 'true' \
+                  && nix flake check --all-systems --verbose '.#' \
+                  && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#'
+                '';
+              } // { meta.mainProgram = name; };
+
+            fooBar = pkgs.hello;
+
+            myapp = mkPoetryApplication
+              {
                 projectDir = ./.;
 
                 overrides = defaultPoetryOverrides.extend
@@ -65,34 +120,8 @@
                       );
 
                   });
-              };
-            })
-          ];
-        in
-        {
-          packages = {
-            # myapp = pkgs.myapp;
-            myapp = mkPoetryApplication {
-              projectDir = ./.;
-
-              overrides = defaultPoetryOverrides.extend
-                (final: prev: {
-                  itsdangerous = prev.itsdangerous.overridePythonAttrs
-                    (
-                      old: {
-                        buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
-                      }
-                    );
-
-                  jinja2 = prev.jinja2.overridePythonAttrs
-                    (
-                      old: {
-                        buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
-                      }
-                    );
-
-                });
-            };
+              } // { meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.scripts); };
+            # // { meta.mainProgram = "start"; };
 
             default = self.packages.${system}.myapp;
 
@@ -191,9 +220,15 @@
           formatter = pkgs.nixpkgs-fmt;
 
           apps = {
+            # allTests = {
+            #   type = "app";
+            #   program = "${pkgs.lib.getExe self.packages.allTests}";
+            #   meta.description = "Run all tests for this flake";
+            # };
             default = {
               program = "${self.packages.${system}.default}/bin/start";
               type = "app";
+              meta.description = "Run the myapp application";
             };
           };
 
@@ -238,7 +273,6 @@
               pkgs.poetry
             ];
           };
-
 
           # Shell for poetry.
           #     nix develop .#poetry

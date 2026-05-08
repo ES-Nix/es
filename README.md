@@ -35,74 +35,138 @@ bash
 ## With a local clone
 
 TODO: remove warnings
-TODO: better name things, consistenciy and case conventions
+TODO: better name things, consistency and case conventions
+
 
 ```bash
-# Defines a multi-line bash array of templates
-TEMPLATE_FOLDERS_RELATIVE_PATH=(
-    './src/templates/pandoc-latex'
-    './src/templates/nginx'
-    './src/templates/nixos-build-vm-systemd-self-hosted-runner-for-gitHub-actions'
-    './src/templates/nixos-build-vm-kubernetes-self-hosted-runner-for-gitHub-actions'
-    './src/templates/nixos-tests-hello-systemd-service'
-    './src/templates/poetry2nix-basic-flask'
-    './src/templates/poetry2nix-basic'
-    './src/templates/qemu-virtual-machine-xfce-copy-paste-docker'
-    './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-flask'
-    './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-podman-flask'
-    './src/templates/qemu-virtual-machine-xfce-copy-paste-docker-python-script-and-package'
-    './src/templates/minimal-busybox-sandbox-shell'
-    './src/templates/nginx'
-    # './src/templates/flake-utils-godot4'
-    # './src/templates/nix-flakes-flake-utils-devShell'
-    # './src/templates/nix-flakes-flake-utils-devShell-home-manager#homeConfigurations.x86_64-linux.vagrant.activationPackage'
-)
+nix flake show --json .# | jq '."templates"'
 
-for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}"; do
-    nix \
-    build \
-    --cores 6 \
-    --no-link \
-    --print-build-logs \
-    --print-out-paths \
-    --impure \
-    "$template" \
-    && nix \
-        flake \
-        check \
-        --impure \
-        "$template"
+nix eval --json '.#templates' \
+| jq '.[].path' \
+| cut -d'/' -f5- \
+| tr -d '"' \
+| xargs -I{} nix eval '.?dir={}#allTests'
+
+nix eval --json '.#templates' \
+| jq '.[].path' \
+| cut -d'/' -f5- \
+| tr -d '"' \
+| xargs -I{} sh -cl 'cd {} && nix run .#allTests && cd -'
+```
+
+
+```bash
+TEMPLATE_FOLDERS_RELATIVE_PATH=($(nix --option warn-dirty false eval --json '.#templates' | jq '.[].path' | cut -d'/' -f5- | tr -d '"'))
+for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}";
+do
+    cd "$template" \
+    && nix --option warn-dirty false eval '.#'
+    # clear
+    cd -
+done
+
+TEMPLATE_FOLDERS_RELATIVE_PATH=($(nix --option warn-dirty false eval --json '.#templates' | jq '.[].path' | cut -d'/' -f5- | tr -d '"'))
+for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}";
+do
+    cd "$template" \
+    && nix --option warn-dirty false eval '.#allTests'
+    # clear
+    cd -
 done
 ```
 
 
 ```bash
-nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
---override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
-'./src/templates/redis-static' \
-'./src/templates/nginx-static' \
-'./src/templates/memcached-static' \
-'./src/templates/memcached-static-cross'
+TEMPLATE_FOLDERS_RELATIVE_PATH=($(nix eval --json '.#templates' | jq '.[].path' | cut -d'/' -f5- | tr -d '"'))
+for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}";
+do
+    cd "$template" \
+    && nix --option warn-dirty false run '.#allTests'
+    # clear
+    cd -
+done
 ```
 
-
-TODO: re-execute
 ```bash
-nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
---override-input nixpkgs 'github:NixOS/nixpkgs/95600680c021743fd87b3e2fe13be7c290e1cac4' \
-'./src/templates/binfmt-emulated-systems-python-docker-registry-images'
-```
+TEMPLATE_FOLDERS_RELATIVE_PATH=(
+    './src/templates/minimal-busybox-sandbox-shell'
+    './src/templates/binfmt-emulated-riscv64-python-alpine-wheels-via-pip-and-docker'
+    './src/templates/binfmt-emulated-riscv64-python-wheels-docker-registry-images'
+    './src/templates/binfmt-emulated-systems-docker'
+    './src/templates/binfmt-emulated-systems-hello'
+    './src/templates/binfmt-emulated-systems-python-docker-registry-images'
+    './src/templates/docker-multiple-kernel-versions'
+)
 
-Only in unstable it has the binfmt needed:
-```bash
-nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
---override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
-'./src/templates/binfmt-emulated-systems-hello' \
-'./src/templates/binfmt-emulated-systems-docker' \
-'./src/templates/binfmt-emulated-riscv64-python-alpine-wheels-via-pip-and-docker'
-```
+for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}"; do
+    cd "$template" \
+    && nix run '.#allTests' \
+    && cd -
+done
 
-'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-ubuntu' \
+
+TEMPLATE_FOLDERS_RELATIVE_PATH=(
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-bloated'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-geopandas'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-hello'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-mmh3'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-numpy'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-pandas'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-polars'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-scipy'  
+)
+for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}"; do
+    cd "$template" \
+    && nix run '.#allTests' \
+    && cd -
+done
+
+TEMPLATE_FOLDERS_RELATIVE_PATH=(
+#'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-bloated'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-geopandas'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-hello'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-mmh3'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-numpy'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-pandas'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-polars'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-scipy'  
+)
+for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}"; do
+    cd "$template" \
+    && nix run '.#allTests' \
+    && cd -
+done
+
+
+TEMPLATE_FOLDERS_RELATIVE_PATH=(
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-almalinux'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-alpine'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-alpine'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-archlinux'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-debian'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-fedora'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-nixos'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-opensuse'
+'./src/templates/qemu-virtual-machine-xfce-copy-paste-libvirt-vagrant-ubuntu'
+)
+for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}"; do
+    cd "$template" \
+    && nix run '.#allTests' \
+    && cd -
+done
+
+TEMPLATE_FOLDERS_RELATIVE_PATH=(
+'./src/templates/redis-static'
+'./src/templates/valkey-static'
+'./src/templates/nginx-static'
+'./src/templates/memcached-static'
+)
+for template in "${TEMPLATE_FOLDERS_RELATIVE_PATH[@]}"; do
+    cd "$template" \
+    && nix run '.#allTests' \
+    && cd -
+done
+```
 
 
 TODO: It takes too long to build. 
@@ -112,26 +176,6 @@ nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
 './src/templates/nixos-iso-offline-install'
 ```
 
-It is broken, see the issue.
-```bash
-nix build --cores 8 --no-link --print-build-logs --print-out-paths --impure \
---override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
-'./src/templates/valkey-static'
-```
-Refs.:
-- https://github.com/NixOS/nixpkgs/issues/387010
-
-Only works in some different commit:
-```bash
-nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
-'./src/templates/docker-multiple-kernel-versions'
-```
-
-Only works in some different commit:
-```bash
-nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
-'./src/templates/bug-nixostest'
-```
 
 
 Cleaning/garbage collect:
@@ -160,19 +204,6 @@ nix flake clone 'git+ssh://git@github.com/ES-Nix/es.git' --dest es \
 
 
 ## Using 
-
-
-```bash
-nix flake show '.#' \
-&& nix flake metadata '.#' \
-&& nix build --no-link --print-build-logs --print-out-paths '.#' \
-&& nix develop '.#' --command sh -c 'true' \
-&& nix flake check --all-systems --verbose '.#'
-```
-
-```bash
-nix flake show --json .# | jq '."templates"'
-```
 
 
 ```bash

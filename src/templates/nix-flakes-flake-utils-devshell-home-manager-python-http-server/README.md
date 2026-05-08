@@ -13,7 +13,7 @@
 || nix profile install nixpkgs#git) \
 && git init \
 && git add . \
-&& nix run github:nix-community/home-manager/release-25.11 -- switch --flake '.#vagrant'
+&& nix run github:nix-community/home-manager/f63d0fe9d81d36e5fc95497217a72e02b8b7bcab -- switch --flake '.#vagrant'
 ```
 
 
@@ -30,7 +30,7 @@ github:ES-nix/es#devShellHomeManagerFlakeUtilsPython3HttpServer
 git --version || nix profile install nixpkgs#git
 git init && git add .
 
-nix run github:nix-community/home-manager/release-25.11 -- switch --flake '.#vagrant'
+nix run github:nix-community/home-manager/f63d0fe9d81d36e5fc95497217a72e02b8b7bcab -- switch --flake '.#vagrant'
 # home-manager switch --flake '.#vagrant'
 ```
 Refs.:

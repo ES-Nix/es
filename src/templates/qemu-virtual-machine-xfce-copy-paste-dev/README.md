@@ -6,7 +6,6 @@ nix run --impure --refresh --verbose '.#'
 ```
 
 
-
 Invoking in the host:
 ```bash
 start
@@ -35,13 +34,12 @@ TODO: missing checks that validate code formating, like black.
 
 ```bash
 nix fmt . \
-&& nix flake show '.#' \
+&& nix flake show --all-systems '.#' \
 && nix flake metadata '.#' \
 && nix build --no-link --print-build-logs --print-out-paths '.#' \
 && nix develop '.#' --command sh -c 'true' \
 && nix flake check --verbose '.#'
 ```
-
 
 
 ```bash
@@ -68,7 +66,6 @@ echo aaaqqq > /tmp/xchg/f00.txt
 
 cat "$(ls -td /tmp/nix-vm.* | head -n1)/xchg/f00"
 ```
-
 
 
 ```bash

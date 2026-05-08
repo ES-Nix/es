@@ -22,10 +22,10 @@
   outputs = { self, nixpkgs, flake-utils, ... }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         nixOSSelfOfflineInstallISOInQcow2 = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ./custom-self-install-iso.nix
           ];
@@ -131,7 +131,7 @@
               ];
 
               config.environment.systemPackages = with pkgs; [
-                foo-bar
+                fooBar
                 runISONixOSSelfOfflineInstallISOInQcow2
               ];
             };
@@ -143,6 +143,21 @@
             machine.succeed("run-nixos-offline-install-iso-in-qcow2")
           '';
         };
+
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
 
       })
     ];
@@ -174,6 +189,11 @@
         };
 
         apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests for this flake";
+          };
           default = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.runISONixOSSelfOfflineInstallISOInQcow2}";
@@ -200,7 +220,7 @@
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
+            fooBar
             ISONixOSSelfOfflineInstallISOInQcow2
             runISONixOSSelfOfflineInstallISOInQcow2
             runQEMUNixOS

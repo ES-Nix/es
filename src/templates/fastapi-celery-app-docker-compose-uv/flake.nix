@@ -36,9 +36,17 @@
     --override-input nixpkgs 'github:NixOS/nixpkgs/25e53aa156d47bad5082ff7618f5feb1f5e02d01' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
     --override-input poetry2nix 'github:nix-community/poetry2nix/b9a98080beff0903a5e5fe431f42cde1e3e50d6b'
+
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -62,7 +70,9 @@
               (final: prev: {
                 # 
               });
-          } // { meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.scripts); };
+          } // {
+          # meta.mainProgram = builtins.head (builtins.attrNames (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.scripts); 
+        };
 
         myappOCIImage =
           let
@@ -154,7 +164,7 @@
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -346,7 +356,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           text = ''
@@ -368,6 +378,21 @@
             kill $PID_QEMU
           '';
         };
+
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
 
       })
     ];
@@ -392,42 +417,51 @@
       {
         packages = {
           inherit (pkgs)
-            myapp
-            myappOCIImage
-            testMyappOCIImage
-            myvm
-            automatic-vm
+            allTests
+            # myapp
+            # myappOCIImage
+            # testMyappOCIImage
+            # myvm
+            # automaticVm
             ;
-          default = pkgs.myapp;
+          # default = pkgs.myapp;
+          default = pkgs.allTests;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.myapp}";
-          meta.description = "";
-        };
-
-        apps.automatic-vm = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "";
-        };
-        apps.testmMappAsOCIImageDriverInteractive = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
-          meta.description = "";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests for this flake";
+          };
+          # default = {
+          #   type = "app";
+          #   program = "${pkgs.lib.getExe pkgs.myapp}";
+          #   meta.description = "";
+          # };
+          # automaticVm = {
+          #   type = "app";
+          #   program = "${pkgs.lib.getExe pkgs.automaticVm}";
+          #   meta.description = "";
+          # };
+          # testmMappAsOCIImageDriverInteractive = {
+          #   type = "app";
+          #   program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
+          #   meta.description = "";
+          # };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            myapp
-            myappOCIImage
-            testMyappOCIImage
-            automatic-vm
+            allTests
+            #   myapp
+            #   myappOCIImage
+            #   testMyappOCIImage
+            #   automaticVm
             ;
-          default = pkgs.testMyappOCIImage;
+          # default = pkgs.testMyappOCIImage;
         };
 
         devShells.default = with pkgs; mkShell {
@@ -439,7 +473,7 @@
             # myapp
             # myappOCIImage
             # testMyappOCIImage
-            # automatic-vm
+            # automaticVm
           ];
 
           shellHook = ''

@@ -19,16 +19,23 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/29e290002bfff26af1db6f64d070698019460302' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'  
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         # nix eval --apply builtins.attrNames nixpkgs#fetchurl.__functionArgs
         alpine318 = prev.fetchurl {
@@ -82,6 +89,9 @@
 
             # config.vm.box = "debian/bookworm64"
             # config.vm.box_version = "12.20250126.1"
+
+            # Force Vagrant to use a clean SSH config file, so that it doesn't mess with the host's SSH config.
+            config.ssh.extra_args = ["-F", "/dev/null"]            
 
             config.vm.provider :libvirt do |v|
               v.cpus = 4
@@ -246,7 +256,7 @@
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -363,7 +373,7 @@
                     vagrant
                     prepareVagrantVms
                     runVagrantAlpine
-                    foo-bar
+                    fooBar
                   ];
                   shell = pkgs.bash;
                   uid = 1000;
@@ -383,7 +393,7 @@
                 virtualisation.libvirtd.enable = true;
                 # virtualisation.services.libvirtd.serviceOverrides = { PrivateUsers="no"; };
 
-                boot.readOnlyNixStore = true; # TODO: how to test it?
+                # boot.nixStoreMountOpts = [ "rw" ]; # TODO: What may be missing?
                 nix.extraOptions = "experimental-features = nix-command flakes";
                 nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
                   "vagrant"
@@ -418,7 +428,7 @@
                   vagrant
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.11";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -428,7 +438,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer myvm ];
           /*
@@ -467,6 +477,21 @@
           '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -495,22 +520,29 @@
             alpine319
             # alpine321
             alpine322
-            automatic-vm
+            automaticVm
             myvm
             testVagrantWithLibvirt
             ;
           default = pkgs.testVagrantWithLibvirt;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
-        };
-        apps.testVagrantWithLibvirtDriverInteractive = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.testVagrantWithLibvirt.driverInteractive}";
-          meta.description = "Run the Vagrant with Libvirt test in interactive mode";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
+          testVagrantWithLibvirtDriverInteractive = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.testVagrantWithLibvirt.driverInteractive}";
+            meta.description = "Run the Vagrant with Libvirt test in interactive mode";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -519,7 +551,7 @@
           inherit (pkgs)
             alpine319
             # alpine321
-            automatic-vm
+            automaticVm
             # testVagrantWithLibvirt
             ;
           default = pkgs.testVagrantWithLibvirt;
@@ -527,9 +559,9 @@
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
+            fooBar
             # alpine319
-            automatic-vm
+            automaticVm
             testVagrantWithLibvirt
           ];
           shellHook = ''

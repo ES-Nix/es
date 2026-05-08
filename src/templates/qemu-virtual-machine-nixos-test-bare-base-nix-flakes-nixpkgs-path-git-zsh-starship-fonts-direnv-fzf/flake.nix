@@ -5,12 +5,12 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
     --override-input flake-registry 'github:NixOS/flake-registry/02fe640c9e117dd9d6a34efc7bcb8bd09c08111d' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     flake-registry.url = "github:NixOS/flake-registry";
     flake-registry.flake = false;
@@ -191,13 +191,28 @@
             };
           };
           testScript = { nodes, ... }: ''
-            expected = 'nix (Nix) 2.28.3'
+            expected = 'nix (Nix) 2.31.2'
             result = machine.succeed("nix --version").strip()
             assert expected == result, f"expected = {expected}, result = {result}"
           '';
         };
 
         testNixOSBoxDriverInteractive = final.testNixOSBox.driverInteractive;
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -232,9 +247,15 @@
         };
 
         apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
           default = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.testNixOSBoxDriverInteractive}";
+            meta.description = "Run interactive NixOS box test";
           };
         };
 

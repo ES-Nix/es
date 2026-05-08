@@ -25,9 +25,17 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'    
+
+    25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -43,7 +51,63 @@
       overlays.default = final: prev: {
         inherit self final prev;
 
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems --impure '.#' \
+              && nix flake metadata --impure '.#' \
+              && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --impure --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop --impure '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --impure --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
+        vm = self.nixosConfigurations.vm.config.system.build.toplevel;
+
+        automaticVm = final.writeShellApplication {
+          name = "run-nixos-vm";
+          runtimeInputs = with final; [ curl virt-viewer ];
+          /*
+              Pode ocorrer uma condição de corrida de seguinte forma:
+              a VM inicializa (o processo não é bloqueante, executa em background)
+              o spice/VNC interno a VM inicializa
+              o remote-viewer tenta conectar, mas o spice não está pronto ainda
+
+              TODO: idealmente não deveria ser preciso ter mais uma dependência (o curl)
+                    para poder sincronizar o cliente e o server. Será que no caso de
+                    ambos estarem na mesma máquina seria melhor usar virt-viewer -fw?
+              https://unix.stackexchange.com/a/698488
+            */
+          text = ''
+
+              # https://unix.stackexchange.com/a/230442
+              # export NO_AT_BRIDGE=1
+              # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
+              export LD_LIBRARY_PATH="${final.libcanberra-gtk3}"/lib/gtk-3.0/modules
+
+              ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
+
+              export VNC_PORT=3001
+
+              for _ in {0..100}; do
+                if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
+                then
+                  break
+                fi
+                # date +'%d/%m/%Y %H:%M:%S:%3N'
+                sleep 0.1
+              done;
+
+              remote-viewer spice://localhost:"$VNC_PORT"
+
+              kill $PID_QEMU
+            '';
+        };
       };
     } //
     (
@@ -72,55 +136,28 @@
           pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
             (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
         in
-        rec {
-
-          packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
-
-          packages.default = packages.automatic-vm;
-          packages.automatic-vm = pkgsAllowUnfree.writeShellApplication {
-            name = "run-nixos-vm";
-            runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
-            /*
-              Pode ocorrer uma condição de corrida de seguinte forma:
-              a VM inicializa (o processo não é bloqueante, executa em background)
-              o spice/VNC interno a VM inicializa
-              o remote-viewer tenta conectar, mas o spice não está pronto ainda
-
-              TODO: idealmente não deveria ser preciso ter mais uma dependência (o curl)
-                    para poder sincronizar o cliente e o server. Será que no caso de
-                    ambos estarem na mesma máquina seria melhor usar virt-viewer -fw?
-              https://unix.stackexchange.com/a/698488
-            */
-            text = ''
-
-              # https://unix.stackexchange.com/a/230442
-              # export NO_AT_BRIDGE=1
-              # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
-              export LD_LIBRARY_PATH="${pkgsAllowUnfree.libcanberra-gtk3}"/lib/gtk-3.0/modules
-
-              ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
-
-              export VNC_PORT=3001
-
-              for _ in {0..100}; do
-                if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
-                then
-                  break
-                fi
-                # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.1
-              done;
-
-              remote-viewer spice://localhost:"$VNC_PORT"
-
-              kill $PID_QEMU
-            '';
+        {
+          packages = {
+            inherit (pkgsAllowUnfree)
+              fooBar
+              allTests
+              automaticVm
+              vm
+              ;
+            default = pkgsAllowUnfree.automaticVm;
           };
 
-          apps.default = {
-            type = "app";
-            program = "${self.packages."${system}".automatic-vm}/bin/run-nixos-vm";
-            meta.description = "Run the kubernetes VM";
+          apps = {
+            allTests = {
+              type = "app";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.allTests}";
+              meta.description = "Run all tests";
+            };
+            default = {
+              type = "app";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.automaticVm}";
+              meta.description = "Run the kubernetes VM";
+            };
           };
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
@@ -137,7 +174,6 @@
               export TMPDIR=/tmp
 
               test -d .profiles || mkdir -v .profiles
-
               test -L .profiles/dev \
               || nix develop --impure .# --profile .profiles/dev --command true
 
@@ -146,14 +182,15 @@
 
               test -L .profiles/nixosConfigurations."$system".vm.config.system.build.vm \
               || nix build --impure --out-link .profiles/nixosConfigurations."$system".vm.config.system.build.vm .#nixosConfigurations.vm.config.system.build.vm
-
             '';
           };
         })
     )
     // {
       nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
-        system = builtins.currentSystem;
+        # system = builtins.currentSystem; # «error: attribute 'currentSystem' missing»
+        # system = "aarch64-linux";
+        system = "x86_64-linux";
 
         modules = [
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
@@ -222,7 +259,7 @@
                 packages = with pkgs; [
                   file
                   jq
-                  foo-bar
+                  fooBar
                 ];
                 shell = pkgs.bash;
                 uid = 1234;

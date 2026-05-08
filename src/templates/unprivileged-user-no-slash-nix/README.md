@@ -64,10 +64,13 @@ export NIX_PATH=nixpkgs=$(./nix eval --raw github:NixOS/nixpkgs/fd487183437963a5
 
 ### 
 
-TODO: why it lacks behind, it is now pointing to 2.25 but it must be 2.26.
-look into discourse
 ```bash
-curl -L https://hydra.nixos.org/job/nix/master/buildStatic.nix.x86_64-linux/latest/download-by-type/file/binary-dist > nix \
+# nix (Nix) 2.25.0pre19700101_fa4bd39
+# curl -L https://hydra.nixos.org/job/nix/master/buildStatic.nix.x86_64-linux/latest/download-by-type/file/binary-dist > nix \
+# && chmod +x nix \
+# && ./nix --version
+
+curl -L https://hydra.nixos.org/job/nix/master/buildStatic.nix-cli.x86_64-linux/latest/download-by-type/file/binary-dist > nix \
 && chmod +x nix \
 && ./nix --version
 ```
@@ -761,58 +764,13 @@ It is broken. Only works inside chroot/nix shell:
 ```
 
 
-
-
-
 ```bash
 rm -rfv "$HOME"/{.local/state,.nix-channels,.nix-defexpr,.nix-profile,.config/nixpkgs,.cache/nix}
 ```
 
 
-
-
-
-
 TODO: help in there
 https://github.com/nix-community/home-manager/issues/3752#issuecomment-2061051384
-
-
-### home-manager.lib.hm.dag.entryAfter
-
-
-For x86_64-linux:
-```bash
-# BUILD_ID="$(
-# hydra-check \
-# --arch x86_64-linux \
-# --channel nix maintenance-2.28/buildStatic.nix-cli \
-# --json \
-# | jq -r '."maintenance-2.28/buildStatic.nix-cli.x86_64-linux".[0].build_id'
-# )"
-BUILD_ID=297111184
-# echo $BUILD_ID
-
-curl -L https://hydra.nixos.org/build/$BUILD_ID/download-by-type/file/binary-dist > nix \
-&& echo 7838348c0e560855921cfa97051161bd63e29ee7ef4111eedc77228e91772958'  'nix \
-| sha256sum -c \
-&& chmod +x nix \
-&& ./nix --version
-
-# curl -L https://hydra.nixos.org/build/297111184/download-by-type/file/binary-dist > nix \
-# && chmod +x nix \
-# && ./nix --version
-```
-Refs.:
-- https://hydra.nixos.org/build/297111184
-
-
-```nix
-home.activation = {
-  startPythonHttpServer = home-manager.lib.hm.dag.entryAfter ["writeBoundary"] ''
-    "${lib.getExe pkgs.python3}" -m http.server 6789 >&2 &
-  '';
-};
-```
 
 
 

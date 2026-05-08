@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "Test NixOS in a QEMU virtual machine with a bare base configuration, using Nix CLI with flakes and nixpkgs path. This is the most basic test configuration, which can be used as a starting point for more complex tests. It tests the basic functionality of Nix CLI, flakes, and nixpkgs path in a minimal NixOS environment.";
 
   /*
     nix \
@@ -211,6 +211,21 @@
           '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -248,6 +263,11 @@
         };
 
         apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
           default = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.testNixOSBareDriverInteractive}";

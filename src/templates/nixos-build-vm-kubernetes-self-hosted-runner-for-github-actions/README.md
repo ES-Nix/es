@@ -3,13 +3,7 @@
 
 
 ```bash
-nix fmt . \
-&& nix flake show --allow-import-from-derivation --impure --refresh .# \
-&& nix flake metadata --impure '.#' \
-&& nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
-&& nix develop --impure '.#' --command sh -c 'true' \
-&& nix flake check --all-systems --impure --verbose '.#' \
-&& git add .
+nix run '.#allTests'
 ```
 
 Passo 1: 

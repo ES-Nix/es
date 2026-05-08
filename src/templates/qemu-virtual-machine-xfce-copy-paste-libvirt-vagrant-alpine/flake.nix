@@ -38,16 +38,23 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'  
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
 
         # nix eval --apply builtins.attrNames nixpkgs#fetchurl.__functionArgs
         alpine319 = prev.fetchurl {
@@ -68,6 +75,10 @@
             # boxes at https://vagrantcloud.com/search.
             config.vm.box = "generic/alpine319"
             # config.vm.box = "gnome-shell-box/box/alpine321"
+
+            # Force Vagrant to use a clean SSH config file, so that it doesn't mess with the host's SSH config.
+            config.ssh.extra_args = ["-F", "/dev/null"]
+
             config.vm.provider :libvirt do |v|
               v.cpus = 3
               v.memory = "2048"
@@ -83,9 +94,12 @@
             # config.vm.box = "gnome-shell-box/alpine321"
 
             config.vm.provider :libvirt do |v|
-              v.cpus = 6
-              v.memory = "14048"
+              v.cpus = 7
+              v.memory = "19048"
             end
+
+            # Force Vagrant to use a clean SSH config file, so that it doesn't mess with the host's SSH config.
+            config.ssh.extra_args = ["-F", "/dev/null"]            
 
             #
             # https://stackoverflow.com/a/77347166
@@ -116,22 +130,18 @@
 
               # https://unix.stackexchange.com/a/400140
               echo
-              df -h /tmp && sudo mount -o remount,size=14G /tmp/ && df -h /tmp
+              df -h /tmp && sudo mount -o remount,size=25G /tmp/ && df -h /tmp
               echo
               mkdir -pv /etc/sudoers.d \
               && echo 'vagrant:1' | chpasswd \
               && echo 'vagrant ALL=(ALL) PASSWD:SETENV: ALL' > /etc/sudoers.d/vagrant
 
               # mkdir -pv -m 1735 /nix/var/nix && chown -Rv vagrant:vagrant /nix
-              # su vagrant -lc \
-              # '
-              #   BUILD_ID=297111184
-              #   curl -L https://hydra.nixos.org/build/$BUILD_ID/download-by-type/file/binary-dist > nix \
-              #   && echo 7838348c0e560855921cfa97051161bd63e29ee7ef4111eedc77228e91772958'  'nix \
-              #   | sha256sum -c \
-              #   && chmod +x nix \
-              #   && ./nix --version
-              # '
+              su vagrant -lc \
+              '
+                # curl -L https://raw.githubusercontent.com/PedroRegisPOAR/dotfiles/main/bootstrap.sh | "$SHELL"
+                # curl -L https://raw.githubusercontent.com/PedroRegisPOAR/dotfiles/main/bootstrap-unprivileged.sh | "$SHELL"
+              '
             SHELL
           end
         '';
@@ -265,7 +275,7 @@
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
             ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
               {
@@ -288,9 +298,9 @@
                     virtualisation.docker.enable = true;
                     virtualisation.podman.enable = true;
 
-                    virtualisation.memorySize = 1024 * 18; # Use MiB memory.
-                    virtualisation.diskSize = 1024 * 50; # Use MiB memory.
-                    virtualisation.cores = 7; # Number of cores.
+                    virtualisation.memorySize = 1024 * 26; # Use MiB memory.
+                    virtualisation.diskSize = 1024 * 100; # Use MiB memory.
+                    virtualisation.cores = 8; # Number of cores.
                     virtualisation.graphics = true;
 
                     virtualisation.resolution = lib.mkForce { x = 1024; y = 768; };
@@ -368,7 +378,7 @@
                     vagrant
                     prepareVagrantVms
                     runVagrantAlpine
-                    foo-bar
+                    fooBar
                   ];
                 };
                 security.sudo.wheelNeedsPassword = false; # TODO: hardening
@@ -404,7 +414,7 @@
                     vagrant
                     prepareVagrantVms
                     runVagrantAlpine
-                    foo-bar
+                    fooBar
                   ];
                   shell = pkgs.bash;
                   uid = 1234;
@@ -472,7 +482,7 @@
                   vagrant
                 ];
 
-                system.stateVersion = "24.05";
+                system.stateVersion = "25.11";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -482,7 +492,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer myvm ];
           /*
@@ -521,6 +531,21 @@
           '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -552,18 +577,25 @@
             testVagrantWithLibvirt
             ;
           # default = pkgs.testVagrantWithLibvirt;
-          default = pkgs.automatic-vm;
+          default = pkgs.automaticVm;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
-        };
-        apps.testVagrantWithLibvirtDriverInteractive = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.testVagrantWithLibvirt.driverInteractive}";
-          meta.description = "Run the testVagrantWithLibvirt in interactive mode";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
+          testVagrantWithLibvirtDriverInteractive = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.testVagrantWithLibvirt.driverInteractive}";
+            meta.description = "Run the testVagrantWithLibvirt in interactive mode";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -571,7 +603,7 @@
         checks = {
           inherit (pkgs)
             # alpine319
-            automatic-vm
+            automaticVm
             testVagrantWithLibvirt
             ;
           # default = pkgs.testVagrantWithLibvirt;
@@ -579,9 +611,9 @@
 
         devShells.default = with pkgs; mkShell {
           packages = [
-            foo-bar
+            fooBar
             # alpine319
-            automatic-vm
+            automaticVm
             testVagrantWithLibvirt
           ];
           shellHook = ''

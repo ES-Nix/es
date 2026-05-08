@@ -31,4 +31,6 @@ nixuser@localhost \
 cat /etc/os-release
 ```
 
+```bash
 cat /etc/ssh/sshd_config
+```

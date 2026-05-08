@@ -19,6 +19,14 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/fd487183437963a59ba763c0cc4f27e3447dd6dd' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' 
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
   */
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -40,7 +48,21 @@
       overlays.default = final: prev: {
         inherit self final prev;
 
-        foo-bar = prev.hello;
+        fooBar = prev.hello;
+
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems --allow-import-from-derivation --all-systems --impure --refresh .# \
+              && nix flake metadata --impure '.#' \
+              && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+              && nix develop --impure '.#' --command sh -c 'true' \
+              && nix flake check --all-systems --impure --verbose '.#' 
+            '';
+          } // { meta.mainProgram = name; };
 
         cachedOCIImageActionsRunner = prev.dockerTools.pullImage {
           finalImageTag = "2.319.1";
@@ -74,7 +96,47 @@
           sha256 = "sha256-eY9wwi2WBRFjFsNfORbB06TgtB74hjVi/ppOgkp05/I=";
         };
 
+        vm = self.nixosConfigurations.vm.config.system.build.toplevel;
 
+        automaticVm = final.writeShellApplication {
+          name = "run-nixos-vm";
+          runtimeInputs = with final; [ curl virt-viewer ];
+          /*
+              Pode ocorrer uma condição de corrida de seguinte forma:
+              a VM inicializa (o processo não é bloqueante, executa em background)
+              o spice/VNC interno a VM inicializa
+              o remote-viewer tenta conectar, mas o spice não está pronto ainda
+
+              TODO: idealmente não deveria ser preciso ter mais uma dependência (o curl)
+                    para poder sincronizar o cliente e o server. Será que no caso de
+                    ambos estarem na mesma máquina seria melhor usar virt-viewer -fw?
+              https://unix.stackexchange.com/a/698488
+            */
+          text = ''
+
+              # https://unix.stackexchange.com/a/230442
+              # export NO_AT_BRIDGE=1
+              # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
+              export LD_LIBRARY_PATH="${final.libcanberra-gtk3}"/lib/gtk-3.0/modules
+
+              ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
+
+              export VNC_PORT=3001
+
+              for _ in {0..100}; do
+                if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
+                then
+                  break
+                fi
+                # date +'%d/%m/%Y %H:%M:%S:%3N'
+                sleep 0.1
+              done;
+
+              remote-viewer spice://localhost:"$VNC_PORT"
+
+              kill $PID_QEMU
+            '';
+        };
       };
     } //
     (
@@ -104,55 +166,28 @@
           pleaseKeepMyInputs = pkgsAllowUnfree.writeTextDir "bin/.please-keep-my-inputs"
             (builtins.concatStringsSep " " (builtins.attrValues allAttrs));
         in
-        rec {
+        {
 
-          packages.vm = self.nixosConfigurations.vm.config.system.build.toplevel;
-
-          packages.default = packages.automatic-vm;
-          packages.automatic-vm = pkgsAllowUnfree.writeShellApplication {
-            name = "run-nixos-vm";
-            runtimeInputs = with pkgsAllowUnfree; [ curl virt-viewer ];
-            /*
-              Pode ocorrer uma condição de corrida de seguinte forma:
-              a VM inicializa (o processo não é bloqueante, executa em background)
-              o spice/VNC interno a VM inicializa
-              o remote-viewer tenta conectar, mas o spice não está pronto ainda
-
-              TODO: idealmente não deveria ser preciso ter mais uma dependência (o curl)
-                    para poder sincronizar o cliente e o server. Será que no caso de
-                    ambos estarem na mesma máquina seria melhor usar virt-viewer -fw?
-              https://unix.stackexchange.com/a/698488
-            */
-            text = ''
-
-              # https://unix.stackexchange.com/a/230442
-              # export NO_AT_BRIDGE=1
-              # https://gist.github.com/eoli3n/93111f23dbb1233f2f00f460663f99e2#file-rootless-podman-wayland-sh-L25
-              export LD_LIBRARY_PATH="${pkgsAllowUnfree.libcanberra-gtk3}"/lib/gtk-3.0/modules
-
-              ${self.nixosConfigurations.vm.config.system.build.vm}/bin/run-nixos-vm & PID_QEMU="$!"
-
-              export VNC_PORT=3001
-
-              for _ in {0..100}; do
-                if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
-                then
-                  break
-                fi
-                # date +'%d/%m/%Y %H:%M:%S:%3N'
-                sleep 0.1
-              done;
-
-              remote-viewer spice://localhost:"$VNC_PORT"
-
-              kill $PID_QEMU
-            '';
+          packages = {
+            inherit (pkgsAllowUnfree)
+              fooBar
+              automaticVm
+              vm
+              ;
+            default = pkgsAllowUnfree.automaticVm;
           };
 
-          apps.run-github-runner = {
-            type = "app";
-            program = "${self.packages."${system}".automatic-vm}/bin/run-nixos-vm";
-            meta.description = "Run NixOS VM with kubernetes GitHub Actions Runner";
+          apps = {
+            allTests = {
+              type = "app";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.allTests}";
+              meta.description = "Run all tests for this flake";
+            };
+            default = {
+              type = "app";
+              program = "${pkgsAllowUnfree.lib.getExe pkgsAllowUnfree.automaticVm}";
+              meta.description = "Run NixOS VM with kubernetes GitHub Actions Runner";
+            };
           };
 
           # nix fmt
@@ -175,12 +210,12 @@
               ssh-to-age
 
               nix-prefetch-docker
+
+              fooBar
             ];
 
             shellHook = ''
               export TMPDIR=/tmp
-
-              echo "Entering the nix devShell no github-ci-runner"
 
               test -d .profiles || mkdir -v .profiles
 
@@ -320,7 +355,7 @@
                   openssl
                   starship
                   which
-                  foo-bar
+                  fooBar
                   xdotool
                 ];
                 shell = pkgs.zsh;

@@ -38,8 +38,28 @@
         (final: prev: {
           fooBar = prev.hello;
 
+          allTests = let name = "all-tests"; in final.writeShellApplication
+            {
+              name = name;
+              runtimeInputs = with final; [ ];
+              text = ''
+                nix fmt . \
+                && nix flake show --all-systems --impure '.#' \
+                && nix flake metadata --impure '.#' \
+                && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+                && nix build --impure --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+                && nix develop --impure '.#' --command sh -c 'true' \
+                && nix flake check --all-systems --impure --verbose '.#'
+                
+                nix build --no-link --print-build-logs --print-out-paths \
+                '.#homeConfigurations.vagrant.activationPackage'
+                nix build --no-link --print-build-logs --print-out-paths \
+                '.#homeConfigurations.vagrant.activation-script'
+              '';
+            } // { meta.mainProgram = name; };
+
           nixos-vm = nixpkgs.lib.nixosSystem {
-            system = prev.system;
+            system = prev.stdenv.hostPlatform.system;
             modules = [
               ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
                 {
@@ -214,7 +234,7 @@
 
           myvm = final.nixos-vm.config.system.build.vm;
 
-          automatic-vm = prev.writeShellApplication {
+          automaticVm = prev.writeShellApplication {
             name = "run-nixos-vm";
             runtimeInputs = with final; [ curl virt-viewer ];
             text = ''
@@ -256,7 +276,7 @@
                     nix
                     zsh
                     fooBar
-                    automatic-vm
+                    automaticVm
                   ];
 
                   nix = {
@@ -332,23 +352,33 @@
           || nix develop .# --impure --profile .profiles/dev --command true        
         '';
       };
-
       packages."${system}" = {
+        inherit (pkgs)
+          allTests
+          fooBar
+          automaticVm
+          ;
         default = self.homeConfigurations."${userName}".activationPackage;
-        automatic-vm = pkgs.automatic-vm;
       };
       checks."${system}" = {
         inherit (pkgs)
+          allTests
+          automaticVm
           fooBar
           ;
         default = pkgs.fooBar;
         aaaa = self.homeConfigurations."${userName}".activationPackage;
       };
       apps."${system}" = {
-        automatic-vm = {
+        allTests = {
           type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the automatic-vm";
+          program = "${pkgs.lib.getExe pkgs.allTests}";
+          meta.description = "Run all tests for this flake";
+        };
+        automaticVm = {
+          type = "app";
+          program = "${pkgs.lib.getExe pkgs.automaticVm}";
+          meta.description = "Run the automaticVm";
         };
       };
 

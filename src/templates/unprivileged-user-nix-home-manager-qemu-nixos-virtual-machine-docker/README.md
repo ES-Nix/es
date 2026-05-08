@@ -1,6 +1,4 @@
 
-
-
 ```bash
 ARCH=$(uname -m)
 
@@ -8,7 +6,7 @@ case "$ARCH" in
     x86_64)
         BUILD_ID="313290523"
         EXPECTED_SHA256SUM=e95f16f84987096586abe959c80bb910d26a7fa7707c42802400be999b6ad5ab
-        HM_ATTR=pedro-pedro-G3
+        HM_ATTR=vagrant
         ;;
     aarch64)
         BUILD_ID="312837149"
@@ -20,6 +18,11 @@ case "$ARCH" in
         exit 1
         ;;
 esac
+
+(( test -d /nix/var/nix \
+|| test -w /nix \
+|| test 1735 -eq $(stat -c '%a' /nix/var/nix)
+) || sudo sh -c 'mkdir -pv -m 1735 /nix/var/nix && chown -Rv '"$(id -nu)":"$(id -gn)"' /nix') \
 
 (test -f nix || curl -L https://hydra.nixos.org/build/"$BUILD_ID"/download-by-type/file/binary-dist > nix) \
 && echo "$EXPECTED_SHA256SUM"'  'nix \
@@ -216,7 +219,7 @@ cat << 'EOF' > flake.nix
                 services.sshd.enable = true;
 
                 nixpkgs.config.allowUnfree = true;
-                boot.readOnlyNixStore = true; # TODO
+                # boot.readOnlyNixStore = true; # TODO boot.nixStoreMountOpts with ro
                 nix = {
                   extraOptions = "experimental-features = nix-command flakes";
                   package = pkgs.nix;
@@ -485,6 +488,6 @@ nix --version \
 ```
 
 
-
-068012910f0e46501d193b9873c2c50744cc6875b3e309ec9dd1c9326be9bcc6
-
+```bash
+/home/"$USER"/.nix-profile/bin/zsh --login
+```

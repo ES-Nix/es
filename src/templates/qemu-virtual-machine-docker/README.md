@@ -1,4 +1,6 @@
 
+
+
 ```bash
 nix \
 profile \
@@ -7,6 +9,31 @@ add \
 nixpkgs \
 github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852 \
 'github:ES-Nix/es/?dir=src/templates/qemu-virtual-machine-docker#qdocker'
+
+qdocker images
+
+ssh \
+-o ConnectTimeout=1 \
+-oStrictHostKeyChecking=accept-new \
+-p 10022 \
+nixuser@localhost \
+-- \
+sh <<<'docker images'
+
+
+eval "$(ssh-agent -s)"
+ssh-add -l 
+ssh-add -L 
+
+cat "$(readlink -f "$(which qdocker)")"
+
+ssh \
+-o ConnectTimeout=1 \
+-oStrictHostKeyChecking=accept-new \
+-p 10022 \
+nixuser@localhost \
+-- \
+sh <<<'docker images'
 ```
 
 
@@ -81,3 +108,16 @@ ssh-keyscan -H -p 10022 -t ecdsa localhost >> ~/.ssh/known_hosts
 ```
 Refs.:
 - https://stackoverflow.com/a/73644766
+
+
+```bash
+kill $(pgrep qemu)
+rm -fv nixos.qcow2
+ssh-keygen -R '[localhost]:10022'
+```
+
+
+```bash
+if timeout 2 sleep 1; [ "$?" -eq 143 ]; then echo A; else echo B; fi
+if timeout 3 sleep 2; [ "$?" -eq 143 ]; then echo A; else echo B; fi
+```

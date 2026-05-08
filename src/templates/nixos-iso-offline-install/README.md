@@ -137,8 +137,6 @@ Error: The backup GPT table is corrupt, but the primary appears OK, so that will
 Error: primary partition table array CRC mismatch
 ```
 
-
-
 ```bash
 sudo fdisk -l
 
@@ -176,4 +174,3 @@ linux> WARNING: missing firmware renesas_usb_fw.mem for module /nix/store/r7c08g
 linux> depmod: WARNING: could not open modules.builtin.modinfo at /nix/store/04mhgl5fdvlji9gishk49j52sazjqkx3-linux-6.6.56-modules-shrunk/lib/modules/6.6.56: No such file or directory
 error: derivation '/nix/store/gbab580sb7la6prasabjr6ipp51m2bcp-closure-info.drv' requires non-existent output 'bin' from input derivation '/nix/store/f3dhj2810j9apyrrdifp0n8h5madfia0-libidn2-2 /179m29,8s
 ```
-

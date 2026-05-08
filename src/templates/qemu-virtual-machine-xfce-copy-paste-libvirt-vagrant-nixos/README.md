@@ -1,20 +1,10 @@
-
-
-
+#
 
 ```bash
-export NIXPKGS_ALLOW_UNFREE=1
-
-nix flake metadata '.#'
-nix flake show '.#'
-
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
-
-nix flake check --verbose '.#'
+nix run '.#allTests'
 ```
 
 
-1)
 ```bash
 rm -fv nixos.qcow2; 
 nix \
@@ -25,18 +15,19 @@ run \
 ```
 
 
-2)
 ```bash
-prepare-vagrant-vms \
-&& cd "$HOME"/vagrant-examples/libvirt/nixos/ \
+cd "$HOME"/vagrant-examples/libvirt/nixos/ \
 && vagrant up \
 && vagrant ssh
+```
 
 
+```bash
 vagrant ssh -- -t 'id && cat /etc/os-release'
 vagrant ssh -c 'id && cat /etc/os-release'
+```
 
-
+```bash
 ANSI_COLOR="1;34"
 BUG_REPORT_URL="https://github.com/NixOS/nixpkgs/issues"
 BUILD_ID="24.05.20240530.d24e7fd"
@@ -61,12 +52,27 @@ vagrant destroy --force; vagrant destroy --force && vagrant up && vagrant ssh
 ```
 
 
+##
 
-### 
+
 
 ```bash
 cd /etc/nixos \
-&& cat << 'EOF' | sudo tee custom-configuration.nix
+&& nix \
+shell \
+--override-flake \
+nixpkgs \
+github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852 \
+nixpkgs#bashInteractive \
+nixpkgs#coreutils \
+nixpkgs#gnused \
+nixpkgs#nix \
+nixpkgs#git \
+--command \
+bash \
+<<'COMMANDS'
+
+cat << 'EOF' | sudo tee custom-configuration.nix
 { config, nixpkgs, pkgs, lib, modulesPath, ... }:
 let
   cfg = config;
@@ -100,23 +106,17 @@ in
 }
 EOF
 
-sudo \
-nix \
-flake \
-lock \
---override-input nixpkgs github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8 \
-&& sudo nixos-rebuild switch -L
+cd /etc/nixos \
+&& sed -i 's|./guest-agent.nix|./guest-agent.nix ./custom-configuration.nix|g' configuration.nix \
+&& git init \
+&& git add . \
+&& nix \
+    flake \
+    lock \
+    --override-input nixstable github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852
+COMMANDS
 
-sudo reboot
-```
-
-```bash
-sudo \
-nix \
-flake \
-lock \
---override-input nixpkgs github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0 \
-&& sudo nixos-rebuild switch -L
+sudo nixos-rebuild switch -L --flake .# --show-trace
 
 sudo reboot
 ```

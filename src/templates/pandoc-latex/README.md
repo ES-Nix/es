@@ -11,12 +11,7 @@ github:ES-nix/es#pandocLaTeX
 
 (direnv allow || true)
 
-nix fmt . \
-&& nix flake show '.#' \
-&& nix flake metadata '.#' \
-&& nix build --no-link --print-build-logs --print-out-paths '.#' \
-&& nix develop '.#' --command sh -c 'true' \
-&& nix flake check --verbose '.#'
+nix run '.#allTests'
 ```
 Refs.:
 - 
@@ -281,6 +276,7 @@ git clone https://github.com/jupyter/nbconvert-examples.git \
 && cd nbconvert-examples/latex_cell_style \
 && jupyter nbconvert --to pdf test.ipynb 
 ```
+
 
 ```bash
 jupyter \

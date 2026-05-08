@@ -10,6 +10,26 @@
     # example = prev.example.overrideAttrs (oldAttrs: rec {
     # ...
     # });
+    allTests = let name = "all-tests"; in final.writeShellApplication
+      {
+        name = name;
+        runtimeInputs = with final; [ ];
+        text = ''
+          nix fmt . \
+          && nix flake show --all-systems --impure '.#' \
+          && nix flake metadata --impure '.#' \
+          && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
+          && nix build --impure --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+          && nix develop --impure '.#' --command sh -c 'true' \
+          && nix flake check --all-systems --impure --verbose '.#'
+                
+          nix build --no-link --print-build-logs --print-out-paths \
+          '.#homeConfigurations.vagrant.activationPackage'
+          nix build --no-link --print-build-logs --print-out-paths \
+          '.#homeConfigurations.vagrant.activation-script'
+        '';
+      } // { meta.mainProgram = name; };
+
     f00Bar = prev.hello;
   };
 

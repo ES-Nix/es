@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "A flake for testing nix in a NixOS virtual machine using QEMU. It includes a test that starts a NixOS VM and checks if it can run the nix command and access the nix store. It also provides an interactive driver for manual testing and a shell with the necessary tools to run the tests.";
 
   /*
     nix \
@@ -34,21 +34,23 @@
     lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/9a094440e02a699be5c57453a092a8baf569bdad' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
+
+    # 25.11
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/f560ccec6b1116b22e6ed15f4c510997d99d5852' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b'
   */
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    nixpkgsPy3921.url = "github:NixOS/nixpkgs/50ab793786d9de88ee30ec4e4c24fb4236fc2674";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, nixpkgsPy3921, flake-utils }: {
+  outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
-        foo-bar = prev.hello;
-
-        python3921 = (import nixpkgsPy3921 {
-          system = prev.system;
-        }).python39;
+        fooBar = prev.hello;
 
         OCIImagePosgresAmd64 = prev.dockerTools.pullImage {
           finalImageTag = "17.0-alpine3.20";
@@ -158,8 +160,20 @@
           arch = "amd64";
         };
 
+        # docker manifest inspect alpine:3.20.3
+        # docker manifest inspect aarch64/alpine:3.23.2 | jq -r '.manifests.[0].digest' | cut -d':' -f2
+        cachedOCIImageAlpineArm64 = prev.dockerTools.pullImage {
+          finalImageTag = "3.20.3-arm64";
+          imageDigest = "sha256:1e42bbe2508154c9126d48c2b8a75420c3544343bf86fd041fb7527e017a4b4a";
+          imageName = "docker.io/library/alpine";
+          name = "docker.io/library/alpine";
+          sha256 = "sha256-wbWnRyjk+m6ubuoNVKjKLf+3yWGl15FnedmDJXGg3tg=";
+          os = "linux";
+          arch = "arm64";
+        };
+
         nixos-vm = nixpkgs.lib.nixosSystem {
-          system = prev.system;
+          system = prev.stdenv.hostPlatform.system;
           modules = [
 
             # Allows for not have to download nixpkgs and syncs source code of nixpkgs.
@@ -184,6 +198,17 @@
                 # Use systemd boot (EFI only)
                 boot.loader.systemd-boot.enable = true;
                 fileSystems."/" = { device = "/dev/hda1"; };
+
+                boot.binfmt.registrations = {
+                  aarch64-linux = {
+                    interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
+                    fixBinary = true;
+                  };
+                };
+
+                boot.binfmt.emulatedSystems = [
+                  "aarch64-linux"
+                ];
 
                 virtualisation.vmVariant =
                   {
@@ -313,15 +338,17 @@
 
                     glib
 
-                    jetbrains.pycharm-community
+                    # jetbrains.pycharm-oss # jetbrains.pycharm-community
                     # python39
-                    python3921
+                    # python3921
                     # cbc
                     # z3
-                    (python311.withPackages (pyPkgs: with pyPkgs; [
-                      matplotlib
-                      pyomo
-                    ]))
+                    rustpython
+                    # (python311.withPackages (pyPkgs: with pyPkgs; [
+                    #   matplotlib
+                    #   pyomo
+                    # ]))
+
                     # (python311.withPackages (pyPkgs: with pyPkgs; [
                     #     numpy
                     #     deep-translator
@@ -330,7 +357,7 @@
                     #     z3-solver
                     #   ]
                     # ))
-                    jupyter
+                    # jupyter
                     gfortran
 
                     nixpkgs-review
@@ -355,7 +382,7 @@
                     */
                     openjdk17
 
-                    python311
+                    # python311
                     # (python311.withPackages (pyPkgs: with pyPkgs; [
                     #     fastapi
                     #     pydantic
@@ -375,6 +402,22 @@
                     # django-redis
                     # django-debug-toolbar
                     # ]))
+
+                    auditwheel
+                    binutils.out
+                    glibc.bin
+                    git
+                    patchelf
+                    pax-utils
+                    poetry
+                    python3
+                    python3Packages.wheel
+                    python3Packages.wheel-filename
+                    python3Packages.wheel-inspect
+                    twine
+                    python3Packages.scipy
+                    python3Packages.mmh3
+
                     gtk4
                     gobject-introspection
                     pango
@@ -387,14 +430,14 @@
                     dbeaver-bin
                     pgcli
 
-                    foo-bar
+                    fooBar
 
                     xclip
                     xsel
                     xorg.xev
 
                     nodejs
-                    linuxPackages_latest.perf
+                    perf # It changed, it was linuxPackages_latest.perf
 
                     (writeShellApplication {
                       name = "get-rsa-keys"; # TODO: bad name?! Rename?
@@ -764,7 +807,7 @@
                   parted
                 ];
 
-                system.stateVersion = "25.05";
+                system.stateVersion = "25.11";
               })
 
             { nixpkgs.overlays = [ self.overlays.default ]; }
@@ -774,7 +817,7 @@
 
         myvm = final.nixos-vm.config.system.build.vm;
 
-        automatic-vm = prev.writeShellApplication {
+        automaticVm = prev.writeShellApplication {
           name = "run-nixos-vm";
           runtimeInputs = with final; [ curl virt-viewer ];
           /*
@@ -813,6 +856,21 @@
           '';
         };
 
+        allTests = let name = "all-tests"; in final.writeShellApplication
+          {
+            name = name;
+            runtimeInputs = with final; [ ];
+            text = ''
+              nix fmt . \
+              && nix flake show --all-systems '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+              && nix develop '.#' --command sh -c 'true' \
+              && nix flake check --verbose '.#'
+            '';
+          } // { meta.mainProgram = name; };
+
       })
     ];
   } // (
@@ -837,30 +895,38 @@
         packages = {
           inherit (pkgs)
             myvm
-            automatic-vm
+            automaticVm
             ;
-          default = pkgs.automatic-vm;
+          default = pkgs.automaticVm;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-          meta.description = "Run the NixOS VM";
+        apps = {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "";
+          };
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the NixOS VM";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
           inherit (pkgs)
-            automatic-vm
+            automaticVm
             ;
+          default = pkgs.automaticVm;
         };
 
         devShells.default = with pkgs; mkShell {
           # nix eval --json nixpkgs#mkShell.__functionArgs
           packages = [
-            foo-bar
-            automatic-vm
+            fooBar
+            automaticVm
           ];
 
           shellHook = ''

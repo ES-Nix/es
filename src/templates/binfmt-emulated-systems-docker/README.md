@@ -2,15 +2,7 @@
 
 
 ```bash
-nix flake show '.#'
-nix flake metadata '.#'
-
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#' --rebuild
-
-nix fmt '.#'
-
-# nix flake check --verbose '.#'
+nix run '.#allTests'
 ```
 
 
@@ -57,7 +49,7 @@ hexdump -s 5 -n 1 $(readlink -f $(which hello))
 ```
 
 ```bash
-gcc -E -dM - <<< '#include <endian.h>' |  grep BYTE_ORDER
+gcc -E -dM - <<< '#include <endian.h>' | grep BYTE_ORDER
 ```
 Refs.:
 - https://unix.stackexchange.com/questions/88934/is-there-a-system-command-in-linux-that-reports-the-endianness#comment1451184_122862
