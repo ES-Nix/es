@@ -169,30 +169,6 @@ done
 ```
 
 
-TODO: It takes too long to build. 
-```bash
-nix build --cores 6 --no-link --print-build-logs --print-out-paths --impure \
---override-input nixpkgs 'github:NixOS/nixpkgs/cdd2ef009676ac92b715ff26630164bb88fec4e0' \
-'./src/templates/nixos-iso-offline-install'
-```
-
-
-
-Cleaning/garbage collect:
-```bash
-nix \
-store \
-gc \
---verbose \
---option keep-outputs true \
---option keep-build-log true \
---option keep-derivations true \
---option keep-env-derivations true \
-&& nix-collect-garbage --delete-old --verbose \
-&& nix store optimise --verbose
-```
-
-
 ## Contributing
 
 ```bash
