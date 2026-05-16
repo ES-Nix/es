@@ -1,4 +1,4 @@
-{ inputs, config, pkgs, lib, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   hardware.enableRedistributableFirmware = true;
@@ -9,6 +9,12 @@
   fileSystems."/" = {
     device = "/dev/disk/by-label/nixos";
     fsType = "ext4";
+  };
+
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-label/boot";
+    fsType = "vfat";
+    options = [ "fmask=0077" "dmask=0077" ];
   };
 
   boot.loader = {
@@ -32,7 +38,7 @@
 
   # boot.nixStoreMountOpts = [ "ro,nodev,nosuid,noexec" ]; # ?
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "25.05";
 
   # https://gist.github.com/andir/88458b13c26a04752854608aacb15c8f#file-configuration-nix-L11-L12
   boot.loader.grub.extraConfig = "serial --unit=0 --speed=115200 \n terminal_output serial console; terminal_input serial console";
@@ -85,10 +91,11 @@
 
   # https://nixos.wiki/wiki/Libvirt
   # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653
-  boot.extraModprobeConfig = "options kvm_intel nested=1";
-  boot.kernelModules = [
-    "kvm-intel"
-  ];
+  boot.extraModprobeConfig = lib.optionalString pkgs.stdenv.hostPlatform.isx86_64 "options kvm_intel nested=1";
+  boot.kernelModules =
+    if pkgs.stdenv.hostPlatform.isx86_64 then [ "kvm-intel" ]
+    else if pkgs.stdenv.hostPlatform.isAarch64 then [ "kvm" ]
+    else [];
 
   time.timeZone = "America/Recife";
 

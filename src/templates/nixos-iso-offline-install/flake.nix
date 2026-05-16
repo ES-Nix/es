@@ -93,7 +93,13 @@
 
         ISONixOSSelfOfflineInstallISOInQcow2 = final.nixos-offline-install-iso-in-qcow2.config.system.build.isoImage;
 
-        run-nixos-offline-install-iso-in-qcow2 = prev.stdenv.mkDerivation rec {
+        run-nixos-offline-install-iso-in-qcow2 =
+          let
+            ovmfPath = if prev.stdenv.hostPlatform.isAarch64
+              then "${final.OVMF.fd}/FV/AAVMF_CODE.fd"
+              else "${final.OVMF.fd}/FV/OVMF.fd";
+          in
+          prev.stdenv.mkDerivation rec {
           name = "run-nixos-offline-install-iso-in-qcow2";
           buildInputs = with prev; [ stdenv ];
           nativeBuildInputs = with prev; [ makeWrapper ];
@@ -129,7 +135,7 @@
 
             substituteInPlace \
             $out/bin/${name} \
-            --replace-fail 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-OVMF.fd}"' 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-${final.OVMF.fd}/FV/OVMF.fd}"'
+            --replace-fail 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-OVMF.fd}"' 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-${ovmfPath}}"'
 
             substituteInPlace \
             $out/bin/${name} \

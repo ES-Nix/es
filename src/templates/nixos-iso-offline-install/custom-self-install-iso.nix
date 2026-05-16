@@ -1,7 +1,7 @@
 { inputs, config, pkgs, lib, modulesPath, ... }:
 let
   installConfiguration = import "${pkgs.path}/nixos" {
-    system = "x86_64-linux";
+    system = pkgs.stdenv.hostPlatform.system;
     configuration = import ./install-configuration.nix;
   };
   installBuild = installConfiguration.config.system.build;
@@ -12,7 +12,18 @@ let
     set -x
     # set -euxo pipefail
 
+    # TODO: can this have an race condition
+    trap 'sync; sleep 5; poweroff -f' EXIT
+
     [ -d /sys/firmware/efi ] && echo 'The system was detected as UEFI' || echo 'The system was detected as BIOS'
+
+    if [ -b /dev/sda ]; then
+      DISK_DEV=/dev/sda
+    elif [ -b /dev/vda ]; then
+      DISK_DEV=/dev/vda
+    else
+      echo 'ERROR: no disk device found (tried /dev/sda, /dev/vda)' && exit 1
+    fi
 
     # If the partitions exist already as-is, parted might error out
     # telling that it can't communicate changes to the kernel...
@@ -40,34 +51,43 @@ let
     # && fdisk --list \
     # && exit 1     
     
-    wipefs --all --force --json /dev/sda \
-    && parted --script /dev/sda -- mklabel gpt \
-    && partprobe /dev/sda \
-    && parted /dev/sda print \
-    && parted /dev/sda print free \
-    && parted --script /dev/sda -- mkpart primary 512MiB 10GiB \
-    && partprobe /dev/sda \
-    && parted --script /dev/sda -- mkpart primary linux-swap -1GiB -500MiB \
-    && partprobe /dev/sda \
-    && parted --script /dev/sda -- mkpart ESP fat32 1MiB 512MiB \
-    && partprobe /dev/sda \
-    && parted --script /dev/sda -- set 3 boot on \
-    && partprobe /dev/sda \
-    && mkfs.ext4 -F -L nixos /dev/sda1 \
-    && partprobe /dev/sda \
-    && mkswap --label swap /dev/sda2 \
-    && partprobe /dev/sda \
-    && swapon /dev/sda2 \
-    && partprobe /dev/sda \
-    && mkfs.fat -F 32 -n boot -I /dev/sda3 \
-    && partprobe /dev/sda \
+    DISK_BYTES=$(blockdev --getsize64 "$DISK_DEV")
+    DISK_MiB=$((DISK_BYTES / 1048576))
+    ROOT_END_MiB=$((DISK_MiB - 1536))
+    SWAP_START_MiB=$((DISK_MiB - 1536))
+    SWAP_END_MiB=$((DISK_MiB - 512))
+
+    # Stop services that auto-scan new block devices; allowed to fail if not running
+    systemctl stop lvm2-monitor lvm2-lvmpolld mdadm 2>/dev/null || true
+
+    wipefs --all --force --json "$DISK_DEV" \
+    && parted --script "$DISK_DEV" \
+        mklabel gpt \
+        mkpart primary 512MiB "''${ROOT_END_MiB}MiB" \
+        mkpart primary linux-swap "''${SWAP_START_MiB}MiB" "''${SWAP_END_MiB}MiB" \
+        mkpart ESP fat32 1MiB 512MiB \
+        set 3 boot on \
+    && sync \
+    && udevadm settle \
+    && (for _i in 1 2 3 4 5 6 7 8 9 10; do
+          mkfs.ext4 -F -F -E nodiscard -L nixos "''${DISK_DEV}1" && break
+          echo "mkfs.ext4 attempt $_i failed (EBUSY?), retrying..."
+          sleep 0.01
+       done) \
+    && mkswap --label swap "''${DISK_DEV}2" \
+    && (for _i in 1 2 3 4 5 6 7 8 9 10; do
+          mkfs.fat -F 32 -n boot -I "''${DISK_DEV}3" && break
+          echo "mkfs.fat attempt $_i failed (EBUSY?), retrying..."
+          sleep 0.01
+       done) \
+    && udevadm trigger --action=add --subsystem-match=block \
+    && udevadm settle \
     && mount /dev/disk/by-label/nixos /mnt \
     && mkdir -pv -m 0755 /mnt/boot \
     && mount /dev/disk/by-label/boot /mnt/boot \
     && (test -d /mnt || exit 1) \
     && nixos-generate-config --root /mnt \
     && date --rfc-3339=ns --utc \
-    && echo "${pkgs.path}" \
     && nix \
         build \
         --offline \
@@ -77,8 +97,7 @@ let
         -o /out \
     && nix copy -v --no-check-sigs --to local?root=/mnt /out \
     && ls -al /nix/var/nix/profiles/per-user/root/channels \
-    && (${installBuild.nixos-install}/bin/nixos-install --no-root-password --no-channel-copy || true) \
-    && shutdown --poweroff
+    && ${installBuild.nixos-install}/bin/nixos-install --no-root-password --no-channel-copy
   '';
 
 in
@@ -113,10 +132,11 @@ in
   # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653
   # https://nixos.wiki/wiki/Libvirt
   # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653
-  boot.extraModprobeConfig = "options kvm_intel nested=1";
-  boot.kernelModules = [
-    "kvm-intel"
-  ];
+  boot.extraModprobeConfig = lib.optionalString pkgs.stdenv.hostPlatform.isx86_64 "options kvm_intel nested=1";
+  boot.kernelModules =
+    if pkgs.stdenv.hostPlatform.isx86_64 then [ "kvm-intel" ]
+    else if pkgs.stdenv.hostPlatform.isAarch64 then [ "kvm" ]
+    else [];
 
   # https://gist.github.com/andir/88458b13c26a04752854608aacb15c8f#file-configuration-nix-L11-L12
   boot.loader.grub.extraConfig = "serial --unit=0 --speed=115200 \n terminal_output serial console; terminal_input serial console";
@@ -212,6 +232,7 @@ in
   };
 
   systemd.services.hack-to-install = {
+    serviceConfig.Type = "oneshot";
     script = ''
       echo "Started: date +'%d/%m/%Y %H:%M:%S:%3N'"
 

@@ -11,11 +11,11 @@
 VM_DISK_NAME="${DISK_NAME:-mydisk.qcow2}"
 VM_ISO_FULL_PATH="${ISO_FULL_PATH:-result/iso/*.iso}"
 VM_DISK_SIZE="${DISK_SIZE:-12G}"
-VM_RAM_SIZE="${RAM_SIZE:-2G}"
+VM_RAM_SIZE="${RAM_SIZE:-8G}"
 VM_OVMF_FULL_PATH_TO_OVMF="${OVMF_FULL_PATH_TO_OVMF:-OVMF.fd}"
 
 # rm -fv "$DISK_NAME"
-qemu-img create -f qcow2 "$VM_DISK_NAME" 14G
+qemu-img create -f qcow2 "$VM_DISK_NAME" "$VM_DISK_SIZE"
 
 echo qemu-img info "$DISK_NAME"
 
@@ -25,11 +25,30 @@ qemu-img info "$VM_DISK_NAME"
 # FULL_PATH_TO_OVMF=$(nix build --print-out-paths --no-link nixpkgs#OVMF.fd)/FV/OVMF.fd
 
 
-qemu-system-x86_64 \
--enable-kvm \
+_HOST_ARCH=$(uname -m)
+case "$_HOST_ARCH" in
+  x86_64)
+    _QEMU_BIN="qemu-system-x86_64"
+    _QEMU_MACHINE_ARGS=("-enable-kvm")
+    _QEMU_DISK_ARGS=("-hda" "$VM_DISK_NAME")
+    ;;
+  aarch64)
+    _QEMU_BIN="qemu-system-aarch64"
+    _QEMU_MACHINE_ARGS=("-enable-kvm" "-machine" "virt,gic-version=max" "-cpu" "host")
+    _QEMU_DISK_ARGS=("-drive" "file=$VM_DISK_NAME,if=virtio,format=qcow2")
+    ;;
+  *)
+    _QEMU_BIN="qemu-system-${_HOST_ARCH}"
+    _QEMU_MACHINE_ARGS=()
+    _QEMU_DISK_ARGS=("-hda" "$VM_DISK_NAME")
+    ;;
+esac
+
+"$_QEMU_BIN" \
+"${_QEMU_MACHINE_ARGS[@]}" \
 -boot d \
--hda "$VM_DISK_NAME" \
--m 4G \
+"${_QEMU_DISK_ARGS[@]}" \
+-m "$VM_RAM_SIZE" \
 -bios "$VM_OVMF_FULL_PATH_TO_OVMF" \
 -cdrom "$VM_ISO_FULL_PATH" \
 --net nic,model=virtio \
