@@ -1,0 +1,326 @@
+diff --git a/src/templates/nixos-iso-offline-install/custom-self-install-iso.nix b/src/templates/nixos-iso-offline-install/custom-self-install-iso.nix
+index 859a723..1cc9f48 100644
+--- a/src/templates/nixos-iso-offline-install/custom-self-install-iso.nix
++++ b/src/templates/nixos-iso-offline-install/custom-self-install-iso.nix
+@@ -1,7 +1,7 @@
+ { inputs, config, pkgs, lib, modulesPath, ... }:
+ let
+   installConfiguration = import "${pkgs.path}/nixos" {
+-    system = "x86_64-linux";
++    system = pkgs.stdenv.hostPlatform.system;
+     configuration = import ./install-configuration.nix;
+   };
+   installBuild = installConfiguration.config.system.build;
+@@ -12,8 +12,19 @@ let
+     set -x
+     # set -euxo pipefail
+ 
++    # TODO: can this have an race condition
++    trap 'sync; sleep 5; poweroff -f' EXIT
++
+     [ -d /sys/firmware/efi ] && echo 'The system was detected as UEFI' || echo 'The system was detected as BIOS'
+ 
++    if [ -b /dev/sda ]; then
++      DISK_DEV=/dev/sda
++    elif [ -b /dev/vda ]; then
++      DISK_DEV=/dev/vda
++    else
++      echo 'ERROR: no disk device found (tried /dev/sda, /dev/vda)' && exit 1
++    fi
++
+     # If the partitions exist already as-is, parted might error out
+     # telling that it can't communicate changes to the kernel...
+     # TODO: there is some race condition, maybe use
+@@ -40,34 +51,43 @@ let
+     # && fdisk --list \
+     # && exit 1     
+     
+-    wipefs --all --force --json /dev/sda \
+-    && parted --script /dev/sda -- mklabel gpt \
+-    && partprobe /dev/sda \
+-    && parted /dev/sda print \
+-    && parted /dev/sda print free \
+-    && parted --script /dev/sda -- mkpart primary 512MiB 10GiB \
+-    && partprobe /dev/sda \
+-    && parted --script /dev/sda -- mkpart primary linux-swap -1GiB -500MiB \
+-    && partprobe /dev/sda \
+-    && parted --script /dev/sda -- mkpart ESP fat32 1MiB 512MiB \
+-    && partprobe /dev/sda \
+-    && parted --script /dev/sda -- set 3 boot on \
+-    && partprobe /dev/sda \
+-    && mkfs.ext4 -F -L nixos /dev/sda1 \
+-    && partprobe /dev/sda \
+-    && mkswap --label swap /dev/sda2 \
+-    && partprobe /dev/sda \
+-    && swapon /dev/sda2 \
+-    && partprobe /dev/sda \
+-    && mkfs.fat -F 32 -n boot -I /dev/sda3 \
+-    && partprobe /dev/sda \
++    DISK_BYTES=$(blockdev --getsize64 "$DISK_DEV")
++    DISK_MiB=$((DISK_BYTES / 1048576))
++    ROOT_END_MiB=$((DISK_MiB - 1536))
++    SWAP_START_MiB=$((DISK_MiB - 1536))
++    SWAP_END_MiB=$((DISK_MiB - 512))
++
++    # Stop services that auto-scan new block devices; allowed to fail if not running
++    systemctl stop lvm2-monitor lvm2-lvmpolld mdadm 2>/dev/null || true
++
++    wipefs --all --force --json "$DISK_DEV" \
++    && parted --script "$DISK_DEV" \
++        mklabel gpt \
++        mkpart primary 512MiB "''${ROOT_END_MiB}MiB" \
++        mkpart primary linux-swap "''${SWAP_START_MiB}MiB" "''${SWAP_END_MiB}MiB" \
++        mkpart ESP fat32 1MiB 512MiB \
++        set 3 boot on \
++    && sync \
++    && udevadm settle \
++    && (for _i in 1 2 3 4 5 6 7 8 9 10; do
++          mkfs.ext4 -F -F -E nodiscard -L nixos "''${DISK_DEV}1" && break
++          echo "mkfs.ext4 attempt $_i failed (EBUSY?), retrying..."
++          sleep 0.01
++       done) \
++    && mkswap --label swap "''${DISK_DEV}2" \
++    && (for _i in 1 2 3 4 5 6 7 8 9 10; do
++          mkfs.fat -F 32 -n boot -I "''${DISK_DEV}3" && break
++          echo "mkfs.fat attempt $_i failed (EBUSY?), retrying..."
++          sleep 0.01
++       done) \
++    && udevadm trigger --action=add --subsystem-match=block \
++    && udevadm settle \
+     && mount /dev/disk/by-label/nixos /mnt \
+     && mkdir -pv -m 0755 /mnt/boot \
+     && mount /dev/disk/by-label/boot /mnt/boot \
+     && (test -d /mnt || exit 1) \
+     && nixos-generate-config --root /mnt \
+     && date --rfc-3339=ns --utc \
+-    && echo "${pkgs.path}" \
+     && nix \
+         build \
+         --offline \
+@@ -77,8 +97,7 @@ let
+         -o /out \
+     && nix copy -v --no-check-sigs --to local?root=/mnt /out \
+     && ls -al /nix/var/nix/profiles/per-user/root/channels \
+-    && (${installBuild.nixos-install}/bin/nixos-install --no-root-password --no-channel-copy || true) \
+-    && shutdown --poweroff
++    && ${installBuild.nixos-install}/bin/nixos-install --no-root-password --no-channel-copy
+   '';
+ 
+ in
+@@ -113,10 +132,11 @@ in
+   # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653
+   # https://nixos.wiki/wiki/Libvirt
+   # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653
+-  boot.extraModprobeConfig = "options kvm_intel nested=1";
+-  boot.kernelModules = [
+-    "kvm-intel"
+-  ];
++  boot.extraModprobeConfig = lib.optionalString pkgs.stdenv.hostPlatform.isx86_64 "options kvm_intel nested=1";
++  boot.kernelModules =
++    if pkgs.stdenv.hostPlatform.isx86_64 then [ "kvm-intel" ]
++    else if pkgs.stdenv.hostPlatform.isAarch64 then [ "kvm" ]
++    else [];
+ 
+   # https://gist.github.com/andir/88458b13c26a04752854608aacb15c8f#file-configuration-nix-L11-L12
+   boot.loader.grub.extraConfig = "serial --unit=0 --speed=115200 \n terminal_output serial console; terminal_input serial console";
+@@ -212,6 +232,7 @@ in
+   };
+ 
+   systemd.services.hack-to-install = {
++    serviceConfig.Type = "oneshot";
+     script = ''
+       echo "Started: date +'%d/%m/%Y %H:%M:%S:%3N'"
+ 
+diff --git a/src/templates/nixos-iso-offline-install/flake.nix b/src/templates/nixos-iso-offline-install/flake.nix
+index 89d4c82..a5d5a33 100644
+--- a/src/templates/nixos-iso-offline-install/flake.nix
++++ b/src/templates/nixos-iso-offline-install/flake.nix
+@@ -93,7 +93,13 @@
+ 
+         ISONixOSSelfOfflineInstallISOInQcow2 = final.nixos-offline-install-iso-in-qcow2.config.system.build.isoImage;
+ 
+-        run-nixos-offline-install-iso-in-qcow2 = prev.stdenv.mkDerivation rec {
++        run-nixos-offline-install-iso-in-qcow2 =
++          let
++            ovmfPath = if prev.stdenv.hostPlatform.isAarch64
++              then "${final.OVMF.fd}/FV/AAVMF_CODE.fd"
++              else "${final.OVMF.fd}/FV/OVMF.fd";
++          in
++          prev.stdenv.mkDerivation rec {
+           name = "run-nixos-offline-install-iso-in-qcow2";
+           buildInputs = with prev; [ stdenv ];
+           nativeBuildInputs = with prev; [ makeWrapper ];
+@@ -129,7 +135,7 @@
+ 
+             substituteInPlace \
+             $out/bin/${name} \
+-            --replace-fail 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-OVMF.fd}"' 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-${final.OVMF.fd}/FV/OVMF.fd}"'
++            --replace-fail 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-OVMF.fd}"' 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-${ovmfPath}}"'
+ 
+             substituteInPlace \
+             $out/bin/${name} \
+diff --git a/src/templates/nixos-iso-offline-install/install-configuration.nix b/src/templates/nixos-iso-offline-install/install-configuration.nix
+index af70d18..d73deec 100644
+--- a/src/templates/nixos-iso-offline-install/install-configuration.nix
++++ b/src/templates/nixos-iso-offline-install/install-configuration.nix
+@@ -1,4 +1,4 @@
+-{ inputs, config, pkgs, lib, ... }:
++{ config, pkgs, lib, ... }:
+ 
+ {
+   hardware.enableRedistributableFirmware = true;
+@@ -11,6 +11,12 @@
+     fsType = "ext4";
+   };
+ 
++  fileSystems."/boot" = {
++    device = "/dev/disk/by-label/boot";
++    fsType = "vfat";
++    options = [ "fmask=0077" "dmask=0077" ];
++  };
++
+   boot.loader = {
+     systemd-boot.enable = true;
+ 
+@@ -32,7 +38,7 @@
+ 
+   # boot.nixStoreMountOpts = [ "ro,nodev,nosuid,noexec" ]; # ?
+ 
+-  system.stateVersion = "24.05";
++  system.stateVersion = "25.05";
+ 
+   # https://gist.github.com/andir/88458b13c26a04752854608aacb15c8f#file-configuration-nix-L11-L12
+   boot.loader.grub.extraConfig = "serial --unit=0 --speed=115200 \n terminal_output serial console; terminal_input serial console";
+@@ -85,10 +91,11 @@
+ 
+   # https://nixos.wiki/wiki/Libvirt
+   # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653
+-  boot.extraModprobeConfig = "options kvm_intel nested=1";
+-  boot.kernelModules = [
+-    "kvm-intel"
+-  ];
++  boot.extraModprobeConfig = lib.optionalString pkgs.stdenv.hostPlatform.isx86_64 "options kvm_intel nested=1";
++  boot.kernelModules =
++    if pkgs.stdenv.hostPlatform.isx86_64 then [ "kvm-intel" ]
++    else if pkgs.stdenv.hostPlatform.isAarch64 then [ "kvm" ]
++    else [];
+ 
+   time.timeZone = "America/Recife";
+ 
+diff --git a/src/templates/nixos-iso-offline-install/run-nixos-offline-install-iso-in-qcow2.sh b/src/templates/nixos-iso-offline-install/run-nixos-offline-install-iso-in-qcow2.sh
+index a6fa49b..b102baf 100755
+--- a/src/templates/nixos-iso-offline-install/run-nixos-offline-install-iso-in-qcow2.sh
++++ b/src/templates/nixos-iso-offline-install/run-nixos-offline-install-iso-in-qcow2.sh
+@@ -11,11 +11,11 @@
+ VM_DISK_NAME="${DISK_NAME:-mydisk.qcow2}"
+ VM_ISO_FULL_PATH="${ISO_FULL_PATH:-result/iso/*.iso}"
+ VM_DISK_SIZE="${DISK_SIZE:-12G}"
+-VM_RAM_SIZE="${RAM_SIZE:-2G}"
++VM_RAM_SIZE="${RAM_SIZE:-8G}"
+ VM_OVMF_FULL_PATH_TO_OVMF="${OVMF_FULL_PATH_TO_OVMF:-OVMF.fd}"
+ 
+ # rm -fv "$DISK_NAME"
+-qemu-img create -f qcow2 "$VM_DISK_NAME" 14G
++qemu-img create -f qcow2 "$VM_DISK_NAME" "$VM_DISK_SIZE"
+ 
+ echo qemu-img info "$DISK_NAME"
+ 
+@@ -25,11 +25,30 @@ qemu-img info "$VM_DISK_NAME"
+ # FULL_PATH_TO_OVMF=$(nix build --print-out-paths --no-link nixpkgs#OVMF.fd)/FV/OVMF.fd
+ 
+ 
+-qemu-system-x86_64 \
+--enable-kvm \
++_HOST_ARCH=$(uname -m)
++case "$_HOST_ARCH" in
++  x86_64)
++    _QEMU_BIN="qemu-system-x86_64"
++    _QEMU_MACHINE_ARGS=("-enable-kvm")
++    _QEMU_DISK_ARGS=("-hda" "$VM_DISK_NAME")
++    ;;
++  aarch64)
++    _QEMU_BIN="qemu-system-aarch64"
++    _QEMU_MACHINE_ARGS=("-enable-kvm" "-machine" "virt,gic-version=max" "-cpu" "host")
++    _QEMU_DISK_ARGS=("-drive" "file=$VM_DISK_NAME,if=virtio,format=qcow2")
++    ;;
++  *)
++    _QEMU_BIN="qemu-system-${_HOST_ARCH}"
++    _QEMU_MACHINE_ARGS=()
++    _QEMU_DISK_ARGS=("-hda" "$VM_DISK_NAME")
++    ;;
++esac
++
++"$_QEMU_BIN" \
++"${_QEMU_MACHINE_ARGS[@]}" \
+ -boot d \
+--hda "$VM_DISK_NAME" \
+--m 4G \
++"${_QEMU_DISK_ARGS[@]}" \
++-m "$VM_RAM_SIZE" \
+ -bios "$VM_OVMF_FULL_PATH_TO_OVMF" \
+ -cdrom "$VM_ISO_FULL_PATH" \
+ --net nic,model=virtio \
+diff --git a/src/templates/nixos-iso-offline-install/run-qemu-nixos.sh b/src/templates/nixos-iso-offline-install/run-qemu-nixos.sh
+index 2c5776b..d578739 100755
+--- a/src/templates/nixos-iso-offline-install/run-qemu-nixos.sh
++++ b/src/templates/nixos-iso-offline-install/run-qemu-nixos.sh
+@@ -2,22 +2,43 @@
+ 
+ 
+ DISK_NAME="${DISK_NAME:=mydisk.qcow2}"
+-FULL_PATH_TO_OVMF="$(nix build --print-out-paths --no-link nixpkgs#OVMF.fd)/FV/OVMF.fd"
+ 
+-
+-#rm -fv "$DISK_NAME"
+-#qemu-img create -f qcow2 "$DISK_NAME" 12G
++_HOST_ARCH=$(uname -m)
++case "$_HOST_ARCH" in
++  x86_64)
++    _QEMU_BIN="qemu-system-x86_64"
++    _QEMU_MACHINE_ARGS=("-enable-kvm")
++    _QEMU_DISK_ARGS=("-hda" "$DISK_NAME")
++    _QEMU_CPU_ARGS=("-cpu" "Haswell-noTSX-IBRS,vmx=on")
++    FULL_PATH_TO_OVMF="$(nix build --print-out-paths --no-link nixpkgs#OVMF.fd)/FV/OVMF.fd"
++    ;;
++  aarch64)
++    _QEMU_BIN="qemu-system-aarch64"
++    _QEMU_MACHINE_ARGS=("-enable-kvm" "-machine" "virt,gic-version=max" "-cpu" "host")
++    _QEMU_DISK_ARGS=("-drive" "file=$DISK_NAME,if=virtio,format=qcow2")
++    _QEMU_CPU_ARGS=()
++    FULL_PATH_TO_OVMF="$(nix build --print-out-paths --no-link nixpkgs#OVMF.fd)/FV/AAVMF_CODE.fd"
++    ;;
++  *)
++    _QEMU_BIN="qemu-system-${_HOST_ARCH}"
++    _QEMU_MACHINE_ARGS=()
++    _QEMU_DISK_ARGS=("-hda" "$DISK_NAME")
++    _QEMU_CPU_ARGS=()
++    FULL_PATH_TO_OVMF="${OVMF:-OVMF.fd}"
++    ;;
++esac
+ 
+ echo qemu-img info "$DISK_NAME"
+ 
+ qemu-img info "$DISK_NAME"
+ 
+ 
+-qemu-kvm \
+--enable-kvm \
++"$_QEMU_BIN" \
++"${_QEMU_MACHINE_ARGS[@]}" \
++"${_QEMU_CPU_ARGS[@]}" \
+ -m 6G \
+--boot a \
+--hda "$DISK_NAME" \
++-boot c \
++"${_QEMU_DISK_ARGS[@]}" \
+ -bios "$FULL_PATH_TO_OVMF" \
+ -net nic,model=virtio \
+ -net user,hostfwd=tcp:127.0.0.1:10000-:10000 \
+@@ -25,7 +46,6 @@ qemu-kvm \
+ -device virtio-keyboard-pci \
+ -fsdev local,security_model=passthrough,id=fsdev0,path="$(pwd)" \
+ -device virtio-9p-pci,id=fs0,fsdev=fsdev0,mount_tag=hostsharetag \
+--cpu Haswell-noTSX-IBRS,vmx=on \
+ -nographic
+ 
+ 
