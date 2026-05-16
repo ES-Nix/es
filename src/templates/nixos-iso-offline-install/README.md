@@ -20,8 +20,12 @@ sudo nix-channel --update -vv \
 && sudo nixos-rebuild switch
 ```
 
-TODO: it should be an nix flake
-
+TODO: it should be an nix flake, it miss to be an flake when installed. Use an git patch
+TODO: for some reason it was error outing even commented, why? 
+```nix
+    # registry.nixpkgs.flake = nixpkgs;
+    # nixPath = [ "nixpkgs=${pkgs.path}" ]; # TODO: test it
+```
 
 ### Details
 
@@ -32,15 +36,6 @@ TODO:
 ```bash
 export DISK_NAME=foo-bar-mydisk.qcow2
 ```
-
-
-
-TODO: for some reason it was error outing even commented, why? 
-```nix
-    # registry.nixpkgs.flake = nixpkgs;
-    # nixPath = [ "nixpkgs=${pkgs.path}" ]; # TODO: test it
-```
-
 
 
 TODO: 
