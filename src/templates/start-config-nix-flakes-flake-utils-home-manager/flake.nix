@@ -141,10 +141,24 @@
       #   # my-overlays = my-overlays;
       # });
 
-      checks."${suportedSystem}" = self.packages."${suportedSystem}".hello;
+      checks.hello = pkgsAllowUnfree.hello;
 
       packages.default = self.homeConfigurations."${suportedSystem}"."vagrant-alpine319.localdomain".activationPackage;
       packages.hello = pkgsAllowUnfree.hello;
+      packages.allTests = let name = "all-tests"; in pkgsAllowUnfree.writeShellApplication
+        {
+          name = name;
+          runtimeInputs = with pkgsAllowUnfree; [ ];
+          text = ''
+            nix fmt . \
+            && nix flake show --all-systems '.#' \
+            && nix flake metadata '.#' \
+            && nix build --no-link --print-build-logs --print-out-paths '.#' \
+            && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
+            && nix develop '.#' --command sh -c 'true' \
+            && nix flake check --all-systems --verbose '.#'
+          '';
+        } // { meta.mainProgram = name; };
       packages.python3WithPandas = pkgsAllowUnfree.python3Packages.pandas;
 
       #      apps.hello = {
