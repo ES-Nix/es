@@ -412,7 +412,7 @@
                 inetutils
               ];
 
-              config.boot.binfmt.emulatedSystems = [
+              config.boot.binfmt.emulatedSystems = lib.filter (s: s != pkgs.stdenv.hostPlatform.system) [
                 "aarch64-linux"
                 # "armv6l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
                 "armv7l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
@@ -424,7 +424,7 @@
                 "s390x-linux"
               ];
 
-              config.boot.binfmt.registrations = {
+              config.boot.binfmt.registrations = lib.filterAttrs (name: _: name != pkgs.stdenv.hostPlatform.system) {
                 aarch64-linux = {
                   interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
                   fixBinary = true;
