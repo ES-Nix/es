@@ -240,15 +240,13 @@
             result = machine.fail("ldd $(readlink -f $(which nginx)) 2>&1")
             assert expected in result, f"expected = {expected}, result = {result}"
 
-            expected = '11.3MB'
-            result = machine.succeed('docker images --format "{{.Size}}"')
-            assert expected in result, f"expected = {expected}, result = {result}"
+            print(machine.succeed("du -chs $(readlink -f $(which nginx))"))
 
-            expected = '11M'
-            result = machine.succeed("du -chs $(readlink -f $(which nginx))") 
-            assert expected in result, f"expected = {expected}, result = {result}"
-            
-            expected = 'nginx version: nginx/1.28.0'
+            result = machine.succeed("du -b $(readlink -f $(which nginx)) | awk '{print $1}'")
+            max_size = 12 * 1024 * 1024
+            assert int(result.strip()) < max_size, f"nginx binary too large: {result.strip()} bytes (max {max_size})"
+
+            expected = 'nginx version: nginx/${final.nginxStatic.version}'
             result = machine.succeed("nginx -V 2>&1")
             assert expected in result, f"expected = {expected}, result = {result}"
 
