@@ -60,7 +60,7 @@
           packages = [
             final.coreutils
             (final.texlive.combine {
-              inherit (final.texlive) scheme-minimal latex-bin latexmk;
+              inherit (final.texlive) scheme-minimal latex-bin latexmk lm;
             })
           ];
           phases = [ "unpackPhase" "buildPhase" "installPhase" ];
@@ -68,17 +68,16 @@
             export PATH="${final.lib.makeBinPath [
                 final.coreutils
                 (final.texlive.combine {
-                  inherit (final.texlive) scheme-minimal latex-bin latexmk;
+                  inherit (final.texlive) scheme-minimal latex-bin latexmk lm;
                 })
               ]
             }";
 
-            mkdir -pv .cache/texmf-var
+            export TEXMFHOME="$PWD/.cache"
+            export TEXMFVAR="$PWD/.cache/texmf-var"
+            mkdir -pv "$TEXMFVAR"
 
-            env \
-              TEXMFHOME=.cache \
-              TEXMFVAR=.cache/texmf-var \
-              latexmk \
+            latexmk \
               -f \
               -interaction=nonstopmode \
               -outdir=/build \
@@ -121,7 +120,7 @@
               services.xserver.displayManager.startx.enable = true;
               environment.systemPackages = with pkgs; [
                 firefox
-                okular
+                kdePackages.okular
               ];
             };
           # hostPkgs = pkgsAllowUnfree;
@@ -160,7 +159,7 @@
 
         scriptShowPrintScreenFirefox = prev.writeShellApplication {
           name = "script-show-print-screen-firefox";
-          runtimeInputs = with prev; [ okular ];
+          runtimeInputs = with prev; [ kdePackages.okular ];
           text = ''
             okular "${final.test-nixos}"/okular2.png
           '';
