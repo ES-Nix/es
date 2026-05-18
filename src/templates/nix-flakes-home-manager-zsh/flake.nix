@@ -32,7 +32,12 @@
       userName = "vagrant";
       homeDirectory = "/home/${userName}";
 
-      system = "x86_64-linux";
+      systems = [ "x86_64-linux" "aarch64-linux" ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+      pkgsFor = system: import nixpkgs {
+        inherit system;
+        overlays = [ overlays.default ];
+      };
       # pkgs = nixpkgs.legacyPackages.${system};
       overlays.default = nixpkgs.lib.composeManyExtensions [
         (final: prev: {
@@ -52,9 +57,9 @@
                 && nix flake check --all-systems --impure --verbose '.#'
                 
                 nix build --no-link --print-build-logs --print-out-paths \
-                '.#homeConfigurations.vagrant.activationPackage'
+                '.#homeConfigurations.${userName}@${final.stdenv.hostPlatform.system}.activationPackage'
                 nix build --no-link --print-build-logs --print-out-paths \
-                '.#homeConfigurations.vagrant.activation-script'
+                '.#homeConfigurations.${userName}@${final.stdenv.hostPlatform.system}.activation-script'
               '';
             } // { meta.mainProgram = name; };
 
@@ -258,7 +263,7 @@
           };
 
           hm = home-manager.lib.homeManagerConfiguration {
-            inherit pkgs;
+            pkgs = final;
             modules = [
               ({ pkgs, ... }:
                 {
@@ -336,52 +341,58 @@
         })
       ];
 
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [ overlays.default ];
-      };
     in
     {
-      formatter."${system}" = pkgs.nixpkgs-fmt;
-      devShells."${system}".default = pkgs.mkShell {
-        packages = [
-        ];
-        shellHook = ''
-          test -d .profiles || mkdir -v .profiles
-          test -L .profiles/dev \
-          || nix develop .# --impure --profile .profiles/dev --command true        
-        '';
-      };
-      packages."${system}" = {
-        inherit (pkgs)
-          allTests
-          fooBar
-          automaticVm
-          ;
-        default = self.homeConfigurations."${userName}".activationPackage;
-      };
-      checks."${system}" = {
-        inherit (pkgs)
-          allTests
-          automaticVm
-          fooBar
-          ;
-        default = pkgs.fooBar;
-        aaaa = self.homeConfigurations."${userName}".activationPackage;
-      };
-      apps."${system}" = {
-        allTests = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.allTests}";
-          meta.description = "Run all tests for this flake";
+      formatter = forAllSystems (system: (pkgsFor system).nixpkgs-fmt);
+      devShells = forAllSystems (system: {
+        default = (pkgsFor system).mkShell {
+          packages = [
+          ];
+          shellHook = ''
+            test -d .profiles || mkdir -v .profiles
+            test -L .profiles/dev \
+            || nix develop .# --impure --profile .profiles/dev --command true
+          '';
         };
-        automaticVm = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automaticVm}";
-          meta.description = "Run the automaticVm";
-        };
-      };
+      });
+      packages = forAllSystems (system:
+        let pkgs = pkgsFor system; in {
+          inherit (pkgs)
+            allTests
+            fooBar
+            automaticVm
+            ;
+          default = pkgs.hm.activationPackage;
+        });
+      checks = forAllSystems (system:
+        let pkgs = pkgsFor system; in {
+          inherit (pkgs)
+            allTests
+            automaticVm
+            fooBar
+            ;
+          default = pkgs.fooBar;
+          homeManagerActivation = pkgs.hm.activationPackage;
+        });
+      apps = forAllSystems (system:
+        let pkgs = pkgsFor system; in {
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.allTests}";
+            meta.description = "Run all tests for this flake";
+          };
+          automaticVm = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.automaticVm}";
+            meta.description = "Run the automaticVm";
+          };
+        });
 
-      homeConfigurations."${userName}" = pkgs.hm;
+      homeConfigurations = builtins.listToAttrs (map
+        (system: {
+          name = "${userName}@${system}";
+          value = (pkgsFor system).hm;
+        })
+        systems);
     };
 }
