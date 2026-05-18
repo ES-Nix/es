@@ -34,416 +34,420 @@
 
         # python3WithLotsOfPackages = prev.python3.withPackages (pyPkgs: with pyPkgs; [
         # ]);
-        python3WithLotsOfPackages = prev.python3.withPackages (pyPkgs: with pyPkgs; [
-          # apache-airflow
-          # awscli
-          # click-man
-          # google-cloud-aiplatform
-          # great-expectations
-          # mysql-connector-python
-          # poetry
-          # poetry-plugin-export
-          # psycopg2-binary
-          # pyspark
-          # tb-nightly
-          # typedload
-          # asynctest
-          # snowflake-sqlalchemy
-          # keras
-          # pymupdf
-          # tensorflow
-          # langchain_community
-          # langchainhub
-          # keras
-          mmh3
-          absl-py
-          adal
-          aenum
-          aiobotocore
-          aiohttp
-          aioitertools
-          aiosignal
-          alembic
-          altair
-          annotated-types
-          anthropic
-          anyio
-          appdirs
-          argcomplete
-          argon2-cffi
-          argon2-cffi-bindings
-          arrow
-          asgiref
-          asn1crypto
-          astroid
-          asttokens
-          async-timeout
-          attrs
-          # awswrangler
-          # azure-common
-          # azure-core
-          # azure-identity
-          # azure-storage-blob
-          babel
-          backoff
-          bcrypt
-          beautifulsoup4
-          behave
-          black
-          bleach
-          blinker
-          boto3
-          botocore
-          build
-          cachecontrol
-          cachetools
-          cattrs
-          certifi
-          cffi
-          chardet
-          charset-normalizer
-          chromadb
-          cleo
-          click
-          cloudpickle
-          colorama
-          comm
-          contourpy
-          coverage
-          crashtest
-          croniter
-          cryptography
-          cycler
-          cython
-          dataclasses-json
-          datadog
-          debugpy
-          decorator
-          defusedxml
-          deprecated
-          dill
-          distlib
-          distro
-          django
-          django-cors-headers
-          django-debug-toolbar
-          django-polymorphic
-          django-rest-polymorphic
-          django-storages
-          djangorestframework
-          djangorestframework-simplejwt
-          dnspython
-          docker
-          docutils
-          drf-spectacular
-          dulwich
-          einops
-          elasticsearch
-          email-validator
-          et-xmlfile
-          exceptiongroup
-          execnet
-          executing
-          factory-boy
-          faker
-          fastapi
-          fastjsonschema
-          filelock
-          flake8
-          flask
-          flatbuffers
-          folium
-          fonttools
-          freezegun
-          frozenlist
-          fsspec
-          # future # error: future-1.0.0 not supported for interpreter python3.13
-          geopandas
-          gitdb
-          gitpython
-          google-api-core
-          google-api-python-client
-          google-auth
-          google-auth-httplib2
-          google-auth-oauthlib
-          google-cloud-appengine-logging
-          google-cloud-bigquery
-          google-cloud-bigquery-storage
-          google-cloud-core
-          google-cloud-pubsub
-          google-cloud-secret-manager
-          google-cloud-storage
-          google-crc32c
-          google-pasta
-          google-resumable-media
-          googleapis-common-protos
-          greenlet
-          gremlinpython
-          grpc-google-iam-v1
-          grpcio
-          grpcio-status
-          grpcio-tools
-          gunicorn
-          h11
-          h5py
-          holidays
-          httpcore
-          httplib2
-          httpx
-          huggingface-hub
-          humanfriendly
-          idna
-          imageio
-          importlib-metadata
-          importlib-resources
-          iniconfig
-          installer
-          ipdb
-          ipykernel
-          ipython
-          isodate
-          isort
-          itsdangerous
-          jaraco-classes
-          jax
-          jedi
-          jeepney
-          jinja2
-          jmespath
-          joblib
-          jsonpatch
-          jsonpath-ng
-          jsonpointer
-          jsonschema
-          jsonschema-specifications
-          jupyter
-          jupyter-client
-          jupyter-core
-          jupyter-server
-          jupyterlab
-          jupyterlab-server
-          keyring
-          kiwisolver
-          kubernetes
-          langchain
-          loguru
-          lxml
-          mako
-          markdown
-          markdown-it-py
-          markupsafe
-          marshmallow
-          matplotlib
-          matplotlib-inline
-          mccabe
-          mdurl
-          mistune
-          monotonic
-          more-itertools
-          mpmath
-          msal
-          msal-extensions
-          msgpack
-          msrest
-          multidict
-          multiprocess
-          mypy-extensions
-          nbclient
-          nbconvert
-          nbformat
-          nest-asyncio
-          networkx
-          nltk
-          nltk
-          nodeenv
-          notebook
-          numpy
-          numpy
-          oauth2client
-          oauthlib
-          openai
-          opencv4
-          openpyxl
-          # opensearch-py
-          opentelemetry-api
-          opentelemetry-sdk
-          opentelemetry-semantic-conventions
-          orjson
-          oscrypto
-          overrides
-          packaging
-          pandas
-          paramiko
-          parso
-          pathspec
-          pbr
-          pendulum
-          pexpect
-          pg8000
-          pillow
-          pip
-          pkginfo
-          pkgutil-resolve-name
-          platformdirs
-          plotly
-          pluggy
-          ply
-          poetry-core
-          polars
-          portalocker
-          progressbar2
-          prometheus-client
-          prompt-toolkit
-          proto-plus
-          protobuf
-          psutil
-          psycopg2
-          ptyprocess
-          pure-eval
-          py
-          py4j
-          pyarrow
-          pyasn1
-          pyasn1-modules
-          pycodestyle
-          pycparser
-          pycryptodome
-          pycryptodomex
-          pydantic
-          pydantic-core
-          pyflakes
-          pygithub
-          pygments
-          pyjwt
-          pylint
-          pymongo
-          pymupdf
-          pymysql
-          pynacl
-          pyodbc
-          pyopenssl
-          pyparsing
-          pyproject-hooks
-          pyrsistent
-          pysocks
-          pyspark
-          # pytest
-          # pytest-cov
-          # pytest-runner
-          # pytest-xdist
-          python-dateutil
-          python-dotenv
-          python-json-logger
-          python-slugify
-          python-utils
-          pytz
-          # pytzdata
-          pyyaml
-          pyzmq
-          rapidfuzz
-          redis
-          redshift-connector
-          referencing
-          regex
-          requests
-          requests-aws4auth
-          requests-file
-          requests-oauthlib
-          requests-toolbelt
-          retry
-          rfc3339-validator
-          rich
-          rpds-py
-          rsa
-          ruamel-yaml
-          ruamel-yaml-clib
-          rustworkx
-          s3fs
-          s3transfer
-          sagemaker
-          scikit-learn
-          scikit-learn
-          scikit-image
-          scipy
-          scipy
-          scramp
-          seaborn
-          secretstorage
-          selenium
-          send2trash
-          sentencepiece
-          sentry-sdk
-          setuptools
-          setuptools-scm
-          shapely
-          shellingham
-          simplejson
-          six
-          slack-sdk
-          smart-open
-          smmap
-          sniffio
-          snowflake-connector-python
-          sortedcontainers
-          soupsieve
-          sqlalchemy
-          sqlparse
-          stack-data
-          starlette
-          structlog
-          sympy
-          tabulate
-          tblib
-          tenacity
-          tensorboard
-          termcolor
-          text-unidecode
-          threadpoolctl
-          tiktoken
-          tinycss2
-          tinygrad
-          tokenizers
-          toml
-          tomli
-          tomlkit
-          toolz
-          torch
-          tornado
-          tqdm
-          traitlets
-          transformers
-          trove-classifiers
-          typeguard
-          typer
-          types-python-dateutil
-          types-requests
-          typing-extensions
-          typing-inspect
-          tzdata
-          tzlocal
-          ujson
-          umap-learn
-          uritemplate
-          urllib3
-          user-agents
-          uvicorn
-          virtualenv
-          watchdog
-          wcwidth
-          webencodings
-          websocket-client
-          websockets
-          werkzeug
-          wheel
-          wrapt
-          xgboost
-          xlrd
-          xlsxwriter
-          xmltodict
-          yarl
-          zipp
-          zope-interface
-        ]);
+        python3WithLotsOfPackages = prev.python3.withPackages (pyPkgs:
+          builtins.filter
+            (p: prev.lib.meta.availableOn prev.stdenv.hostPlatform p)
+            (with pyPkgs; [
+              # apache-airflow
+              # awscli
+              # click-man
+              # google-cloud-aiplatform
+              # great-expectations
+              # mysql-connector-python
+              # poetry
+              # poetry-plugin-export
+              # psycopg2-binary
+              # pyspark
+              # tb-nightly
+              # typedload
+              # asynctest
+              # snowflake-sqlalchemy
+              # keras
+              # pymupdf
+              # tensorflow
+              # langchain_community
+              # langchainhub
+              # keras
+              mmh3
+              absl-py
+              adal
+              aenum
+              aiobotocore
+              aiohttp
+              aioitertools
+              aiosignal
+              alembic
+              altair
+              annotated-types
+              anthropic
+              anyio
+              appdirs
+              argcomplete
+              argon2-cffi
+              argon2-cffi-bindings
+              arrow
+              asgiref
+              asn1crypto
+              astroid
+              asttokens
+              async-timeout
+              attrs
+              # awswrangler
+              # azure-common
+              # azure-core
+              # azure-identity
+              # azure-storage-blob
+              babel
+              backoff
+              bcrypt
+              beautifulsoup4
+              behave
+              black
+              bleach
+              blinker
+              boto3
+              botocore
+              build
+              cachecontrol
+              cachetools
+              cattrs
+              certifi
+              cffi
+              chardet
+              charset-normalizer
+              chromadb
+              cleo
+              click
+              cloudpickle
+              colorama
+              comm
+              contourpy
+              coverage
+              crashtest
+              croniter
+              cryptography
+              cycler
+              cython
+              dataclasses-json
+              datadog
+              debugpy
+              decorator
+              defusedxml
+              deprecated
+              dill
+              distlib
+              distro
+              django
+              django-cors-headers
+              django-debug-toolbar
+              django-polymorphic
+              django-rest-polymorphic
+              django-storages
+              djangorestframework
+              djangorestframework-simplejwt
+              dnspython
+              docker
+              docutils
+              drf-spectacular
+              dulwich
+              einops
+              elasticsearch
+              email-validator
+              et-xmlfile
+              exceptiongroup
+              execnet
+              executing
+              factory-boy
+              faker
+              fastapi
+              fastjsonschema
+              filelock
+              flake8
+              flask
+              flatbuffers
+              folium
+              fonttools
+              freezegun
+              frozenlist
+              fsspec
+              # future # error: future-1.0.0 not supported for interpreter python3.13
+              geopandas
+              gitdb
+              gitpython
+              google-api-core
+              google-api-python-client
+              google-auth
+              google-auth-httplib2
+              google-auth-oauthlib
+              google-cloud-appengine-logging
+              google-cloud-bigquery
+              google-cloud-bigquery-storage
+              google-cloud-core
+              google-cloud-pubsub
+              google-cloud-secret-manager
+              google-cloud-storage
+              google-crc32c
+              google-pasta
+              google-resumable-media
+              googleapis-common-protos
+              greenlet
+              gremlinpython
+              grpc-google-iam-v1
+              grpcio
+              grpcio-status
+              grpcio-tools
+              gunicorn
+              h11
+              h5py
+              holidays
+              httpcore
+              httplib2
+              httpx
+              huggingface-hub
+              humanfriendly
+              idna
+              imageio
+              importlib-metadata
+              importlib-resources
+              iniconfig
+              installer
+              ipdb
+              ipykernel
+              ipython
+              isodate
+              isort
+              itsdangerous
+              jaraco-classes
+              jax
+              jedi
+              jeepney
+              jinja2
+              jmespath
+              joblib
+              jsonpatch
+              jsonpath-ng
+              jsonpointer
+              jsonschema
+              jsonschema-specifications
+              jupyter
+              jupyter-client
+              jupyter-core
+              jupyter-server
+              jupyterlab
+              jupyterlab-server
+              keyring
+              kiwisolver
+              kubernetes
+              langchain
+              loguru
+              lxml
+              mako
+              markdown
+              markdown-it-py
+              markupsafe
+              marshmallow
+              matplotlib
+              matplotlib-inline
+              mccabe
+              mdurl
+              mistune
+              monotonic
+              more-itertools
+              mpmath
+              msal
+              msal-extensions
+              msgpack
+              msrest
+              multidict
+              multiprocess
+              mypy-extensions
+              nbclient
+              nbconvert
+              nbformat
+              nest-asyncio
+              networkx
+              nltk
+              nltk
+              nodeenv
+              notebook
+              numpy
+              numpy
+              oauth2client
+              oauthlib
+              openai
+              opencv4
+              openpyxl
+              # opensearch-py
+              opentelemetry-api
+              opentelemetry-sdk
+              opentelemetry-semantic-conventions
+              orjson
+              oscrypto
+              overrides
+              packaging
+              pandas
+              paramiko
+              parso
+              pathspec
+              pbr
+              pendulum
+              pexpect
+              pg8000
+              pillow
+              pip
+              pkginfo
+              pkgutil-resolve-name
+              platformdirs
+              plotly
+              pluggy
+              ply
+              poetry-core
+              polars
+              portalocker
+              progressbar2
+              prometheus-client
+              prompt-toolkit
+              proto-plus
+              protobuf
+              psutil
+              psycopg2
+              ptyprocess
+              pure-eval
+              py
+              py4j
+              pyarrow
+              pyasn1
+              pyasn1-modules
+              pycodestyle
+              pycparser
+              pycryptodome
+              pycryptodomex
+              pydantic
+              pydantic-core
+              pyflakes
+              pygithub
+              pygments
+              pyjwt
+              pylint
+              pymongo
+              pymupdf
+              pymysql
+              pynacl
+              pyodbc
+              pyopenssl
+              pyparsing
+              pyproject-hooks
+              pyrsistent
+              pysocks
+              pyspark
+              # pytest
+              # pytest-cov
+              # pytest-runner
+              # pytest-xdist
+              python-dateutil
+              python-dotenv
+              python-json-logger
+              python-slugify
+              python-utils
+              pytz
+              # pytzdata
+              pyyaml
+              pyzmq
+              rapidfuzz
+              redis
+              redshift-connector
+              referencing
+              regex
+              requests
+              requests-aws4auth
+              requests-file
+              requests-oauthlib
+              requests-toolbelt
+              retry
+              rfc3339-validator
+              rich
+              rpds-py
+              rsa
+              ruamel-yaml
+              ruamel-yaml-clib
+              rustworkx
+              s3fs
+              s3transfer
+              sagemaker
+              scikit-learn
+              scikit-learn
+              scikit-image
+              scipy
+              scipy
+              scramp
+              seaborn
+              secretstorage
+              selenium
+              send2trash
+              sentencepiece
+              sentry-sdk
+              setuptools
+              setuptools-scm
+              shapely
+              shellingham
+              simplejson
+              six
+              slack-sdk
+              smart-open
+              smmap
+              sniffio
+              snowflake-connector-python
+              sortedcontainers
+              soupsieve
+              sqlalchemy
+              sqlparse
+              stack-data
+              starlette
+              structlog
+              sympy
+              tabulate
+              tblib
+              tenacity
+              tensorboard
+              termcolor
+              text-unidecode
+              threadpoolctl
+              tiktoken
+              tinycss2
+              tinygrad
+              tokenizers
+              toml
+              tomli
+              tomlkit
+              toolz
+              torch
+              tornado
+              tqdm
+              traitlets
+              transformers
+              trove-classifiers
+              typeguard
+              typer
+              types-python-dateutil
+              types-requests
+              typing-extensions
+              typing-inspect
+              tzdata
+              tzlocal
+              ujson
+              uritemplate
+              urllib3
+              user-agents
+              uvicorn
+              virtualenv
+              watchdog
+              wcwidth
+              webencodings
+              websocket-client
+              websockets
+              werkzeug
+              wheel
+              wrapt
+              xgboost
+              xlrd
+              xlsxwriter
+              xmltodict
+              yarl
+              zipp
+              zope-interface
+              # umap-learn # pynndescent (dep) is badPlatform on aarch64-linux
+            ]));
+
 
         testBinfmtMany = prev.testers.runNixOSTest {
           name = "test-python-wheels";
@@ -491,13 +495,6 @@
                 # Use systemd boot (EFI only)
                 boot.loader.systemd-boot.enable = true;
                 fileSystems."/" = { device = "/dev/hda1"; };
-
-                boot.binfmt.registrations = {
-                  riscv64-linux = {
-                    interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-riscv64";
-                    fixBinary = true;
-                  };
-                };
 
                 boot.binfmt.emulatedSystems = [
                   "riscv64-linux"
