@@ -240,6 +240,9 @@
 
         modules = [
           ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
+            let
+              vmForwardPort = { from = "host"; host.port = 8080; guest.port = 8090; };
+            in
             {
               # Internationalisation options
               i18n.defaultLocale = "en_US.UTF-8";
@@ -281,13 +284,7 @@
                   virtualisation.writableStore = true; # TODO: hardening
 
                   # https://discourse.nixos.org/t/nixpkgs-support-for-linux-builders-running-on-macos/24313/2
-                  virtualisation.forwardPorts = [
-                    {
-                      from = "host";
-                      host.port = 8080;
-                      guest.port = 8090;
-                    }
-                  ];
+                  virtualisation.forwardPorts = [ vmForwardPort ];
                 };
 
               # networking.firewall.allowedTCPPorts = [ (builtins.head config.virtualisation.vmVariant.virtualisation.forwardPorts).guest.port ];
@@ -386,7 +383,7 @@
                           clear;
                         done
 
-                        PORT="${ builtins.toString (builtins.head config.virtualisation.vmVariant.virtualisation.forwardPorts).guest.port}"
+                        PORT="${ builtins.toString vmForwardPort.guest.port}"
 
                         sudo -E kubectl port-forward --address 0.0.0.0 pods/a-message "$PORT":80 &
 
