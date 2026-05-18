@@ -95,7 +95,7 @@
   boot.kernelModules =
     if pkgs.stdenv.hostPlatform.isx86_64 then [ "kvm-intel" ]
     else if pkgs.stdenv.hostPlatform.isAarch64 then [ "kvm" ]
-    else [];
+    else [ ];
 
   time.timeZone = "America/Recife";
 

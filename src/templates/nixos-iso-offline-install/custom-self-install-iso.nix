@@ -136,7 +136,7 @@ in
   boot.kernelModules =
     if pkgs.stdenv.hostPlatform.isx86_64 then [ "kvm-intel" ]
     else if pkgs.stdenv.hostPlatform.isAarch64 then [ "kvm" ]
-    else [];
+    else [ ];
 
   # https://gist.github.com/andir/88458b13c26a04752854608aacb15c8f#file-configuration-nix-L11-L12
   boot.loader.grub.extraConfig = "serial --unit=0 --speed=115200 \n terminal_output serial console; terminal_input serial console";

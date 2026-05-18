@@ -63,6 +63,10 @@ let
       description = "";
       path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-scipy;
     };
+    pythonFastAPIPoetry2nixDjangoRestFrameworkHello = {
+      description = "";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-django-rest-framework-hello;
+    };
     # pythonFastAPIPoetry2nixBloated = {
     #   description = "";
     #   path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-bloated;
@@ -119,9 +123,19 @@ let
       path = ./nix-flakes-flake-utils-devshell-home-manager-python-http-server;
     };
 
+    devShellFlakeUtilsPythonTools = {
+      description = "devShell with flake-utils and python tools";
+      path = ./nix-flakes-flake-utils-devshell-python-tools;
+    };
+
     poetry2nixBasic = {
       description = "Basic poetry2nix pure python3 script example";
       path = ./poetry2nix-basic;
+    };
+
+    poetry2nixBasicFlask = {
+      description = "Basic poetry2nix flask example";
+      path = ./poetry2nix-basic-flask;
     };
 
     nixFlakesHomeManagerZsh = {
@@ -134,6 +148,11 @@ let
       path = ./nix-flakes-home-manager-zsh-advanced;
     };
 
+    homeManagerBloated = {
+      description = "Bloated home-manager example";
+      path = ./home-manager-bloated;
+    };
+
     # flakesUtilsGodot4 = {
     #   description = "godot4 mult-arch flake";
     #   path = ./flake-utils-godot4;
@@ -144,9 +163,29 @@ let
       path = ./pandoc-latex;
     };
 
+    xetex = {
+      description = "XeTeX example";
+      path = ./xetex;
+    };
+
+    xetexPendulumAnimaton = {
+      description = "XeTeX pendulum animation example";
+      path = ./xetex-pendulum-animaton;
+    };
+
     QEMUVirtualMachineXfceCopyPaste = {
       description = "QEMU Virtual Machine with xfce and copy/paste working";
       path = ./qemu-virtual-machine-xfce-copy-paste-docker;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteDev = {
+      description = "QEMU Virtual Machine with xfce and copy/paste (dev)";
+      path = ./qemu-virtual-machine-xfce-copy-paste-dev;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteDevBloated = {
+      description = "QEMU Virtual Machine with xfce and copy/paste (dev bloated)";
+      path = ./qemu-virtual-machine-xfce-copy-paste-dev-bloated;
     };
 
     QEMUVirtualMachineXfceCopyPasteKubernetes = {
@@ -154,9 +193,99 @@ let
       path = ./qemu-virtual-machine-xfce-copy-paste-kubernetes;
     };
 
+    QEMUVirtualMachineXfceCopyPasteSocat = {
+      description = "QEMU Virtual Machine with xfce and socat";
+      path = ./qemu-virtual-machine-xfce-copy-paste-socat;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteSsh = {
+      description = "QEMU Virtual Machine with xfce and SSH";
+      path = ./qemu-virtual-machine-xfce-copy-paste-ssh;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteSshPasswdBash = {
+      description = "QEMU Virtual Machine with xfce, SSH, passwd and bash";
+      path = ./qemu-virtual-machine-xfce-copy-paste-ssh-passwd-bash;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteNixosTestBare = {
+      description = "QEMU Virtual Machine with xfce and NixOS test (bare)";
+      path = ./qemu-virtual-machine-xfce-copy-paste-nixos-test-bare;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteNixosTestPythonVenvNumpy = {
+      description = "QEMU Virtual Machine with xfce and NixOS test python venv numpy";
+      path = ./qemu-virtual-machine-xfce-copy-paste-nixos-test-python-venv-numpy;
+    };
+
+    QEMUVirtualMachineXfceCopyPastePythonHttpServerForwardPorts = {
+      description = "QEMU Virtual Machine with xfce and python http server with port forwarding";
+      path = ./qemu-virtual-machine-xfce-copy-paste-python-http-server-forward-ports;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteDockerFlask = {
+      description = "QEMU Virtual Machine with xfce, docker and flask";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-flask;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteDockerPodmanFlask = {
+      description = "QEMU Virtual Machine with xfce, docker, podman and flask";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-podman-flask;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteDockerPythonScriptAndPackage = {
+      description = "QEMU Virtual Machine with xfce, docker, python script and package";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-python-script-and-package;
+    };
+
+    QEMUVirtualMachineXfceCopyPasteDockerPoetry2nixBloat = {
+      description = "QEMU Virtual Machine with xfce, docker and poetry2nix bloat";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-bloat;
+    };
+
+    QEMUVirtualMachineXfceVagrantVirtualboxUbuntu = {
+      description = "QEMU Virtual Machine with xfce and vagrant virtualbox ubuntu";
+      path = ./qemu-virtual-machine-xfce-vagrant-virtualbox-ubuntu;
+    };
+
     QEMUVirtualMachineDocker = {
       description = "QEMU Virtual Machine with docker";
       path = ./qemu-virtual-machine-docker;
+    };
+
+    QEMUVirtualMachineSsh = {
+      description = "QEMU Virtual Machine with SSH";
+      path = ./qemu-virtual-machine-ssh;
+    };
+
+    dockerMultipleKernelVersions = {
+      description = "Docker with multiple kernel versions";
+      path = ./docker-multiple-kernel-versions;
+    };
+
+    kubenetesNginx = {
+      description = "Kubernetes nginx example";
+      path = ./kubenetes-nginx;
+    };
+
+    pythonWheelsLinuxX8664TestersRunNixosTests = {
+      description = "Python wheels linux x86_64 testers run nixos tests";
+      path = ./python-wheels-linux-x86-64-testers-run-nixos-tests;
+    };
+
+    unprivilegedUserNixHomeManagerQemuNixosVirtualMachineDocker = {
+      description = "Unprivileged user nix home-manager QEMU NixOS VM with docker";
+      path = ./unprivileged-user-nix-home-manager-qemu-nixos-virtual-machine-docker;
+    };
+
+    bugNixostest = {
+      description = "Bug reproduction: NixOS test";
+      path = ./bug-nixostest;
+    };
+
+    bugQemuVirtualMachineXfceCopyPaste = {
+      description = "Bug reproduction: QEMU VM xfce copy paste";
+      path = ./bug-qemu-virtual-machine-xfce-copy-paste;
     };
   };
 
@@ -216,6 +345,10 @@ let
       description = "";
       path = ./static-minimal-busybox-sandbox-shell;
     };
+    staticMinimalToybox = {
+      description = "";
+      path = ./static-minimal-toybox;
+    };
     staticNginx = {
       description = "";
       path = ./static-nginx;
@@ -234,6 +367,185 @@ let
     };
   };
 
+  binfmtTemplates = {
+    binfmtEmulatedSystemsHello = {
+      description = "";
+      path = ./binfmt-emulated-systems-hello;
+    };
+    binfmtEmulatedSystemsDocker = {
+      description = "";
+      path = ./binfmt-emulated-systems-docker;
+    };
+    binfmtEmulatedSystemsPythonDockerRegistryImages = {
+      description = "";
+      path = ./binfmt-emulated-systems-python-docker-registry-images;
+    };
+    binfmtEmulatedRiscv64PythonAlpineWheelsViaPipAndDocker = {
+      description = "";
+      path = ./binfmt-emulated-riscv64-python-alpine-wheels-via-pip-and-docker;
+    };
+    binfmtEmulatedRiscv64PythonWheelsDockerRegistryImages = {
+      description = "";
+      path = ./binfmt-emulated-riscv64-python-wheels-docker-registry-images;
+    };
+  };
+
+  nixosTemplates = {
+    nixosIsoOfflineInstall = {
+      description = "";
+      path = ./nixos-iso-offline-install;
+    };
+    nixosIsoOfflineInstallMinimal = {
+      description = "";
+      path = ./nixos-iso-offline-install-minimal;
+    };
+    nixosTestsHelloSystemdService = {
+      description = "";
+      path = ./nixos-tests-hello-systemd-service;
+    };
+    nixosBuildVmSystemdSelfHostedRunnerForGithubActions = {
+      description = "";
+      path = ./nixos-build-vm-systemd-self-hosted-runner-for-github-actions;
+    };
+    nixosBuildVmKubernetesSelfHostedRunnerForGithubActions = {
+      description = "";
+      path = ./nixos-build-vm-kubernetes-self-hosted-runner-for-github-actions;
+    };
+  };
+
+  fastapiCeleryTemplates = {
+    fastapiCeleryAppDockerComposeUv = {
+      description = "";
+      path = ./fastapi-celery-app-docker-compose-uv;
+    };
+    fastapiCeleryAppDockerComposePip = {
+      description = "";
+      path = ./fastapi-celery-app-docker-compose-pip;
+    };
+    fastapiCeleryAppDockerComposePoetry = {
+      description = "";
+      path = ./fastapi-celery-app-docker-compose-poetry;
+    };
+  };
+
+  qemuNixosTestTemplates = {
+    qemuVirtualMachineNixosTestBareBase = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixCli = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-cli;
+    };
+    qemuVirtualMachineNixosTestBareBaseMultiPing = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-multi-ping;
+    };
+    qemuVirtualMachineNixosTestBareBaseMultiSshKeyscan = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-multi-ssh-keyscan;
+    };
+    qemuVirtualMachineNixosTestBareBaseFlamegraphPerf = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-flamegraph-perf;
+    };
+    qemuVirtualMachineNixosTestBareBaseJulia = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-julia;
+    };
+    qemuVirtualMachineNixosTestBareBaseJuliaKnapsack = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-julia-knapsack;
+    };
+    qemuVirtualMachineNixosTestBareBaseJuliaMultipleKnapsack = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-julia-multiple-knapsack;
+    };
+    qemuVirtualMachineNixosTestBareBaseJuliaCirclePacking = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-julia-circle-packing;
+    };
+    qemuVirtualMachineNixosTestBareBaseJuliaSudoku = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-julia-sudoku;
+    };
+    qemuVirtualMachineNixosTestBareBaseJuliaTravellingSalesmanProblem = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-julia-travelling-salesman-problem;
+    };
+    qemuVirtualMachineNixosTestBareBasePypyRustpythonAndMany = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-pypy-rustpython-and-many;
+    };
+    qemuVirtualMachineNixosTestBareBasePythonNixBuiltWheels = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-python-nix-built-wheels;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPath = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathHelloRun = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-hello-run;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathHelloBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-hello-build-rebuild;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathHelloUnfreeBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-hello-unfree-build-rebuild;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathCrossHelloBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-cross-hello-build-rebuild;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathNumpyBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-numpy-build-rebuild;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathScipyBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-scipy-build-rebuild;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathScipyWheelBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-scipy-wheel-build-rebuild;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathMmh3WheelBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-mmh3-wheel-build-rebuild;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathSqliteBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-sqlite-build-rebuild;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathNixServe = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-nix-serve;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathNixServeAlpineNixClient = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-nix-serve-alpine-nix-client;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathNixStaticBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-nix-static-build-rebuild;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathNixStoreQuery = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-nix-store-query;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathGitZshStarshipFontsDirenvFzf = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-git-zsh-starship-fonts-direnv-fzf;
+    };
+    qemuVirtualMachineNixosTestBareBaseNixFlakesNixpkgsPathVagrantUnfreeBuildRebuild = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-bare-base-nix-flakes-nixpkgs-path-vagrant-unfree-build-rebuild;
+    };
+  };
 
 in
 { }
@@ -245,5 +557,13 @@ pythonFlaskPoetry2nixTemplates
 pythonFastAPIPoetry2nixTemplates
 //
 vagrantTemplates
-  //
+//
 staticCompiledTemplates
+//
+binfmtTemplates
+//
+nixosTemplates
+//
+fastapiCeleryTemplates
+//
+qemuNixosTestTemplates

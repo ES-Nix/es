@@ -368,19 +368,22 @@
         let pkgs = pkgsFor system; in {
           inherit (pkgs)
             allTests
-            automaticVm
+            # automaticVm  # interactive QEMU app, not a testable derivation
             fooBar
             ;
           default = pkgs.fooBar;
           homeManagerActivation = pkgs.hm.activationPackage;
         });
       apps = forAllSystems (system:
-        let pkgs = pkgsFor system; in {
+        let pkgs = pkgsFor system; in
+        {
           allTests = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.allTests}";
             meta.description = "Run all tests for this flake";
           };
+        }
+        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           automaticVm = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.automaticVm}";

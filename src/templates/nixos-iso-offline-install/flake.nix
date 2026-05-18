@@ -95,59 +95,60 @@
 
         run-nixos-offline-install-iso-in-qcow2 =
           let
-            ovmfPath = if prev.stdenv.hostPlatform.isAarch64
+            ovmfPath =
+              if prev.stdenv.hostPlatform.isAarch64
               then "${final.OVMF.fd}/FV/AAVMF_CODE.fd"
               else "${final.OVMF.fd}/FV/OVMF.fd";
           in
           prev.stdenv.mkDerivation rec {
-          name = "run-nixos-offline-install-iso-in-qcow2";
-          buildInputs = with prev; [ stdenv ];
-          nativeBuildInputs = with prev; [ makeWrapper ];
-          propagatedNativeBuildInputs = with prev; [
-            bashInteractive
-            # coreutils
-            qemu
-            final.ISONixOSSelfOfflineInstallISOInQcow2
-          ];
+            name = "run-nixos-offline-install-iso-in-qcow2";
+            buildInputs = with prev; [ stdenv ];
+            nativeBuildInputs = with prev; [ makeWrapper ];
+            propagatedNativeBuildInputs = with prev; [
+              bashInteractive
+              # coreutils
+              qemu
+              final.ISONixOSSelfOfflineInstallISOInQcow2
+            ];
 
-          src = builtins.path { path = ./.; inherit name; };
-          phases = [ "installPhase" ];
+            src = builtins.path { path = ./.; inherit name; };
+            phases = [ "installPhase" ];
 
-          unpackPhase = ":";
+            unpackPhase = ":";
 
-          installPhase = ''
-            mkdir -p $out/bin
-            ls -al "${src}/"
+            installPhase = ''
+              mkdir -p $out/bin
+              ls -al "${src}/"
 
-            cp -r "${src}/${name}.sh" $out
+              cp -r "${src}/${name}.sh" $out
 
-            install \
-            -m0755 \
-            $out/${name}.sh \
-            -D \
-            $out/bin/${name}
+              install \
+              -m0755 \
+              $out/${name}.sh \
+              -D \
+              $out/bin/${name}
 
-            patchShebangs $out/bin/${name}
+              patchShebangs $out/bin/${name}
 
-            substituteInPlace \
-            $out/bin/${name} \
-            --replace-fail 'VM_DISK_SIZE="''${DISK_SIZE:-12G}"' 'VM_DISK_SIZE="''${DISK_SIZE:-16G}"'
+              substituteInPlace \
+              $out/bin/${name} \
+              --replace-fail 'VM_DISK_SIZE="''${DISK_SIZE:-12G}"' 'VM_DISK_SIZE="''${DISK_SIZE:-16G}"'
 
-            substituteInPlace \
-            $out/bin/${name} \
-            --replace-fail 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-OVMF.fd}"' 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-${ovmfPath}}"'
+              substituteInPlace \
+              $out/bin/${name} \
+              --replace-fail 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-OVMF.fd}"' 'VM_OVMF_FULL_PATH_TO_OVMF="''${OVMF_FULL_PATH_TO_OVMF:-${ovmfPath}}"'
 
-            substituteInPlace \
-            $out/bin/${name} \
-            --replace-fail 'VM_ISO_FULL_PATH="''${ISO_FULL_PATH:-result/iso/*.iso}"' 'VM_ISO_FULL_PATH="''${ISO_FULL_PATH:-${final.ISONixOSSelfOfflineInstallISOInQcow2}/iso/${final.ISONixOSSelfOfflineInstallISOInQcow2.name}}"'
+              substituteInPlace \
+              $out/bin/${name} \
+              --replace-fail 'VM_ISO_FULL_PATH="''${ISO_FULL_PATH:-result/iso/*.iso}"' 'VM_ISO_FULL_PATH="''${ISO_FULL_PATH:-${final.ISONixOSSelfOfflineInstallISOInQcow2}/iso/${final.ISONixOSSelfOfflineInstallISOInQcow2.name}}"'
 
 
-            wrapProgram $out/bin/${name} \
-              --prefix PATH : "${prev.lib.makeBinPath propagatedNativeBuildInputs }"
-          '';
+              wrapProgram $out/bin/${name} \
+                --prefix PATH : "${prev.lib.makeBinPath propagatedNativeBuildInputs }"
+            '';
 
-          meta.mainProgram = name;
-        };
+            meta.mainProgram = name;
+          };
 
 
         runQEMUNixOS = prev.stdenv.mkDerivation rec {

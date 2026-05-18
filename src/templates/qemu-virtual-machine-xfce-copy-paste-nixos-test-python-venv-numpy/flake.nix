@@ -34,7 +34,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }: {
+  outputs = { self, nixpkgs, flake-utils }: {
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
         fooBar = prev.hello;

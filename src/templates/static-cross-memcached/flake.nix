@@ -48,7 +48,7 @@
     overlays.default = nixpkgs.lib.composeManyExtensions [
       (final: prev: {
 
-        staticMemcachedServerArm64 = prev.pkgsCross.aarch64-multiplatform-musl.pkgsStatic.memcached;
+        staticMemcachedServerArm64 = prev.pkgsCross.aarch64-multiplatform.pkgsStatic.memcached;
         #staticMemcachedServerArm64 = (prev.pkgsCross.aarch64-multiplatform-musl.pkgsStatic.memcached.override {
         #  cyrus_sasl = prev.pkgsCross.aarch64-multiplatform-musl.pkgsStatic.cyrus_sasl;
         #  libevent = prev.pkgsCross.aarch64-multiplatform-musl.pkgsStatic.libevent;
@@ -414,8 +414,8 @@
 
               config.boot.binfmt.emulatedSystems = lib.filter (s: s != pkgs.stdenv.hostPlatform.system) [
                 "aarch64-linux"
-                # "armv6l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
-                "armv7l-linux" # TODO: why arm32v5, arm32v6 and arm32v7 work?
+                # "armv6l-linux" # armv7l binfmt magic covers armv6l too (same little-endian ARM EABI pattern)
+                "armv7l-linux" # qemu-arm implements ARMv7 ISA, backward-compatible with ARMv5/ARMv6/ARMv7
                 # "i386-linux"
                 # "i686-linux"
                 "mips64el-linux"
@@ -424,43 +424,59 @@
                 "s390x-linux"
               ];
 
-              config.boot.binfmt.registrations = lib.filterAttrs (name: _: name != pkgs.stdenv.hostPlatform.system) {
-                aarch64-linux = {
-                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
-                  fixBinary = true;
+              config.boot.binfmt.registrations =
+                let
+                  # On aarch64, pkgsStatic builds qemu for aarch64-unknown-linux-musl.
+                  # Nettle's -fpic (small PIC) causes a GOT overflow at link time on aarch64.
+                  # Recompiling nettle with -fPIC (large PIC model) resolves the overflow.
+                  qemuUser = (pkgs.pkgsStatic.extend (_: super: {
+                    nettle = super.nettle.overrideAttrs (old: {
+                      env = (old.env or { }) // {
+                        NIX_CFLAGS_COMPILE =
+                          ((old.env or { }).NIX_CFLAGS_COMPILE or "") + " -fPIC";
+                      };
+                    });
+                  })).qemu-user;
+                in
+                lib.filterAttrs (name: _: name != pkgs.stdenv.hostPlatform.system) {
+                  aarch64-linux = {
+                    interpreter = "${qemuUser}/bin/qemu-aarch64";
+                    fixBinary = true;
+                  };
+                  armv7l-linux = {
+                    # qemu-arm implements ARMv7 which is backward-compatible with ARMv5/ARMv6.
+                    # armv6l-linux shares the same binfmt magic as armv7l-linux (both are
+                    # little-endian ARM EABI), so this single registration handles both.
+                    interpreter = "${qemuUser}/bin/qemu-arm";
+                    # interpreter = "${qemuUser}/bin/qemu-armeb";
+                    fixBinary = true;
+                  };
+                  #i686-linux = {
+                  #  interpreter = "${qemuUser}/bin/qemu-i386";
+                  #  fixBinary = true;
+                  #};
+                  #
+                  #i686-linux = {
+                  #  interpreter = "${qemuUser}/bin/qemu-x86_64";
+                  #  fixBinary = true;
+                  #};
+                  mips64el-linux = {
+                    interpreter = "${qemuUser}/bin/qemu-mips64el";
+                    fixBinary = true;
+                  };
+                  powerpc64-linux = {
+                    interpreter = "${qemuUser}/bin/qemu-ppc64";
+                    fixBinary = true;
+                  };
+                  riscv64-linux = {
+                    interpreter = "${qemuUser}/bin/qemu-riscv64";
+                    fixBinary = true;
+                  };
+                  s390x-linux = {
+                    interpreter = "${qemuUser}/bin/qemu-s390x";
+                    fixBinary = true;
+                  };
                 };
-                armv7l-linux = {
-                  # TODO: why armv6l-linux gives the same result?
-                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-arm";
-                  # interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-armeb";
-                  fixBinary = true;
-                };
-                #i686-linux = {
-                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-i386";
-                #  fixBinary = true;
-                #};
-                #
-                #i686-linux = {
-                #  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-x86_64";
-                #  fixBinary = true;
-                #};
-                mips64el-linux = {
-                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-mips64el";
-                  fixBinary = true;
-                };
-                powerpc64-linux = {
-                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-ppc64";
-                  fixBinary = true;
-                };
-                riscv64-linux = {
-                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-riscv64";
-                  fixBinary = true;
-                };
-                s390x-linux = {
-                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-s390x";
-                  fixBinary = true;
-                };
-              };
             };
 
           globalTimeout = 4 * 60;
@@ -469,8 +485,7 @@
             start_all()
             machine.wait_for_unit("default.target")
 
-            # TODO: It is dynamically linked not statically statically
-            expected = 'ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1'
+            expected = 'ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), statically linked,'
             result = machine.succeed("! ldd ${final.lib.getExe final.staticMemcachedServerArm64} && file $_")
             assert expected in result, f"expected = {expected}, result = {result}"
 
@@ -514,17 +529,16 @@
 
             print(machine.succeed("docker images"))
 
-            #TODO: it is broken!
-            #with subtest("Arm64"):
-            #    machine.succeed("docker run --name=container-memcached -d --rm -p=11211:11211 memcached:static-arm64")
-            #    machine.wait_for_open_port(11211)
-            #
-            #    expected = 'STAT pointer_size 64'
-            #    result = machine.succeed("echo stats | nc -vn -w 1 127.0.0.1 11211")
-            #    assert expected in result, f"expected = {expected}, result = {result}"
-            #
-            #    machine.succeed("echo quit | timeout --signal=INT 1 telnet 127.0.0.1 11211")
-            #    machine.succeed("timeout 2 docker stop container-memcached")
+            with subtest("Arm64"):
+                machine.succeed("docker run --name=container-memcached -d --rm -p=11211:11211 memcached:static-arm64")
+                machine.wait_for_open_port(11211)
+
+                expected = 'STAT pointer_size 64'
+                result = machine.succeed("echo stats | nc -vn -w 1 127.0.0.1 11211")
+                assert expected in result, f"expected = {expected}, result = {result}"
+
+                machine.succeed("echo quit | timeout --signal=INT 1 telnet 127.0.0.1 11211")
+                machine.succeed("timeout 2 docker stop container-memcached")
 
             with subtest("mips64el-linux-gnuabi64"):
                 machine.succeed("docker run --name=container-memcached -d --rm -p=11211:11211 memcached:static-mips64el-linux-gnuabi64")
@@ -635,42 +649,53 @@
                 boot.loader.systemd-boot.enable = true;
                 fileSystems."/" = { device = "/dev/hda1"; };
 
-                boot.binfmt.registrations = {
-                  aarch64-linux = {
-                    interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
-                    fixBinary = true;
-                  };
+                boot.binfmt.registrations =
+                  let
+                    qemuUser = (pkgs.pkgsStatic.extend (_: super: {
+                      nettle = super.nettle.overrideAttrs (old: {
+                        env = (old.env or { }) // {
+                          NIX_CFLAGS_COMPILE =
+                            ((old.env or { }).NIX_CFLAGS_COMPILE or "") + " -fPIC";
+                        };
+                      });
+                    })).qemu-user;
+                  in
+                  {
+                    aarch64-linux = {
+                      interpreter = "${qemuUser}/bin/qemu-aarch64";
+                      fixBinary = true;
+                    };
 
-                  armv7l-linux = {
-                    interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-arm";
-                    fixBinary = true;
-                  };
+                    armv7l-linux = {
+                      interpreter = "${qemuUser}/bin/qemu-arm";
+                      fixBinary = true;
+                    };
 
-                  i686-linux = {
-                    interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-i386";
-                    fixBinary = true;
-                  };
+                    i686-linux = {
+                      interpreter = "${qemuUser}/bin/qemu-i386";
+                      fixBinary = true;
+                    };
 
-                  mips64el-linux = {
-                    interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-mips64el";
-                    fixBinary = true;
-                  };
+                    mips64el-linux = {
+                      interpreter = "${qemuUser}/bin/qemu-mips64el";
+                      fixBinary = true;
+                    };
 
-                  powerpc64-linux = {
-                    interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-ppc64";
-                    fixBinary = true;
-                  };
+                    powerpc64-linux = {
+                      interpreter = "${qemuUser}/bin/qemu-ppc64";
+                      fixBinary = true;
+                    };
 
-                  riscv64-linux = {
-                    interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-riscv64";
-                    fixBinary = true;
-                  };
+                    riscv64-linux = {
+                      interpreter = "${qemuUser}/bin/qemu-riscv64";
+                      fixBinary = true;
+                    };
 
-                  s390x-linux = {
-                    interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-s390x";
-                    fixBinary = true;
+                    s390x-linux = {
+                      interpreter = "${qemuUser}/bin/qemu-s390x";
+                      fixBinary = true;
+                    };
                   };
-                };
 
                 boot.binfmt.emulatedSystems = [
                   "aarch64-linux"
