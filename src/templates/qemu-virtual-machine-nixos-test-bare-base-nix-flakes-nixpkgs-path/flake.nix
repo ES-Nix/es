@@ -74,9 +74,9 @@
                     test_machine_cmd_equal_expected(machine, cmd, expected)
 
             test_cases = [
-                (machineABCZ, "nix --version", "nix (Nix) 2.28.3"),
-                (machineABCZ, "nix flake --version", "nix (Nix) 2.28.3"),
-                (machineABCZ, "nix eval --raw nixpkgs#lib.version", "25.05.20250612.fd48718"),
+                (machineABCZ, "nix --version", "nix (Nix) 2.31.2"),
+                (machineABCZ, "nix flake --version", "nix (Nix) 2.31.2"),
+                (machineABCZ, "nix eval --raw nixpkgs#lib.version", "25.11.20251226.f560cce"),
             ]
             run_all_version_tests(test_cases)
 

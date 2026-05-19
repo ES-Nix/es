@@ -18,7 +18,7 @@
     # Also see the 'unstable-packages' overlay at 'overlays/default.nix'.
 
     # Home manager
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    home-manager.url = "github:nix-community/home-manager/release-25.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -43,6 +43,15 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
       overlays = import ./overlays { inherit inputs; };
+
+      linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
+
+      mkHomeConfig = system: home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.${system};
+        extraSpecialArgs = { inherit inputs outputs; };
+        modules = [ ./home-manager/home.nix ];
+      };
+
       forAllSystems2 = function:
         nixpkgs.lib.genAttrs [
           "x86_64-linux"
@@ -88,13 +97,18 @@
       });
 
       packages = forAllSystems (system: {
-        allTests = pkgs.${system}.hello;
-        # default = nixpkgs.legacyPackages.${system}.hello;
-        default = self.homeConfigurations.vagrant.activationPackage;
+        allTests = pkgs.${system}.allTests;
+        default =
+          if builtins.elem system linuxSystems
+          then (mkHomeConfig system).activationPackage
+          else nixpkgs.legacyPackages.${system}.hello;
       });
 
       checks = forAllSystems (system: {
-        default = self.homeConfigurations.vagrant.activationPackage;
+        default =
+          if builtins.elem system linuxSystems
+          then (mkHomeConfig system).activationPackage
+          else nixpkgs.legacyPackages.${system}.hello;
       });
 
       # A shell that can be used to test your configuration
@@ -120,14 +134,10 @@
       # Available through 'home-manager --flake .#your-username@your-hostname'
       homeConfigurations = {
         # FIXME replace with your username@hostname
-        "vagrant" = home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
-          extraSpecialArgs = { inherit inputs outputs; };
-          modules = [
-            # > Our main home-manager configuration file <
-            ./home-manager/home.nix
-          ];
-        };
+        # Default (x86_64-linux for backwards compatibility)
+        "vagrant" = mkHomeConfig "x86_64-linux";
+        "vagrant@x86_64-linux" = mkHomeConfig "x86_64-linux";
+        "vagrant@aarch64-linux" = mkHomeConfig "aarch64-linux";
       };
     };
 }

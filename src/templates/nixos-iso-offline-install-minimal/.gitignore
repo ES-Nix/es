@@ -1,6 +1,0 @@
-secrets/*.yaml
-.idea/
-.env
-.direnv/
-.profiles/
-*.qcow2

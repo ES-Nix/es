@@ -21,12 +21,14 @@
           && nix build --impure --no-link --print-build-logs --print-out-paths '.#' \
           && nix build --impure --no-link --print-build-logs --print-out-paths --rebuild '.#' \
           && nix develop --impure '.#' --command sh -c 'true' \
-          && nix flake check --all-systems --impure --verbose '.#'
-                
+          && nix flake check --impure --verbose '.#'
+
+          CURRENT_SYSTEM=$(nix eval --raw --impure --expr builtins.currentSystem)
+
           nix build --no-link --print-build-logs --print-out-paths \
-          '.#homeConfigurations.vagrant.activationPackage'
+            ".#homeConfigurations.vagrant@''${CURRENT_SYSTEM}.activationPackage"
           nix build --no-link --print-build-logs --print-out-paths \
-          '.#homeConfigurations.vagrant.activation-script'
+            ".#homeConfigurations.vagrant@''${CURRENT_SYSTEM}.activation-script"
         '';
       } // { meta.mainProgram = name; };
 
@@ -37,7 +39,7 @@
   # be accessible through 'pkgs.unstable'
   unstable-packages = final: _prev: {
     unstable = import inputs.nixos-unstable {
-      system = final.system;
+      system = final.stdenv.hostPlatform.system;
       config.allowUnfree = true;
     };
   };

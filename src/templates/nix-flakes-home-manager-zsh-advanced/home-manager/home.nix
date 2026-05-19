@@ -113,7 +113,7 @@
   programs.zsh = {
     enable = true;
     enableCompletion = true;
-    dotDir = ".config/zsh";
+    dotDir = "${config.xdg.configHome}/zsh";
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     envExtra = ''

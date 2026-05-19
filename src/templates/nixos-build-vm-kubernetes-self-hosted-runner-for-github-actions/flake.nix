@@ -69,7 +69,7 @@
           imageDigest = "sha256:30a523019a27c97da3f2145252dad9478b7427a8b484a0c775f3a8605d84d35d";
           imageName = "ghcr.io/actions/actions-runner";
           name = "ghcr.io/actions/actions-runner";
-          sha256 = "sha256-VdeO9yOoKm8YQiNLYfCIs4S17oE0C4GN1YxFtZU54JM=";
+          sha256 = "sha256-1ee0fSDS6BsEKrXlLZ3gGN/pG4J3gEWH2J/JAzw/1oE=";
         };
 
         cachedOCIImageGhaRunnerScaleSetController090 = prev.dockerTools.pullImage {
@@ -85,7 +85,7 @@
           imageDigest = "sha256:63a90e30999cf47a5b36b88bbf9411233fa9e10dfc6d6467335577a02f18572c";
           imageName = "ghcr.io/actions/gha-runner-scale-set-controller";
           name = "ghcr.io/actions/gha-runner-scale-set-controller";
-          sha256 = "sha256-oQXoazC4UBLb7kt8fTvdvA1b0Dm6q9TWv3qMeeG7udk=";
+          sha256 = "sha256-Eu1KjFwQpx0Zbg2CFUhvMVh0t4z6T6DeyVa2ARIBdIA=";
         };
 
         cachedOCIImageDinD = prev.dockerTools.pullImage {
@@ -93,7 +93,7 @@
           imageDigest = "sha256:2e5515536bf789843b48030fdca3e3719463ba85c43b1da7d5687f5997b79d26";
           imageName = "docker";
           name = "docker";
-          sha256 = "sha256-eY9wwi2WBRFjFsNfORbB06TgtB74hjVi/ppOgkp05/I=";
+          sha256 = "sha256-O+NM9sJsIhvt0oJD8lW58LKQaVeQfZWqAUjhb3/p84c=";
         };
 
         vm = self.nixosConfigurations.vm.config.system.build.toplevel;
@@ -555,7 +555,7 @@
 
               # nixpkgs.config.allowUnfree = true;
 
-              boot.readOnlyNixStore = true;
+              # boot.readOnlyNixStore = true;
 
               nix = {
                 extraOptions = "experimental-features = nix-command flakes";

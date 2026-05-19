@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
 
@@ -513,7 +513,7 @@
     # Your zsh config
     enable = true;
     enableCompletion = true;
-    dotDir = ".config/zsh";
+    dotDir = "${config.home.homeDirectory}/.config/zsh";
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     envExtra = ''

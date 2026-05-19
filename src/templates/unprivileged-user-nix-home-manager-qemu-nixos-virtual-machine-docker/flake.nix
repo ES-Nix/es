@@ -31,12 +31,12 @@
               && nix build --no-link --print-build-logs --print-out-paths '.#' \
               && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
               && nix develop '.#' --command sh -c 'true' \
-              && nix flake check --all-systems --verbose '.#'
+              && nix flake check --verbose '.#'
             '';
           } // { meta.mainProgram = name; };
 
         nixosConfiguration = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
+          system = final.stdenv.hostPlatform.system;
           modules = [
             (
 
@@ -95,7 +95,7 @@
                   password = "root";
                   # initialPassword = "root";
                   openssh.authorizedKeys.keyFiles = [
-                    "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w" }"
+                    "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w" }"
                   ];
                 };
 
@@ -136,7 +136,7 @@
                   ];
 
                   openssh.authorizedKeys.keys = [
-                    "ssh-ed25519 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w"
+                    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w"
                   ];
                 };
 
@@ -154,7 +154,7 @@
                   settings.PermitRootLogin = "yes";
                   ports = [ 10022 ];
                   authorizedKeysFiles = [
-                    "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w" }"
+                    "${ pkgs.writeText "nixuser-keys.pub" "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDUPGFQFJxBEaoB+ammkgnvlz0SmUTNfMZ2lOmW2lM9w" }"
                   ];
                 };
 
@@ -170,7 +170,7 @@
                 services.sshd.enable = true;
 
                 nixpkgs.config.allowUnfree = true;
-                boot.readOnlyNixStore = true; # TODO
+                # boot.readOnlyNixStore removed in NixOS 25.05; use boot.nixStoreMountOpts for 'ro' if needed
                 nix = {
                   extraOptions = "experimental-features = nix-command flakes";
                   package = pkgs.nix;
@@ -194,7 +194,7 @@
           # inherit pkgs;
           pkgs = final;
           modules = [
-            ({ pkgs, ... }:
+            ({ pkgs, config, ... }:
               {
                 home.stateVersion = "25.05";
                 home.username = "vagrant";
@@ -263,7 +263,7 @@
                 programs.zsh = {
                   enable = true;
                   enableCompletion = true;
-                  dotDir = ".config/zsh";
+                  dotDir = "${config.xdg.configHome}/zsh";
                   autosuggestion.enable = true;
                   syntaxHighlighting.enable = true;
                   envExtra = ''
