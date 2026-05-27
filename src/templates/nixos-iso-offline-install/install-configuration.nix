@@ -87,7 +87,20 @@
   # Enable the X11 windowing system.
   # services.xserver.enable = true;
 
-  # services.sshd.enable = true;
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = true;
+      PermitRootLogin = "no";
+    };
+  };
+
+  # wheel sem senha para testes automatizados (sudo poweroff etc.)
+  security.sudo.wheelNeedsPassword = false;
+
+  # nixuser usa isSystemUser=true, então o shell não é adicionado automaticamente
+  # ao /etc/shells; sem isso, pam_shells rejeita o login via SSH
+  environment.shells = [ pkgs.bashInteractive ];
 
   # https://nixos.wiki/wiki/Libvirt
   # https://discourse.nixos.org/t/set-up-vagrant-with-libvirt-qemu-kvm-on-nixos/14653

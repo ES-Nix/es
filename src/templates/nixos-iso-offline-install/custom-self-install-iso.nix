@@ -13,7 +13,7 @@ let
     # set -euxo pipefail
 
     # TODO: can this have an race condition
-    trap 'sync; sleep 5; poweroff -f' EXIT
+    trap 'umount -R /mnt 2>/dev/null || true; sync; systemctl poweroff; sleep 30; poweroff -f' EXIT
 
     [ -d /sys/firmware/efi ] && echo 'The system was detected as UEFI' || echo 'The system was detected as BIOS'
 
@@ -84,19 +84,32 @@ let
     && udevadm settle \
     && mount /dev/disk/by-label/nixos /mnt \
     && mkdir -pv -m 0755 /mnt/boot \
-    && mount /dev/disk/by-label/boot /mnt/boot \
+    && mount -o umask=0077,sync /dev/disk/by-label/boot /mnt/boot \
     && (test -d /mnt || exit 1) \
     && nixos-generate-config --root /mnt \
     && date --rfc-3339=ns --utc \
     && nix \
         build \
         --offline \
+        --max-jobs 0 \
         --no-use-registries \
         --file "${pkgs.path}"'/nixos' system \
         -I nixos-config=/mnt/etc/nixos/configuration.nix \
         -o /out \
-    && nix copy -v --no-check-sigs --to local?root=/mnt /out \
+    && _closure=$(nix-store -qR /out | sort -u) \
+    && mkdir -p /mnt/nix/store \
+    && echo "$_closure" | xargs -I{} sh -c \
+         '[ -d "/mnt/nix/store/$(basename "$1")" ] || cp -rp "$1" /mnt/nix/store/' _ {} \
+    && nix-store --store local?root=/mnt --load-db < <(nix-store --dump-db $_closure) \
     && ls -al /nix/var/nix/profiles/per-user/root/channels \
+    && mkdir -p /mnt/boot/EFI/nixos \
+    && (for _src in "$(realpath /out/kernel 2>/dev/null)" "$(realpath /out/initrd 2>/dev/null)"; do
+           [ -f "''${_src}" ] || continue
+           _subdir=$(basename "$(dirname "''${_src}")")
+           _fname=$(basename "''${_src}")
+           _dest="/mnt/boot/EFI/nixos/''${_subdir}-''${_fname}.efi"
+           [ -f "''${_dest}" ] || cp -v "''${_src}" "''${_dest}"
+       done) \
     && ${installBuild.nixos-install}/bin/nixos-install --no-root-password --no-channel-copy
   '';
 
@@ -144,7 +157,7 @@ in
   boot.consoleLogLevel = 0;
   boot.loader.timeout = lib.mkForce 0;
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 
   boot.kernelParams = [
     "console=tty0"
@@ -189,8 +202,8 @@ in
   isoImage.squashfsCompression = "gzip -Xcompression-level 1";
   # isoImage.squashfsCompression = "zstd -Xcompression-level 1";
   # isoImage.squashfsCompression = "zstd -Xcompression-level 22";
-  # isoImage.isoBaseName = "nixos-offline-installer"; # TODO: why it did not cause an error in 24.11?
-  isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
+  # image.baseName = "nixos-offline-installer";
+  image.fileName = "${config.image.baseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
   isoImage.makeEfiBootable = true;
   isoImage.makeUsbBootable = true;
   isoImage.volumeID = "NIXOS_ISO"; # substring 0 11 "NIXOS_ISO";

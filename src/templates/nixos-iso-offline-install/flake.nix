@@ -186,6 +186,40 @@
           meta.mainProgram = name;
         };
 
+        testInstalledQcow2 =
+          let
+            ovmfAarch64 = "${final.OVMF.fd}/FV/AAVMF_CODE.fd";
+            ovmfX86_64  = "${final.OVMF.fd}/FV/OVMF.fd";
+          in
+          prev.stdenv.mkDerivation rec {
+            name = "test-qcow2";
+            nativeBuildInputs = with prev; [ makeWrapper ];
+            propagatedNativeBuildInputs = with prev; [
+              bashInteractive
+              qemu
+              sshpass
+              openssh
+            ];
+
+            src = builtins.path { path = ./.; inherit name; };
+            phases = [ "installPhase" ];
+            unpackPhase = ":";
+
+            installPhase = ''
+              install -m0755 "${src}/test-qcow2.sh" -D "$out/bin/${name}"
+              patchShebangs "$out/bin/${name}"
+
+              substituteInPlace "$out/bin/${name}" \
+                --replace-fail 'OVMF_PLACEHOLDER_AARCH64' '${ovmfAarch64}' \
+                --replace-fail 'OVMF_PLACEHOLDER_X86_64'  '${ovmfX86_64}'
+
+              wrapProgram "$out/bin/${name}" \
+                --prefix PATH : "${prev.lib.makeBinPath propagatedNativeBuildInputs}"
+            '';
+
+            meta.mainProgram = name;
+          };
+
         testISOIntall = final.testers.runNixOSTest {
           name = "test-";
           nodes.machine =
@@ -234,6 +268,7 @@
             ISONixOSSelfOfflineInstallISOInQcow2
             run-nixos-offline-install-iso-in-qcow2
             testISOIntall
+            testInstalledQcow2
             ;
           # default = pkgs.testISOIntall;
           default = pkgs.ISONixOSSelfOfflineInstallISOInQcow2;
@@ -254,6 +289,11 @@
             type = "app";
             program = "${pkgs.lib.getExe pkgs.runQEMUNixOS}";
             meta.description = "Run a NixOS in QEMU";
+          };
+          testQcow2 = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.testInstalledQcow2}";
+            meta.description = "Testa o sistema NixOS instalado: boot + login nixuser via SSH";
           };
         };
 
