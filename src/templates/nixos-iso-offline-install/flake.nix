@@ -151,40 +151,50 @@
           };
 
 
-        runQEMUNixOS = prev.stdenv.mkDerivation rec {
-          name = "run-qemu-nixos";
-          buildInputs = with prev; [ stdenv ];
-          nativeBuildInputs = with prev; [ makeWrapper ];
-          propagatedNativeBuildInputs = with prev; [
-            bashInteractive
-            # coreutils
-            qemu
-          ];
+        runQEMUNixOS =
+          let
+            ovmfPath =
+              if prev.stdenv.hostPlatform.isAarch64
+              then "${final.OVMF.fd}/FV/AAVMF_CODE.fd"
+              else "${final.OVMF.fd}/FV/OVMF.fd";
+          in
+          prev.stdenv.mkDerivation rec {
+            name = "run-qemu-nixos";
+            buildInputs = with prev; [ stdenv ];
+            nativeBuildInputs = with prev; [ makeWrapper ];
+            propagatedNativeBuildInputs = with prev; [
+              bashInteractive
+              # coreutils
+              qemu
+            ];
 
-          src = builtins.path { path = ./.; inherit name; };
-          phases = [ "installPhase" ];
+            src = builtins.path { path = ./.; inherit name; };
+            phases = [ "installPhase" ];
 
-          unpackPhase = ":";
+            unpackPhase = ":";
 
-          installPhase = ''
-            mkdir -p $out/bin
+            installPhase = ''
+              mkdir -p $out/bin
 
-            cp -r "${src}/${name}.sh" $out
+              cp -r "${src}/${name}.sh" $out
 
-            install \
-            -m0755 \
-            $out/${name}.sh \
-            -D \
-            $out/bin/${name}
+              install \
+              -m0755 \
+              $out/${name}.sh \
+              -D \
+              $out/bin/${name}
 
-            patchShebangs $out/bin/${name}
+              patchShebangs $out/bin/${name}
 
-            wrapProgram $out/bin/${name} \
-              --prefix PATH : "${prev.lib.makeBinPath propagatedNativeBuildInputs }"
-          '';
+              substituteInPlace $out/bin/${name} \
+                --replace-fail '@OVMF_PATH@' '${ovmfPath}'
 
-          meta.mainProgram = name;
-        };
+              wrapProgram $out/bin/${name} \
+                --prefix PATH : "${prev.lib.makeBinPath propagatedNativeBuildInputs }"
+            '';
+
+            meta.mainProgram = name;
+          };
 
         testInstalledQcow2 =
           let
@@ -218,6 +228,29 @@
             '';
 
             meta.mainProgram = name;
+          };
+
+        nosApp =
+          let name = "nos"; in
+          prev.writeShellApplication {
+            inherit name;
+            runtimeInputs = [
+              final.run-nixos-offline-install-iso-in-qcow2
+              final.runQEMUNixOS
+            ];
+            text = ''
+              RAM_SIZE="''${RAM_SIZE:-4G}" run-nixos-offline-install-iso-in-qcow2
+
+              _disk="''${DISK_NAME:-mydisk.qcow2}"
+              _disk_bytes=$(du -sb "$_disk" 2>/dev/null | cut -f1 || echo 0)
+              _min_bytes=$((2 * 1024 * 1024 * 1024))
+              if [ "$_disk_bytes" -lt "$_min_bytes" ]; then
+                echo "nos: installer failed — $_disk is only $_disk_bytes bytes (< 2 GiB), aborting" >&2
+                exit 1
+              fi
+
+              run-qemu-nixos
+            '';
           };
 
         testISOIntall = final.testers.runNixOSTest {
@@ -269,6 +302,7 @@
             run-nixos-offline-install-iso-in-qcow2
             testISOIntall
             testInstalledQcow2
+            nosApp
             ;
           # default = pkgs.testISOIntall;
           default = pkgs.ISONixOSSelfOfflineInstallISOInQcow2;
@@ -295,6 +329,11 @@
             program = "${pkgs.lib.getExe pkgs.testInstalledQcow2}";
             meta.description = "Testa o sistema NixOS instalado: boot + login nixuser via SSH";
           };
+          nos = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.nosApp}";
+            meta.description = "Install NixOS ISO in qcow2 then boot installed system";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -304,6 +343,7 @@
             ISONixOSSelfOfflineInstallISOInQcow2
             run-nixos-offline-install-iso-in-qcow2
             runQEMUNixOS
+            nosApp
             # testISOIntall # TODO: fix test
             ;
           default = pkgs.runQEMUNixOS;

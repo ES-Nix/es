@@ -12,7 +12,13 @@ let
     set -x
     # set -euxo pipefail
 
-    # TODO: can this have an race condition
+    # Redirect all output to serial so QEMU -nographic captures installer progress
+    exec >> /dev/ttyAMA0 2>&1
+
+    # Only one instance runs; extra agetty sessions exit silently without triggering the trap
+    exec 9>/var/run/off-install.lock
+    flock -n 9 || exit 0
+
     trap 'umount -R /mnt 2>/dev/null || true; sync; systemctl poweroff; sleep 30; poweroff -f' EXIT
 
     [ -d /sys/firmware/efi ] && echo 'The system was detected as UEFI' || echo 'The system was detected as BIOS'
@@ -57,8 +63,11 @@ let
     SWAP_START_MiB=$((DISK_MiB - 1536))
     SWAP_END_MiB=$((DISK_MiB - 512))
 
-    # Stop services that auto-scan new block devices; allowed to fail if not running
-    systemctl stop lvm2-monitor lvm2-lvmpolld mdadm 2>/dev/null || true
+    # Stop services that hold block devices open; leave udevd running
+    systemctl stop udisks2 lvm2-monitor lvm2-lvmpolld mdadm 2>/dev/null || true
+
+    # Retry wrapper: wait for udevd to release device between partition creation and mkfs
+    _retry() { for _i in $(seq 10); do "$@" && return 0; udevadm settle; sleep 1; done; return 1; }
 
     wipefs --all --force --json "$DISK_DEV" \
     && parted --script "$DISK_DEV" \
@@ -67,20 +76,12 @@ let
         mkpart primary linux-swap "''${SWAP_START_MiB}MiB" "''${SWAP_END_MiB}MiB" \
         mkpart ESP fat32 1MiB 512MiB \
         set 3 boot on \
-    && sync \
     && udevadm settle \
-    && (for _i in 1 2 3 4 5 6 7 8 9 10; do
-          mkfs.ext4 -F -F -E nodiscard -L nixos "''${DISK_DEV}1" && break
-          echo "mkfs.ext4 attempt $_i failed (EBUSY?), retrying..."
-          sleep 0.01
-       done) \
-    && mkswap --label swap "''${DISK_DEV}2" \
-    && (for _i in 1 2 3 4 5 6 7 8 9 10; do
-          mkfs.fat -F 32 -n boot -I "''${DISK_DEV}3" && break
-          echo "mkfs.fat attempt $_i failed (EBUSY?), retrying..."
-          sleep 0.01
-       done) \
-    && udevadm trigger --action=add --subsystem-match=block \
+    && _retry mkfs.ext4 -F -F -L nixos "''${DISK_DEV}1" \
+    && udevadm settle \
+    && _retry mkswap --label swap "''${DISK_DEV}2" \
+    && udevadm settle \
+    && _retry mkfs.fat -F 32 -n boot -I "''${DISK_DEV}3" \
     && udevadm settle \
     && mount /dev/disk/by-label/nixos /mnt \
     && mkdir -pv -m 0755 /mnt/boot \
@@ -88,29 +89,30 @@ let
     && (test -d /mnt || exit 1) \
     && nixos-generate-config --root /mnt \
     && date --rfc-3339=ns --utc \
-    && nix \
-        build \
-        --offline \
-        --max-jobs 0 \
-        --no-use-registries \
-        --file "${pkgs.path}"'/nixos' system \
-        -I nixos-config=/mnt/etc/nixos/configuration.nix \
-        -o /out \
-    && _closure=$(nix-store -qR /out | sort -u) \
+    && _closure=$(nix-store -qR ${installBuild.toplevel} | sort -u) \
     && mkdir -p /mnt/nix/store \
     && echo "$_closure" | xargs -I{} sh -c \
-         '[ -d "/mnt/nix/store/$(basename "$1")" ] || cp -rp "$1" /mnt/nix/store/' _ {} \
-    && nix-store --store local?root=/mnt --load-db < <(nix-store --dump-db $_closure) \
-    && ls -al /nix/var/nix/profiles/per-user/root/channels \
+         'dst="/mnt/nix/store/$(basename "$1")"; [ -e "$dst" ] || { cp -rp "$1" /mnt/nix/store/ 2>/dev/null; [ -e "$dst" ]; }' _ {} \
+    && mkdir -p /mnt/nix/var/nix && cp -rp /nix/var/nix/db /mnt/nix/var/nix/db \
     && mkdir -p /mnt/boot/EFI/nixos \
-    && (for _src in "$(realpath /out/kernel 2>/dev/null)" "$(realpath /out/initrd 2>/dev/null)"; do
+    && (for _src in "$(realpath ${installBuild.toplevel}/kernel 2>/dev/null)" "$(realpath ${installBuild.toplevel}/initrd 2>/dev/null)"; do
            [ -f "''${_src}" ] || continue
            _subdir=$(basename "$(dirname "''${_src}")")
            _fname=$(basename "''${_src}")
            _dest="/mnt/boot/EFI/nixos/''${_subdir}-''${_fname}.efi"
            [ -f "''${_dest}" ] || cp -v "''${_src}" "''${_dest}"
        done) \
-    && ${installBuild.nixos-install}/bin/nixos-install --no-root-password --no-channel-copy
+    && touch /mnt/etc/NIXOS \
+    && mkdir -p /mnt/nix/var/nix/profiles \
+    && ln -sfn ${installBuild.toplevel} /mnt/nix/var/nix/profiles/system-1-link \
+    && ln -sfn system-1-link /mnt/nix/var/nix/profiles/system \
+    && printf 'ID=nixos\n' > /mnt/etc/os-release \
+    && mkdir -p /mnt/proc /mnt/sys /mnt/dev /mnt/run \
+    && mount --bind /proc /mnt/proc \
+    && mount --bind /sys /mnt/sys \
+    && mount --bind /dev /mnt/dev \
+    && mount --bind /run /mnt/run \
+    && NIXOS_INSTALL_BOOTLOADER=1 chroot /mnt ${installBuild.toplevel}/bin/switch-to-configuration boot
   '';
 
 in

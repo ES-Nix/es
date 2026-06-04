@@ -2,6 +2,7 @@
 
 
 DISK_NAME="${DISK_NAME:=mydisk.qcow2}"
+FULL_PATH_TO_OVMF="@OVMF_PATH@"
 
 _HOST_ARCH=$(uname -m)
 case "$_HOST_ARCH" in
@@ -10,21 +11,18 @@ case "$_HOST_ARCH" in
     _QEMU_MACHINE_ARGS=("-enable-kvm")
     _QEMU_DISK_ARGS=("-hda" "$DISK_NAME")
     _QEMU_CPU_ARGS=("-cpu" "Haswell-noTSX-IBRS,vmx=on")
-    FULL_PATH_TO_OVMF="$(nix build --print-out-paths --no-link nixpkgs#OVMF.fd)/FV/OVMF.fd"
     ;;
   aarch64)
     _QEMU_BIN="qemu-system-aarch64"
     _QEMU_MACHINE_ARGS=("-enable-kvm" "-machine" "virt,gic-version=max" "-cpu" "host")
     _QEMU_DISK_ARGS=("-drive" "file=$DISK_NAME,if=virtio,format=qcow2")
     _QEMU_CPU_ARGS=()
-    FULL_PATH_TO_OVMF="$(nix build --print-out-paths --no-link nixpkgs#OVMF.fd)/FV/AAVMF_CODE.fd"
     ;;
   *)
     _QEMU_BIN="qemu-system-${_HOST_ARCH}"
     _QEMU_MACHINE_ARGS=()
     _QEMU_DISK_ARGS=("-hda" "$DISK_NAME")
     _QEMU_CPU_ARGS=()
-    FULL_PATH_TO_OVMF="${OVMF:-OVMF.fd}"
     ;;
 esac
 

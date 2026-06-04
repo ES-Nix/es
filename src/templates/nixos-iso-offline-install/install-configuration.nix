@@ -21,7 +21,7 @@
     systemd-boot.enable = true;
 
     efi = {
-      canTouchEfiVariables = true;
+      canTouchEfiVariables = false;
       # efiSysMountPoint = "/dev/disk/by-label/nixos"; # <= use the same mount point here.
     };
 
