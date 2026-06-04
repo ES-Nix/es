@@ -239,9 +239,42 @@
               final.runQEMUNixOS
             ];
             text = ''
-              RAM_SIZE="''${RAM_SIZE:-4G}" run-nixos-offline-install-iso-in-qcow2
-
               _disk="''${DISK_NAME:-mydisk.qcow2}"
+              _timeout="''${INSTALL_TIMEOUT:-1200}"  # 20 min; override with INSTALL_TIMEOUT=N
+
+              RAM_SIZE="''${RAM_SIZE:-4G}" timeout "$_timeout" run-nixos-offline-install-iso-in-qcow2 &
+              _installer_pid=$!
+
+              # Progress watchdog: 30-second heartbeat showing elapsed time, disk growth, stall detection
+              _prev_bytes=0
+              _stall_periods=0
+              while kill -0 "$_installer_pid" 2>/dev/null; do
+                sleep 30
+                _bytes=$(du -sb "$_disk" 2>/dev/null | awk '{print $1}' || echo 0)
+                _elapsed=$(ps -p "$_installer_pid" -o etime= 2>/dev/null | tr -d ' ' || echo '?')
+                _delta=$(( _bytes - _prev_bytes ))
+                echo "nos: t=''${_elapsed} disk=$(( _bytes / 1048576 ))MiB delta=$(( _delta / 1024 ))KiB" >&2
+                if [ "$_bytes" -gt 0 ] && [ "$_delta" -eq 0 ]; then
+                  _stall_periods=$(( _stall_periods + 1 ))
+                  [ "$_stall_periods" -ge 10 ] && {
+                    echo "nos: stalled 5 min with no disk writes — killing installer" >&2
+                    kill "$_installer_pid" 2>/dev/null
+                    break
+                  }
+                else
+                  _stall_periods=0
+                fi
+                _prev_bytes=$_bytes
+              done
+
+              if ! wait "$_installer_pid"; then
+                _rc=$?
+                [ "$_rc" -eq 124 ] \
+                  && echo "nos: installer timed out after ''${_timeout}s" >&2 \
+                  || echo "nos: installer exited with code $_rc" >&2
+                exit "$_rc"
+              fi
+
               _disk_bytes=$(du -sb "$_disk" 2>/dev/null | cut -f1 || echo 0)
               _min_bytes=$((2 * 1024 * 1024 * 1024))
               if [ "$_disk_bytes" -lt "$_min_bytes" ]; then
