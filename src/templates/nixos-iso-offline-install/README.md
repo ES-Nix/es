@@ -17,7 +17,8 @@ nix run '.#' && nix run '.#run'
 sudo nix-channel --update -vv \
 && sudo nixos-rebuild list-generations --json \
 && sudo nixos-rebuild test \
-&& sudo nixos-rebuild switch
+&& sudo nixos-rebuild switch \
+&& sudo nixos-rebuild list-generations --json
 ```
 
 TODO: it should be an nix flake, it miss to be an flake when installed. Use an git patch

@@ -199,7 +199,7 @@
         testInstalledQcow2 =
           let
             ovmfAarch64 = "${final.OVMF.fd}/FV/AAVMF_CODE.fd";
-            ovmfX86_64  = "${final.OVMF.fd}/FV/OVMF.fd";
+            ovmfX86_64 = "${final.OVMF.fd}/FV/OVMF.fd";
           in
           prev.stdenv.mkDerivation rec {
             name = "test-qcow2";
