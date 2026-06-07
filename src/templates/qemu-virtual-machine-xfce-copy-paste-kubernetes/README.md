@@ -718,4 +718,70 @@ TODO:
 
 TODO: any other MCP like 
 https://github.com/containers/kubernetes-mcp-server 
+
+{
+  description = "kubernetes-mcp-server flake";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
+
+  outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+        };
+
+        version = "0.0.0"; # ajuste se quiser pinar release/tag
+      in
+      {
+        packages.default = pkgs.buildGoModule {
+          pname = "kubernetes-mcp-server";
+          inherit version;
+
+          src = pkgs.fetchFromGitHub {
+            owner = "containers";
+            repo = "kubernetes-mcp-server";
+            rev = "main";
+            hash = "sha256-Jg8oI2C120mNR2uRf/56VO1hFSmnjbTLzWdrunoYe4k=";
+          };
+
+          vendorHash = "sha256-AqntwUl3jbwyksR37XfplneCUrg+AesiwcBHJyYuw5Y=";
+
+          ldflags = [
+            "-s"
+            "-w"
+          ];
+
+          # binário principal
+          subPackages = [
+            "cmd/kubernetes-mcp-server"
+          ];
+
+          meta = with pkgs.lib; {
+            description = "Model Context Protocol server for Kubernetes and OpenShift";
+            homepage = "https://github.com/containers/kubernetes-mcp-server";
+            license = licenses.asl20;
+            maintainers = [];
+            platforms = platforms.linux ++ platforms.darwin;
+          };
+        };
+
+        apps.default = {
+          type = "app";
+          program = "${self.packages.${system}.default}/bin/kubernetes-mcp-server";
+        };
+
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            go
+            gopls
+            gotools
+          ];
+        };
+      });
+}
+
 TODO: test it.
