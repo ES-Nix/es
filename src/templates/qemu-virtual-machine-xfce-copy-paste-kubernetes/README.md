@@ -716,3 +716,6 @@ TODO:
 ```
 
 
+TODO: any other MCP like 
+https://github.com/containers/kubernetes-mcp-server 
+TODO: test it.
