@@ -1,0 +1,6 @@
+#
+
+
+```bash
+nix run '.#allTests'
+```

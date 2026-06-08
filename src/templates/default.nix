@@ -547,6 +547,48 @@ let
     };
   };
 
+  latexTemplates = {
+    fontspecXetex = {
+      description = "Minimal xetex document with fontspec — PDF build test";
+      path = ./fontspec-xetex;
+    };
+
+    gsCleanPdf = {
+      description = "Ghostscript-compressed PDF (input: lualatex Hello World, rebuilt inline)";
+      path = ./gs-clean-pdf;
+    };
+
+    latexDemoDocument = {
+      description = "LaTeX demo document — lualatex Hello World PDF";
+      path = ./latex-demo-document;
+    };
+
+    pandocCiteprocPdf = {
+      description = "Pandoc bibliography pipeline — citeproc + xelatex to PDF";
+      path = ./pandoc-citeproc-pdf;
+    };
+
+    pandocDemos = {
+      description = "A Nix flake building all 53 official pandoc demo outputs";
+      path = ./pandoc-demos;
+    };
+
+    pandocManualXelatex = {
+      description = "Pandoc MANUAL.txt converted to PDF via xelatex";
+      path = ./pandoc-manual-xelatex;
+    };
+
+    abntex2Examples = {
+      description = "A Nix flake for building all official abntex2 example documents";
+      path = ./tkz-example-03;
+    };
+
+    legrandOrangeBook = {
+      description = "A Nix flake for building the Legrand Orange Book LaTeX template";
+      path = ./tkz-example-04;
+    };
+  };
+
 in
 { }
 //
@@ -567,3 +609,5 @@ nixosTemplates
 fastapiCeleryTemplates
 //
 qemuNixosTestTemplates
+//
+latexTemplates
