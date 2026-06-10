@@ -5,16 +5,16 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     pyproject-nix = {
-      url = "github:pyproject-nix/pyproject.nix";
+      url = "github:pyproject-nix/pyproject.nix/ad83f1ead0e78e57b188f35cb57298affb06fc5f";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     uv2nix = {
-      url = "github:pyproject-nix/uv2nix";
+      url = "github:pyproject-nix/uv2nix/0497ccef038da091002be7c05263a7f27820974f";
       inputs.pyproject-nix.follows = "pyproject-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pyproject-build-systems = {
-      url = "github:pyproject-nix/build-system-pkgs";
+      url = "github:pyproject-nix/build-system-pkgs/7bff980f37fc24e09dbc986643719900c139bf12";
       inputs.pyproject-nix.follows = "pyproject-nix";
       inputs.uv2nix.follows = "uv2nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -31,14 +31,14 @@
             python = prev.python311;
             workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
             overlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
-            pythonSet = (prev.callPackage pyproject-nix.lib.renderers.withPackages {
+            pythonSet = (prev.callPackage pyproject-nix.build.packages {
               inherit python;
-            }).override (old: {
-              overlays = old.overlays ++ [
+            }).overrideScope (
+              nixpkgs.lib.composeManyExtensions [
+                pyproject-build-systems.overlays.wheel
                 overlay
-                pyproject-build-systems.overlays.default
-              ];
-            });
+              ]
+            );
           in
           (pythonSet.mkVirtualEnv "myapp-env" workspace.deps.default)
           // { meta.mainProgram = "start-app"; };
