@@ -1,0 +1,8 @@
+{
+  "name": "uglify-es-example",
+  "version": "1.0.0",
+  "description": "Example: npm install uglify-es",
+  "dependencies": {
+    "uglify-es": "3.3.10"
+  }
+}

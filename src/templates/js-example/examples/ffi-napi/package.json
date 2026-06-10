@@ -1,0 +1,8 @@
+{
+  "name": "ffi-napi-example",
+  "version": "1.0.0",
+  "description": "Example: yarn add ffi-napi",
+  "dependencies": {
+    "ffi-napi": "4.0.3"
+  }
+}

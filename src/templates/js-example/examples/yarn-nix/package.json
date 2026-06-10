@@ -1,0 +1,15 @@
+{
+  "name": "yarn-nix-example",
+  "version": "1.0.0",
+  "description": "Example: integrates nix flake with yarn",
+  "scripts": {
+    "build": "tsc --outDir dist src/wui.ts"
+  },
+  "dependencies": {
+    "lodash": "4.17.21"
+  },
+  "devDependencies": {
+    "@types/lodash": "4.17.16",
+    "typescript": "5.8.3"
+  }
+}
