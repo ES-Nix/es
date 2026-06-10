@@ -114,7 +114,28 @@
           end
         '';
 
-        vagrantfileAlpineMinimal = final.vagrantfileAlpine;
+        vagrantfileAlpineMinimal = prev.writeText "vagrantfile-alpine-minimal" ''
+          Vagrant.configure("2") do |config|
+            config.vm.box = "generic/alpine319"
+            config.ssh.extra_args = ["-F", "/dev/null"]
+            config.vm.provider :libvirt do |v|
+              v.cpus = 1
+              v.memory = "1024"
+              v.machine_type = "virt"
+              v.machine_arch = "aarch64"
+              v.features = []
+              v.inputs = [{ type: "keyboard", bus: "virtio" }]
+              v.video_type = "virtio"
+              v.cpu_mode = "host-passthrough"
+              v.driver = "kvm"
+              v.uri = "qemu:///system"
+            end
+            config.vm.provision "shell", inline: <<-SHELL
+              echo "Hello from minimal Alpine"
+              cat /etc/os-release
+            SHELL
+          end
+        '';
 
         prepareVagrantVms = prev.writeScriptBin "prepare-vagrant-vms" ''
           #! ${prev.runtimeShell} -e
@@ -148,6 +169,8 @@
                 vagrant
               ];
               config.virtualisation.libvirtd.enable = true;
+              config.virtualisation.memorySize = 4096;
+              config.virtualisation.qemu.options = [ "-enable-kvm" "-cpu" "host" ];
               config.environment.variables = {
                 VAGRANT_DEFAULT_PROVIDER = "libvirt";
               };
@@ -158,11 +181,15 @@
               # systemctl show -p ActiveEnterTimestamp copy-vagrant.service
               # TODO: config.systemd vs config.systemd.user
               config.systemd.services.copy-vagrant = {
+                serviceConfig.Type = "oneshot";
+                serviceConfig.RemainAfterExit = true;
+                environment.HOME = "/root";
                 path = with pkgs; [
                   curl
                   file
                   gnutar
                   gzip
+                  openssh
                   procps
                   vagrant
                   xz
@@ -191,11 +218,7 @@
                         $PROVIDER --no-color --no-tty \
                     && ls -alh "$BASE_DIR"/alpine/ \
                     && echo 123456789 \
-                    && vagrant \
-                        box \
-                        list \
-                        --provider \
-                        $PROVIDER \
+                    && vagrant box list \
                     && echo 987654321
                 '';
                 after = [ "libvirtd.service" "network.target" ];
@@ -204,7 +227,7 @@
 
             };
 
-          globalTimeout = 3 * 60;
+          globalTimeout = 5 * 60;
 
           testScript = { nodes, ... }:
             let
@@ -217,17 +240,17 @@
               machineWithVagrant.wait_for_unit("multi-user.target")
               machineWithVagrant.wait_for_unit("copy-vagrant")
 
-              # machineWithVagrant.succeed("type prepare-vagrant-vms")
-              # machineWithVagrant.succeed("type vagrant")
+              machineWithVagrant.succeed("type prepare-vagrant-vms")
+              machineWithVagrant.succeed("type vagrant")
 
-              # machineWithVagrant.succeed("touch /dev/kvm")
-              # machineWithVagrant.succeed("test -d /tmp")
-              # print(machineWithVagrant.succeed("env | sort"))
-              # machineWithVagrant.succeed("id >&2")
+              machineWithVagrant.succeed("test -d /tmp")
+              machineWithVagrant.succeed("id >&2")
+              print(machineWithVagrant.succeed("env | sort"))
 
-              # machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER >&2")
-              # assert 'libvirt' in machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER")
-              # machineWithVagrant.succeed("systemctl is-enabled libvirtd.service >&2")
+              machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER >&2")
+              assert 'libvirt' in machineWithVagrant.succeed("echo $VAGRANT_DEFAULT_PROVIDER"), \
+                "VAGRANT_DEFAULT_PROVIDER is not 'libvirt'"
+              machineWithVagrant.succeed("systemctl is-enabled libvirtd.service >&2")
 
               machineWithVagrant.succeed("journalctl --unit libvirtd.service --boot --no-pager >&2")
               machineWithVagrant.succeed("""
@@ -237,21 +260,23 @@
               #   journalctl --user --unit copy-vagrant.service --boot --catalog --no-pager --full >&2
               # """)
 
-              # machineWithVagrant.wait_until_succeeds("vagrant box list | grep -q alpine")
-              # machineWithVagrant.succeed("vagrant box list >&2")
-              # machineWithVagrant.execute("cd /root/vagrant-examples/libvirt/alpine/ && vagrant up >&2")
-              
-              # machineWithVagrant.succeed("prepare-vagrant-vms >&2")
-              # machineWithVagrant.succeed("vagrant box list >&2")
+              machineWithVagrant.succeed("vagrant box list | grep -q alpine")
+              machineWithVagrant.succeed("vagrant box list >&2")
 
-              # machineWithVagrant.succeed("journalctl --unit copy-vagrant --boot >&2")
-
-              # machineWithVagrant.succeed("cd /root/vagrant-examples/libvirt/alpine && vagrant box list && vagrant up")
-              # machineWithVagrant.wait_until_succeeds("vagrant ssh -- -t 'id && cat /etc/os-release'")
-
-              # expected = 'PRETTY_NAME="Alpine Linux v3.19"'
-              # result = machineWithVagrant.succeed("vagrant ssh -c 'id && cat /etc/os-release'")
-              # assert expected == result, f"expected = {expected}, result = {result}"
+              kvm_rc, _ = machineWithVagrant.execute("test -c /dev/kvm")
+              if kvm_rc == 0:
+                machineWithVagrant.succeed(
+                  "cd /root/vagrant-examples/libvirt/alpine && vagrant up --no-tty 2>&1",
+                  timeout=900
+                )
+                result = machineWithVagrant.succeed(
+                  "cd /root/vagrant-examples/libvirt/alpine && vagrant ssh -c 'cat /etc/os-release' 2>/dev/null",
+                  timeout=120
+                )
+                print(result)
+                assert 'Alpine Linux' in result, f"Expected Alpine Linux, got: {result!r}"
+              else:
+                print("Nested KVM not available; vagrant up/ssh test skipped")
             '';
         };
 
