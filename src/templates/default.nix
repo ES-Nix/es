@@ -587,6 +587,11 @@ let
       description = "A Nix flake for building the Legrand Orange Book LaTeX template";
       path = ./tkz-example-04;
     };
+
+    mosfetAmplifier = {
+      description = "A Nix flake for building the mosfet amplifier";
+      path = ./tkz-mosfet-amplifier;
+    };
   };
 
 in
