@@ -403,16 +403,17 @@
           dockerTools = prev.dockerTools // {
             pullImage = args:
               if (args ? imageName) && args.imageName == "coredns/coredns" then
-                prev.dockerTools.buildLayeredImage {
-                  name = args.imageName;
-                  tag = args.finalImageTag or "latest";
-                  contents = prev.buildEnv {
-                    name = "coredns-env";
-                    paths = [ prev.coredns ];
-                    pathsToLink = [ "/bin" ];
-                  };
-                  config.Entrypoint = [ "/bin/coredns" ];
-                }
+                prev.dockerTools.buildLayeredImage
+                  {
+                    name = args.imageName;
+                    tag = args.finalImageTag or "latest";
+                    contents = prev.buildEnv {
+                      name = "coredns-env";
+                      paths = [ prev.coredns ];
+                      pathsToLink = [ "/bin" ];
+                    };
+                    config.Entrypoint = [ "/bin/coredns" ];
+                  }
               else
                 prev.dockerTools.pullImage args;
           };
