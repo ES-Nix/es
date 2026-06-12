@@ -41,7 +41,7 @@
             );
           in
           (pythonSet.mkVirtualEnv "myapp-env" workspace.deps.default)
-          // { meta.mainProgram = "start-app"; };
+            // { meta.mainProgram = "start-app"; };
 
         myappOCIImage =
           let

@@ -367,6 +367,37 @@ let
     };
   };
 
+  nixStaticOciImageTemplates = {
+    nixStaticBare = {
+      description = "Bare OCI image with only a statically linked Nix";
+      path = ./nix-static-bare;
+    };
+    nixStaticUnprivileged = {
+      description = "OCI image with static Nix, busybox and an unprivileged user";
+      path = ./nix-static-unprivileged;
+    };
+    nixStaticCaBundleEtcPasswdEtcGroupTmp = {
+      description = "OCI image with static Nix, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-ca-bundle-etc-passwd-etc-group-tmp;
+    };
+    nixStaticBusyboxSandboxShellCaBundleEtcPasswdEtcGroupTmp = {
+      description = "OCI image with static Nix, busybox-sandbox-shell, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-busybox-sandbox-shell-ca-bundle-etc-passwd-etc-group-tmp;
+    };
+    nixStaticBashInteractiveCaBundleEtcPasswdEtcGroupTmp = {
+      description = "OCI image with static Nix, bashInteractive, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-bash-interactive-ca-bundle-etc-passwd-etc-group-tmp;
+    };
+    nixStaticCoreutilsBashInteractiveCaBundleEtcPasswdEtcGroupTmp = {
+      description = "OCI image with static Nix, coreutils, bashInteractive, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-coreutils-bash-interactive-ca-bundle-etc-passwd-etc-group-tmp;
+    };
+    nixStaticToyboxCaBundleEtcPasswdEtcGroupTmp = {
+      description = "OCI image with static Nix, toybox, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-toybox-ca-bundle-etc-passwd-etc-group-tmp;
+    };
+  };
+
   binfmtTemplates = {
     binfmtEmulatedSystemsHello = {
       description = "";
@@ -653,6 +684,8 @@ pythonFastAPIPoetry2nixTemplates
 vagrantTemplates
 //
 staticCompiledTemplates
+//
+nixStaticOciImageTemplates
 //
 binfmtTemplates
 //

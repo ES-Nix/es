@@ -160,6 +160,197 @@
           '';
         };
         testNixOSPerfFlameGraphsDriverInteractive = final.testNixOSPerfFlameGraphs.driverInteractive;
+        testNixOSPerfFlameGraphsMinimalDriverInteractive = final.testNixOSPerfFlameGraphsMinimal.driverInteractive;
+
+        testNixOSPerfFlameGraphsSvgToPdfRsvg = final.testers.runNixOSTest {
+          name = "test-flamegraph-perf-svg-to-pdf-rsvg";
+          nodes = {
+            machineABCZ = { config, pkgs, ... }: {
+              environment.systemPackages = with final; [
+                perf
+                file
+                librsvg
+                inferno
+                stress-ng
+              ];
+            };
+          };
+          testScript = { nodes, ... }: ''
+            start_all()
+
+            machineABCZ.execute("""
+              perf record -F 99 -a -g -- stress-ng --cpu 4 --timeout 10s \
+              | perf script \
+              | inferno-collapse-perf \
+              | inferno-flamegraph > flamegraph.svg
+            """)
+
+            machineABCZ.succeed("test -f flamegraph.svg")
+            machineABCZ.succeed("rsvg-convert --format=pdf flamegraph.svg -o flamegraph.pdf")
+            machineABCZ.succeed("test -f flamegraph.pdf")
+            machineABCZ.succeed("file flamegraph.pdf 1>&2")
+            machineABCZ.copy_from_vm("flamegraph.svg", "")
+            machineABCZ.copy_from_vm("flamegraph.pdf", "")
+          '';
+        };
+        testNixOSPerfFlameGraphsSvgToPdfRsvgDriverInteractive = final.testNixOSPerfFlameGraphsSvgToPdfRsvg.driverInteractive;
+
+        # Uses perf's built-in flamegraph subcommand (generates self-contained HTML)
+        testNixOSPerfFlameGraphsPerfSubcommand = final.testers.runNixOSTest {
+          name = "test-flamegraph-perf-subcommand";
+          nodes = {
+            machineABCZ = { config, pkgs, ... }: {
+              environment.systemPackages = with final; [
+                perf
+                file
+                stress-ng
+              ];
+            };
+          };
+          testScript = { nodes, ... }: ''
+            start_all()
+
+            machineABCZ.succeed("perf script flamegraph -a -F 99 -- stress-ng --cpu 4 --timeout 10s 1>&2")
+            machineABCZ.succeed("test -f flamegraph.html")
+            machineABCZ.succeed("file flamegraph.html 1>&2")
+            machineABCZ.copy_from_vm("flamegraph.html", "")
+          '';
+        };
+        testNixOSPerfFlameGraphsPerfSubcommandDriverInteractive = final.testNixOSPerfFlameGraphsPerfSubcommand.driverInteractive;
+
+        # cargo-flamegraph ships a standalone `flamegraph` binary that works on any executable
+        testNixOSPerfFlameGraphsCargoFlamegraph = final.testers.runNixOSTest {
+          name = "test-flamegraph-cargo-flamegraph";
+          nodes = {
+            machineABCZ = { config, pkgs, ... }: {
+              environment.systemPackages = with final; [
+                perf
+                file
+                cargo-flamegraph
+                stress-ng
+              ];
+            };
+          };
+          testScript = { nodes, ... }: ''
+            start_all()
+
+            machineABCZ.succeed("flamegraph -o flamegraph.svg -- stress-ng --cpu 4 --timeout 10s 1>&2")
+            machineABCZ.succeed("test -f flamegraph.svg")
+            machineABCZ.succeed("file flamegraph.svg 1>&2")
+            machineABCZ.copy_from_vm("flamegraph.svg", "")
+          '';
+        };
+        testNixOSPerfFlameGraphsCargoFlamegraphDriverInteractive = final.testNixOSPerfFlameGraphsCargoFlamegraph.driverInteractive;
+
+        # Node.js flamegraph via --prof + node --prof-process + inferno
+        # Ref: https://nodejs.org/en/learn/diagnostics/flame-graphs
+        testNixOSPerfFlameGraphsNode = final.testers.runNixOSTest {
+          name = "test-flamegraph-node";
+          nodes = {
+            machineABCZ = { config, pkgs, ... }: {
+              environment.systemPackages = with final; [
+                nodejs
+                perf
+                file
+                inferno
+              ];
+            };
+          };
+          testScript = { nodes, ... }: ''
+            start_all()
+
+            machineABCZ.succeed("""
+              node --prof -e "
+                let s = 0;
+                for (let i = 0; i < 1e8; i++) s += i;
+                console.log(s);
+              " 1>&2
+            """)
+
+            machineABCZ.succeed("""
+              node --prof-process --preprocess -j isolate-*.log \
+              | inferno-collapse-node \
+              | inferno-flamegraph > flamegraph.svg
+            """)
+
+            machineABCZ.succeed("test -f flamegraph.svg")
+            machineABCZ.succeed("file flamegraph.svg 1>&2")
+            machineABCZ.copy_from_vm("flamegraph.svg", "")
+          '';
+        };
+        testNixOSPerfFlameGraphsNodeDriverInteractive = final.testNixOSPerfFlameGraphsNode.driverInteractive;
+
+        testNixOSPerfFlameGraphsSvgToPdfInkscape = final.testers.runNixOSTest {
+          name = "test-flamegraph-perf-svg-to-pdf-inkscape";
+          nodes = {
+            machineABCZ = { config, pkgs, ... }: {
+              environment.systemPackages = with final; [
+                perf
+                file
+                librsvg
+                inferno
+                inkscape
+                stress-ng
+              ];
+            };
+          };
+          testScript = { nodes, ... }: ''
+            start_all()
+
+            machineABCZ.execute("""
+              perf record -F 99 -a -g -- stress-ng --cpu 4 --timeout 10s \
+              | perf script \
+              | inferno-collapse-perf \
+              | inferno-flamegraph > flamegraph.svg
+            """)
+
+            machineABCZ.succeed("test -f flamegraph.svg")
+            machineABCZ.succeed("inkscape --export-type=pdf flamegraph.svg 1>&2")
+            machineABCZ.succeed("test -f flamegraph.pdf")
+            machineABCZ.succeed("file flamegraph.pdf 1>&2")
+            machineABCZ.copy_from_vm("flamegraph.svg", "")
+            machineABCZ.copy_from_vm("flamegraph.pdf", "")
+          '';
+        };
+        testNixOSPerfFlameGraphsSvgToPdfInkscapeDriverInteractive = final.testNixOSPerfFlameGraphsSvgToPdfInkscape.driverInteractive;
+
+        # Differential flamegraph: compare two perf runs to highlight regressions
+        # Ref: https://docs.rs/inferno/latest/inferno/#differential-flame-graphs
+        testNixOSPerfFlameGraphsDifferential = final.testers.runNixOSTest {
+          name = "test-flamegraph-perf-differential";
+          nodes = {
+            machineABCZ = { config, pkgs, ... }: {
+              environment.systemPackages = with final; [
+                perf
+                file
+                inferno
+                stress-ng
+              ];
+            };
+          };
+          testScript = { nodes, ... }: ''
+            start_all()
+
+            machineABCZ.execute("""
+              perf record -F 99 -a -g -o perf.before.data -- stress-ng --cpu 2 --timeout 5s \
+              && perf script -i perf.before.data | inferno-collapse-perf > before.folded
+            """)
+
+            machineABCZ.execute("""
+              perf record -F 99 -a -g -o perf.after.data -- stress-ng --cpu 4 --timeout 5s \
+              && perf script -i perf.after.data | inferno-collapse-perf > after.folded
+            """)
+
+            machineABCZ.succeed("test -f before.folded")
+            machineABCZ.succeed("test -f after.folded")
+            machineABCZ.succeed("inferno-diff-folded before.folded after.folded | inferno-flamegraph --negate > diff.svg")
+            machineABCZ.succeed("test -f diff.svg")
+            machineABCZ.succeed("file diff.svg 1>&2")
+            machineABCZ.copy_from_vm("diff.svg", "")
+          '';
+        };
+        testNixOSPerfFlameGraphsDifferentialDriverInteractive = final.testNixOSPerfFlameGraphsDifferential.driverInteractive;
+
         allTests = let name = "all-tests"; in final.writeShellApplication
           {
             name = name;
@@ -202,6 +393,19 @@
             testNixOSPerfFlameGraphs
             testNixOSPerfFlameGraphsMinimal
             testNixOSPerfFlameGraphsDriverInteractive
+            testNixOSPerfFlameGraphsMinimalDriverInteractive
+            testNixOSPerfFlameGraphsSvgToPdfRsvg
+            testNixOSPerfFlameGraphsSvgToPdfRsvgDriverInteractive
+            testNixOSPerfFlameGraphsPerfSubcommand
+            testNixOSPerfFlameGraphsPerfSubcommandDriverInteractive
+            testNixOSPerfFlameGraphsCargoFlamegraph
+            testNixOSPerfFlameGraphsCargoFlamegraphDriverInteractive
+            testNixOSPerfFlameGraphsNode
+            testNixOSPerfFlameGraphsNodeDriverInteractive
+            testNixOSPerfFlameGraphsSvgToPdfInkscape
+            testNixOSPerfFlameGraphsSvgToPdfInkscapeDriverInteractive
+            testNixOSPerfFlameGraphsDifferential
+            testNixOSPerfFlameGraphsDifferentialDriverInteractive
             ;
           default = pkgs.testNixOSPerfFlameGraphs;
         };
@@ -224,6 +428,19 @@
         checks = {
           inherit (pkgs)
             testNixOSPerfFlameGraphsDriverInteractive
+            testNixOSPerfFlameGraphsMinimalDriverInteractive
+            testNixOSPerfFlameGraphsSvgToPdfRsvg
+            testNixOSPerfFlameGraphsSvgToPdfRsvgDriverInteractive
+            testNixOSPerfFlameGraphsPerfSubcommand
+            testNixOSPerfFlameGraphsPerfSubcommandDriverInteractive
+            testNixOSPerfFlameGraphsCargoFlamegraph
+            testNixOSPerfFlameGraphsCargoFlamegraphDriverInteractive
+            testNixOSPerfFlameGraphsNode
+            testNixOSPerfFlameGraphsNodeDriverInteractive
+            testNixOSPerfFlameGraphsSvgToPdfInkscape
+            testNixOSPerfFlameGraphsSvgToPdfInkscapeDriverInteractive
+            testNixOSPerfFlameGraphsDifferential
+            testNixOSPerfFlameGraphsDifferentialDriverInteractive
             ;
           default = pkgs.testNixOSPerfFlameGraphs;
         };

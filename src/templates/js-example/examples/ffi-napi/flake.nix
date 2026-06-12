@@ -23,16 +23,17 @@
             cp -r node_modules $out/lib/
           '';
         };
-        allTests = pkgs.writeShellApplication {
-          name = "all-tests";
-          text = ''
-            nix fmt . \
-            && nix flake show '.#' \
-            && nix flake metadata '.#' \
-            && nix build --no-link --print-build-logs --print-out-paths '.#' \
-            && nix flake check --verbose '.#'
-          '';
-        } // { meta.mainProgram = "all-tests"; };
+        allTests = pkgs.writeShellApplication
+          {
+            name = "all-tests";
+            text = ''
+              nix fmt . \
+              && nix flake show '.#' \
+              && nix flake metadata '.#' \
+              && nix build --no-link --print-build-logs --print-out-paths '.#' \
+              && nix flake check --verbose '.#'
+            '';
+          } // { meta.mainProgram = "all-tests"; };
       in
       {
         packages = {
