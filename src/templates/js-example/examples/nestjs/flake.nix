@@ -29,13 +29,33 @@
           '';
           meta.mainProgram = "nestjs-example";
         };
+        allTests = pkgs.writeShellApplication {
+          name = "all-tests";
+          text = ''
+            nix fmt . \
+            && nix flake show '.#' \
+            && nix flake metadata '.#' \
+            && nix build --no-link --print-build-logs --print-out-paths '.#' \
+            && nix flake check --verbose '.#'
+          '';
+        } // { meta.mainProgram = "all-tests"; };
       in
       {
-        packages.default = nestjsApp;
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe nestjsApp}";
-          meta.description = "Run the NestJS HTTP server on :3000";
+        packages = {
+          default = nestjsApp;
+          inherit allTests;
+        };
+        apps = {
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe nestjsApp}";
+            meta.description = "Run the NestJS HTTP server on :3000";
+          };
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe allTests}";
+            meta.description = "Run all tests";
+          };
         };
         formatter = pkgs.nixpkgs-fmt;
         devShells.default = pkgs.mkShell {

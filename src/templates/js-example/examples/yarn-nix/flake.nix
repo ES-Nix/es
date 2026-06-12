@@ -33,16 +33,34 @@
           '';
           meta.mainProgram = "wui";
         };
+        allTests = pkgs.writeShellApplication {
+          name = "all-tests";
+          text = ''
+            nix fmt . \
+            && nix flake show '.#' \
+            && nix flake metadata '.#' \
+            && nix build --no-link --print-build-logs --print-out-paths '.#' \
+            && nix flake check --verbose '.#'
+          '';
+        } // { meta.mainProgram = "all-tests"; };
       in
       {
         packages = {
           default = yarnNixFrontend;
           nodeModules = yarnNixNodeModules;
+          inherit allTests;
         };
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe yarnNixFrontend}";
-          meta.description = "Run the TypeScript wui example";
+        apps = {
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe yarnNixFrontend}";
+            meta.description = "Run the TypeScript wui example";
+          };
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe allTests}";
+            meta.description = "Run all tests";
+          };
         };
         formatter = pkgs.nixpkgs-fmt;
         devShells.default = pkgs.mkShell {

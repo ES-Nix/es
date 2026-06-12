@@ -42,15 +42,32 @@
             assert "Hashed password:" in result, f"expected 'Hashed password:' in output, got: {result}"
           '';
         };
+        allTests = pkgs.writeShellApplication {
+          name = "all-tests";
+          text = ''
+            nix fmt . \
+            && nix flake show '.#' \
+            && nix flake metadata '.#' \
+            && nix build --no-link --print-build-logs --print-out-paths '.#' \
+            && nix flake check --verbose '.#'
+          '';
+        } // { meta.mainProgram = "all-tests"; };
       in
       {
         packages = {
           default = bcryptExample;
-          inherit testBcrypt;
+          inherit testBcrypt allTests;
         };
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe bcryptExample}";
+        apps = {
+          default = {
+            type = "app";
+            program = "${pkgs.lib.getExe bcryptExample}";
+          };
+          allTests = {
+            type = "app";
+            program = "${pkgs.lib.getExe allTests}";
+            meta.description = "Run all tests";
+          };
         };
         checks = {
           inherit bcryptExample testBcrypt;

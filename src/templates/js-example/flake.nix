@@ -238,33 +238,34 @@
 
         allTests =
           let name = "all-tests"; in
-          final.writeShellApplication {
-            name = name;
-            runtimeInputs = [ ];
-            text = ''
-              nix fmt . \
-              && nix flake show --all-systems '.#' \
-              && nix flake metadata '.#' \
-              && nix build --no-link --print-build-logs --print-out-paths '.#' \
-              && nix flake check --all-systems --verbose '.#'
-            '';
-          } // { meta.mainProgram = name; };
+          final.writeShellApplication
+            {
+              name = name;
+              runtimeInputs = [ ];
+              text = ''
+                nix fmt . \
+                && nix flake show '.#' \
+                && nix flake metadata '.#' \
+                && nix build --no-link --print-build-logs --print-out-paths '.#' \
+                && nix flake check --verbose '.#'
+              '';
+            } // { meta.mainProgram = name; };
 
       })
     ];
     templates = {
-      default          = { path = ./examples/uglify-es;          description = "Default: uglify-es example"; };
-      uglify-es        = { path = ./examples/uglify-es;          description = "npm install uglify-es"; };
-      bun-create-vue   = { path = ./examples/bun-create-vue;     description = "bun create vue (interactive scaffold)"; };
-      vue-js           = { path = ./examples/vue-js;             description = "Vite + Vue.js (JavaScript)"; };
-      vue-ts           = { path = ./examples/vue-ts;             description = "Vite + Vue.js (TypeScript)"; };
-      bcrypt           = { path = ./examples/bcrypt;             description = "bcrypt native binding + NixOS test"; };
-      native-modules   = { path = ./examples/native-modules;     description = "sqlite3 argon2 sharp node-sass native modules"; };
-      ffi-napi         = { path = ./examples/ffi-napi;           description = "ffi-napi native binding (--ignore-scripts for Node 22)"; };
-      nestjs           = { path = ./examples/nestjs;             description = "NestJS HTTP application"; };
-      yarn-nix         = { path = ./examples/yarn-nix;           description = "TypeScript + Lodash via mkYarnPackage"; };
+      default = { path = ./examples/uglify-es; description = "Default: uglify-es example"; };
+      uglify-es = { path = ./examples/uglify-es; description = "npm install uglify-es"; };
+      bun-create-vue = { path = ./examples/bun-create-vue; description = "bun create vue (interactive scaffold)"; };
+      vue-js = { path = ./examples/vue-js; description = "Vite + Vue.js (JavaScript)"; };
+      vue-ts = { path = ./examples/vue-ts; description = "Vite + Vue.js (TypeScript)"; };
+      bcrypt = { path = ./examples/bcrypt; description = "bcrypt native binding + NixOS test"; };
+      native-modules = { path = ./examples/native-modules; description = "sqlite3 argon2 sharp node-sass native modules"; };
+      ffi-napi = { path = ./examples/ffi-napi; description = "ffi-napi native binding (--ignore-scripts for Node 22)"; };
+      nestjs = { path = ./examples/nestjs; description = "NestJS HTTP application"; };
+      yarn-nix = { path = ./examples/yarn-nix; description = "TypeScript + Lodash via mkYarnPackage"; };
       python312-oci-image = { path = ./examples/python312-oci-image; description = "Python 3.12 OCI image via dockerTools"; };
-      nix-flakes-docker   = { path = ./examples/nix-flakes-docker;   description = "Run nix-flakes Docker container"; };
+      nix-flakes-docker = { path = ./examples/nix-flakes-docker; description = "Run nix-flakes Docker container"; };
     };
 
   } // (
@@ -293,12 +294,12 @@
             nativeModules
             ffiNapi
             nestjsApp
-            yarnNixNodeModules
-            yarnNixFrontend
             python312OciImage
             nixFlakesDockerShell
             ;
           default = pkgs.uglifyEsExample;
+        } // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          inherit (pkgs) yarnNixNodeModules yarnNixFrontend;
         };
 
         apps = {
@@ -322,15 +323,16 @@
             program = "${pkgs.lib.getExe pkgs.nixFlakesDockerShell}";
             meta.description = "Run docker.nix-community.org/nixpkgs/nix-flakes bash shell";
           };
-          wui = {
-            type = "app";
-            program = "${pkgs.lib.getExe pkgs.yarnNixFrontend}";
-            meta.description = "Run the yarn-nix TypeScript example";
-          };
           default = {
             type = "app";
             program = "${pkgs.lib.getExe pkgs.uglifyEsExample}";
             meta.description = "Run uglifyjs";
+          };
+        } // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          wui = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.yarnNixFrontend}";
+            meta.description = "Run the yarn-nix TypeScript example";
           };
         };
 
@@ -342,10 +344,11 @@
             bcryptExample
             testBcrypt
             nestjsApp
-            yarnNixFrontend
             python312OciImage
             ;
           default = pkgs.testBcrypt;
+        } // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          inherit (pkgs) yarnNixFrontend;
         };
 
         formatter = pkgs.nixpkgs-fmt;

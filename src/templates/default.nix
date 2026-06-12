@@ -594,6 +594,53 @@ let
     };
   };
 
+  jsExampleTemplates = {
+    jsUglifyEs = {
+      description = "npm install uglify-es";
+      path = ./js-example/examples/uglify-es;
+    };
+    jsBunCreateVue = {
+      description = "bun create vue (interactive scaffold)";
+      path = ./js-example/examples/bun-create-vue;
+    };
+    jsVueJs = {
+      description = "Vite + Vue.js (JavaScript)";
+      path = ./js-example/examples/vue-js;
+    };
+    jsVueTs = {
+      description = "Vite + Vue.js (TypeScript)";
+      path = ./js-example/examples/vue-ts;
+    };
+    jsBcrypt = {
+      description = "bcrypt native binding + NixOS test";
+      path = ./js-example/examples/bcrypt;
+    };
+    jsNativeModules = {
+      description = "sqlite3 argon2 sharp node-sass native npm modules";
+      path = ./js-example/examples/native-modules;
+    };
+    jsFfiNapi = {
+      description = "ffi-napi native binding (--ignore-scripts for Node 22)";
+      path = ./js-example/examples/ffi-napi;
+    };
+    jsNestJs = {
+      description = "NestJS HTTP application";
+      path = ./js-example/examples/nestjs;
+    };
+    jsYarnNix = {
+      description = "TypeScript + Lodash via mkYarnPackage";
+      path = ./js-example/examples/yarn-nix;
+    };
+    jsPython312OciImage = {
+      description = "Python 3.12 OCI image via dockerTools";
+      path = ./js-example/examples/python312-oci-image;
+    };
+    jsNixFlakesDocker = {
+      description = "Run nix-flakes Docker container";
+      path = ./js-example/examples/nix-flakes-docker;
+    };
+  };
+
 in
 { }
 //
@@ -616,3 +663,5 @@ fastapiCeleryTemplates
 qemuNixosTestTemplates
 //
 latexTemplates
+//
+jsExampleTemplates

@@ -10,9 +10,7 @@
     flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" ] (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
-        packages.default = pkgs.buildNpmPackage {
+        nativeModules = pkgs.buildNpmPackage {
           name = "native-modules-example";
           src = ./.;
           npmDepsHash = "sha256-ciCAI91zpEODnaNLXadU8Ci+pZ5EwZ897dl9ir34MDY=";
@@ -34,6 +32,27 @@
             mkdir -p $out/lib
             cp -r node_modules $out/lib/
           '';
+        };
+        allTests = pkgs.writeShellApplication {
+          name = "all-tests";
+          text = ''
+            nix fmt . \
+            && nix flake show '.#' \
+            && nix flake metadata '.#' \
+            && nix build --no-link --print-build-logs --print-out-paths '.#' \
+            && nix flake check --verbose '.#'
+          '';
+        } // { meta.mainProgram = "all-tests"; };
+      in
+      {
+        packages = {
+          default = nativeModules;
+          inherit allTests;
+        };
+        apps.allTests = {
+          type = "app";
+          program = "${pkgs.lib.getExe allTests}";
+          meta.description = "Run all tests";
         };
         formatter = pkgs.nixpkgs-fmt;
         devShells.default = pkgs.mkShell {
