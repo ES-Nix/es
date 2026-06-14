@@ -27,15 +27,18 @@
         testNixOSBare = final.testers.runNixOSTest {
           name = "test-bare-base-ssh-keyscan";
           nodes = {
-            machineA = { config, pkgs, ... }: { };
-            machineB = { config, pkgs, ... }: { };
+            machineA = { config, pkgs, ... }: { services.openssh.enable = true; };
+            machineB = { config, pkgs, ... }: { services.openssh.enable = true; };
           };
           testScript = { nodes, ... }: ''
+            machineA.wait_for_unit("sshd")
+            machineB.wait_for_unit("sshd")
+
             machineA.succeed("type ssh-keyscan 2>&1")
             machineB.succeed("type ssh-keyscan 2>&1")
 
-            # machineA.succeed("ssh-keyscan machineB 2>&1")
-            # machineB.succeed("ssh-keyscan machineA 2>&1")
+            machineA.succeed("ssh-keyscan machineB 2>&1")
+            machineB.succeed("ssh-keyscan machineA 2>&1")
           '';
         };
 
