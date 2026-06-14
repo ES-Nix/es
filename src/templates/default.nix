@@ -642,6 +642,50 @@ let
       description = "QEMU VM + Docker + uv2nix + FastAPI + mmh3";
       path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-mmh3;
     };
+    pythonFastAPIUv2nixNumpy = {
+      description = "QEMU VM + Docker + uv2nix + FastAPI + numpy";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-numpy;
+    };
+    pythonFastAPIUv2nixPandas = {
+      description = "QEMU VM + Docker + uv2nix + FastAPI + pandas";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-pandas;
+    };
+    pythonFastAPIUv2nixPolars = {
+      description = "QEMU VM + Docker + uv2nix + FastAPI + polars";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-polars;
+    };
+    pythonFastAPIUv2nixScipy = {
+      description = "QEMU VM + Docker + uv2nix + FastAPI + scipy";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-scipy;
+    };
+    pythonFastAPIUv2nixGeopandas = {
+      description = "QEMU VM + Docker + uv2nix + FastAPI + geopandas";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-geopandas;
+    };
+    pythonFlaskUv2nixMmh3 = {
+      description = "QEMU VM + Docker + uv2nix + Flask + mmh3";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-mmh3;
+    };
+    pythonFlaskUv2nixNumpy = {
+      description = "QEMU VM + Docker + uv2nix + Flask + numpy";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-numpy;
+    };
+    pythonFlaskUv2nixPandas = {
+      description = "QEMU VM + Docker + uv2nix + Flask + pandas";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-pandas;
+    };
+    pythonFlaskUv2nixPolars = {
+      description = "QEMU VM + Docker + uv2nix + Flask + polars";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-polars;
+    };
+    pythonFlaskUv2nixScipy = {
+      description = "QEMU VM + Docker + uv2nix + Flask + scipy";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-scipy;
+    };
+    pythonFlaskUv2nixGeopandas = {
+      description = "QEMU VM + Docker + uv2nix + Flask + geopandas";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-geopandas;
+    };
   };
 
   jsExampleTemplates = {
