@@ -265,7 +265,7 @@ let
 
     kubenetesNginx = {
       description = "Kubernetes nginx example";
-      path = ./kubenetes-nginx;
+      path = ./kubernetes-nginx;
     };
 
     pythonWheelsLinuxX8664TestersRunNixosTests = {
