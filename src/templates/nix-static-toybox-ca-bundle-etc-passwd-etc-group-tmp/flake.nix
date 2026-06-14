@@ -69,6 +69,13 @@
           '';
         };
 
+        # toybox in nixpkgs disables its experimental shell; build it standalone
+        toyboxSh = prev.pkgsStatic.toybox.overrideAttrs (oldAttrs: {
+          hardeningDisable = [ "fortify" ];
+          buildPhase = "make clean && make sh";
+          installPhase = "rm -frv $out && mkdir -pv $out/bin && cp -v sh $out/bin";
+        });
+
         OCIImageNixStaticToybox = prev.dockerTools.buildImage {
           name = "nix-static-toybox-ca-bundle-etc-passwd-etc-group-tmp";
           tag = "0.0.1";
@@ -76,6 +83,7 @@
             final.caBundleEtcPasswdEtcGroup
             prev.nixStatic
             prev.toybox
+            final.toyboxSh
             final.tmpDirs
           ];
           config = {

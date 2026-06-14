@@ -110,6 +110,10 @@
               machine.succeed("docker load <${final.OCIImageNixStaticCaBundleEtcPasswdEtcGroupTmp}")
               print(machine.succeed("docker images"))
 
+              result = machine.succeed("docker run --rm nix-static-ca-bundle-etc-passwd-etc-group-tmp:0.0.1 nix flake --version")
+              expected = 'nix (Nix) ${prev.nixStatic.version}'
+              assert expected in result, f"expected = {expected}, result = {result}"
+
               result = machine.succeed("docker run --rm nix-static-ca-bundle-etc-passwd-etc-group-tmp:0.0.1")
               expected = 'nix (Nix) ${prev.nixStatic.version}'
               assert expected in result, f"expected = {expected}, result = {result}"

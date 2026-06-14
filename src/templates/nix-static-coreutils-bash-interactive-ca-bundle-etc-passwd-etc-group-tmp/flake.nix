@@ -100,6 +100,9 @@
               { config, pkgs, lib, modulesPath, ... }:
               {
                 config.virtualisation.docker.enable = true;
+                # Default 1024 MB disk is too small to `docker load` this image
+                config.virtualisation.diskSize = 4096;
+                config.virtualisation.memorySize = 2048;
               };
 
             globalTimeout = 3 * 60;

@@ -1,0 +1,12 @@
+node_modules
+dist
+result
+result-*
+.direnv/
+.profiles/
+.env
+.idea/
+.DS_Store
+*.qcow2
+*.nixos-test-history
+secrets/*.yaml

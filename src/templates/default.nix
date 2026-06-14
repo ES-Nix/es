@@ -625,50 +625,69 @@ let
     };
   };
 
+  pythonUv2nixTemplates = {
+    pythonFlaskUv2nixBasic = {
+      description = "Basic uv2nix flask example";
+      path = ./uv2nix-basic-flask;
+    };
+    pythonFlaskUv2nixHello = {
+      description = "QEMU VM + Docker + uv2nix + Flask hello world";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-hello;
+    };
+    pythonFastAPIUv2nixHello = {
+      description = "QEMU VM + Docker + uv2nix + FastAPI hello world";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-hello;
+    };
+    pythonFastAPIUv2nixMmh3 = {
+      description = "QEMU VM + Docker + uv2nix + FastAPI + mmh3";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-mmh3;
+    };
+  };
+
   jsExampleTemplates = {
     jsUglifyEs = {
       description = "npm install uglify-es";
-      path = ./js-example/examples/uglify-es;
+      path = ./js-example-uglify-es;
     };
     jsBunCreateVue = {
       description = "bun create vue (interactive scaffold)";
-      path = ./js-example/examples/bun-create-vue;
+      path = ./js-example-bun-create-vue;
     };
     jsVueJs = {
       description = "Vite + Vue.js (JavaScript)";
-      path = ./js-example/examples/vue-js;
+      path = ./js-example-vue-js;
     };
     jsVueTs = {
       description = "Vite + Vue.js (TypeScript)";
-      path = ./js-example/examples/vue-ts;
+      path = ./js-example-vue-ts;
     };
     jsBcrypt = {
       description = "bcrypt native binding + NixOS test";
-      path = ./js-example/examples/bcrypt;
+      path = ./js-example-bcrypt;
     };
     jsNativeModules = {
       description = "sqlite3 argon2 sharp node-sass native npm modules";
-      path = ./js-example/examples/native-modules;
+      path = ./js-example-native-modules;
     };
     jsFfiNapi = {
       description = "ffi-napi native binding (--ignore-scripts for Node 22)";
-      path = ./js-example/examples/ffi-napi;
+      path = ./js-example-ffi-napi;
     };
     jsNestJs = {
       description = "NestJS HTTP application";
-      path = ./js-example/examples/nestjs;
+      path = ./js-example-nestjs;
     };
     jsYarnNix = {
       description = "TypeScript + Lodash via mkYarnPackage";
-      path = ./js-example/examples/yarn-nix;
+      path = ./js-example-yarn-nix;
     };
     jsPython312OciImage = {
       description = "Python 3.12 OCI image via dockerTools";
-      path = ./js-example/examples/python312-oci-image;
+      path = ./js-example-python312-oci-image;
     };
     jsNixFlakesDocker = {
       description = "Run nix-flakes Docker container";
-      path = ./js-example/examples/nix-flakes-docker;
+      path = ./js-example-nix-flakes-docker;
     };
   };
 
@@ -696,5 +715,7 @@ fastapiCeleryTemplates
 qemuNixosTestTemplates
 //
 latexTemplates
+//
+pythonUv2nixTemplates
 //
 jsExampleTemplates
