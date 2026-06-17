@@ -211,6 +211,10 @@
             # the REJECT for all pod network traffic. Verify: iptables -L nixos-fw -n -v | grep mynet
             networking.firewall.trustedInterfaces = [ "mynet" ];
 
+            # certmgr default renewInterval is 30m — in a test that takes ~30 min,
+            # it triggers "DNS name has changed" and restarts kubelet mid-test.
+            services.certmgr.renewInterval = lib.mkForce "24h";
+
             environment.systemPackages = with pkgs; [ kubectl kubernetes ];
             security.sudo.wheelNeedsPassword = false;
             system.stateVersion = "25.11";
