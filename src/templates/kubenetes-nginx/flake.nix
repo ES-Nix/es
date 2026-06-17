@@ -112,6 +112,12 @@
               # nginx still tries to read this directory even if error_log
               # directive is specifying another file :/
               mkdir -p var/log/nginx
+
+              mkdir -p etc
+              rm -f etc/passwd etc/group
+              printf 'root:x:0:0:root:/root:/bin/sh\nnobody:x:65534:65534:nobody:/:/sbin/nologin\n' \
+                > etc/passwd
+              printf 'root:x:0:\nnobody:x:65534:\n' > etc/group
             '';
             config = {
               Cmd = [ "nginx" "-c" conf.nginxConf ];
@@ -161,6 +167,111 @@
             '';
           } // { meta.mainProgram = name; };
 
+        kubernetesNginxTest = final.testers.runNixOSTest {
+          name = "kubernetes-nginx";
+
+          nodes.machine = { config, pkgs, lib, ... }: {
+
+            virtualisation.memorySize = 1024 * 6;
+            virtualisation.cores = 4;
+            virtualisation.diskSize = 1024 * 20;
+
+            services.kubernetes.roles = [ "master" "node" ];
+            services.kubernetes.masterAddress = config.networking.hostName;
+            environment.variables.KUBECONFIG =
+              "/etc/${config.services.kubernetes.pki.etcClusterAdminKubeconfig}";
+
+            services.kubernetes.kubelet.seedDockerImages =
+              let
+                pauseImage = pkgs.dockerTools.buildLayeredImage {
+                  name = "docker.io/library/pause";
+                  tag = "latest";
+                  contents = [ pkgs.coreutils ];
+                  config.Entrypoint = [ "${pkgs.coreutils}/bin/sleep" "infinity" ];
+                };
+              in
+              if pkgs.stdenv.hostPlatform.isAarch64
+              then
+                lib.mkForce
+                  (with pkgs; [
+                    myCustomImage
+                    pauseImage
+                    (dockerTools.buildLayeredImage {
+                      name = "coredns/coredns";
+                      tag = "1.10.1";
+                      contents = [ coredns ];
+                      config.Entrypoint = [ "/bin/coredns" ];
+                    })
+                  ])
+              else with pkgs; [ myCustomImage pauseImage ];
+
+            # services.kubernetes does NOT add a per-port ACCEPT rule for 6443 to nixos-fw
+            # in nixpkgs 25.11 — pod→apiserver traffic hits the final REJECT rule without this.
+            # trustedInterfaces adds "-i mynet -j nixos-fw-accept" to nixos-fw, bypassing
+            # the REJECT for all pod network traffic. Verify: iptables -L nixos-fw -n -v | grep mynet
+            networking.firewall.trustedInterfaces = [ "mynet" ];
+
+            environment.systemPackages = with pkgs; [ kubectl kubernetes ];
+            security.sudo.wheelNeedsPassword = false;
+            system.stateVersion = "25.11";
+          };
+
+          testScript =
+            let
+              podYaml = final.writeText "pod.yml" ''
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  name: a-message
+                  namespace: default
+                spec:
+                  containers:
+                  - name: message
+                    image: joshrosso:1.4
+                    ports:
+                    - containerPort: 80
+              '';
+            in
+            ''
+              machine.start()
+              machine.wait_for_unit("multi-user.target", timeout=300)
+
+              # Assert mynet rule exists in nixos-fw — trustedInterfaces adds "-i mynet -j nixos-fw-accept"
+              # to nixos-fw chain (not nixos-fw-accept). If missing, pod→API traffic is blocked.
+              machine.succeed("iptables -L nixos-fw -n -v | grep -q mynet")
+
+              # Assert NO per-port ACCEPT rule for 6443 in nixos-fw — confirms services.kubernetes
+              # does NOT add allowedTCPPorts for 6443 in nixpkgs 25.11. This is why
+              # trustedInterfaces is required: without it, pod→apiserver hits the final REJECT.
+              fw_rules = machine.succeed("iptables -L nixos-fw -n --line-numbers")
+              has_6443_rule = any("6443" in l for l in fw_rules.splitlines())
+              assert not has_6443_rule, \
+                "Unexpected: found ACCEPT rule for 6443 in nixos-fw — trustedInterfaces may be redundant"
+
+              machine.wait_until_succeeds(
+                "kubectl get nodes | grep -w Ready",
+                timeout=300
+              )
+
+              machine.wait_until_succeeds(
+                "kubectl get pods -n kube-system | grep coredns | grep Running",
+                timeout=300
+              )
+
+              machine.succeed("kubectl apply -f ${podYaml}")
+
+              machine.wait_until_succeeds(
+                "kubectl get pods -n default | grep a-message | grep Running",
+                timeout=300
+              )
+
+              machine.succeed(
+                "kubectl port-forward --address 0.0.0.0 pods/a-message 8090:80 &"
+              )
+              machine.wait_until_succeeds("curl -sf http://localhost:8090", timeout=30)
+            '';
+        };
+
       };
     } //
     (
@@ -194,6 +305,7 @@
 
           packages.default = pkgsAllowUnfree.automaticVm;
           packages.automaticVm = pkgsAllowUnfree.automaticVm;
+          packages.kubernetesNginxTest = pkgsAllowUnfree.kubernetesNginxTest;
 
           apps = {
             allTests = {
@@ -209,6 +321,10 @@
           };
 
           formatter = pkgsAllowUnfree.nixpkgs-fmt;
+
+          checks = {
+            kubernetes-nginx = pkgsAllowUnfree.kubernetesNginxTest;
+          };
 
           devShells.default = pkgsAllowUnfree.mkShell {
             buildInputs = with pkgsAllowUnfree; [
@@ -251,6 +367,8 @@
               # Set your time zone.
               time.timeZone = "America/Recife";
 
+              boot.kernelParams = [ "cgroup_disable=hugetlb" ];
+
               # Why
               # nix flake show --impure .#
               # break if it does not exists?
@@ -270,14 +388,15 @@
                   virtualisation.qemu.options = [
                     # https://www.spice-space.org/spice-user-manual.html#Running_qemu_manually
                     # remote-viewer spice://localhost:3001
-
-                    # "-daemonize" # How to save the QEMU PID?
-                    "-machine vmport=off"
-                    "-vga qxl"
                     "-spice port=3001,disable-ticketing=on"
                     "-device virtio-serial"
                     "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
                     "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
+                  ] ++ lib.optionals (!pkgs.stdenv.hostPlatform.isAarch64) [
+                    "-machine vmport=off"
+                    "-vga qxl"
+                  ] ++ lib.optionals pkgs.stdenv.hostPlatform.isAarch64 [
+                    "-device virtio-gpu-pci"
                   ];
 
                   virtualisation.useNixStoreImage = false; # TODO: hardening
@@ -332,7 +451,10 @@
               # https://nixos.org/manual/nixos/stable/#sec-xfce
               services.xserver.desktopManager.xfce.enable = true;
               services.xserver.desktopManager.xfce.enableScreensaver = false;
-              services.xserver.videoDrivers = [ "qxl" ];
+              services.xserver.videoDrivers =
+                if pkgs.stdenv.hostPlatform.isAarch64
+                then [ "modesetting" ]
+                else [ "qxl" ];
               services.spice-vdagentd.enable = true; # For copy/paste to work
 
               nix.extraOptions = "experimental-features = nix-command flakes";
@@ -411,14 +533,40 @@
 
               ];
 
+              # services.kubernetes opens 6443 via allowedTCPPorts, but in runNixOSTest the
+              # nixos-fw REJECT rule fires before the per-port ACCEPT for bridge (mynet) traffic.
+              # trustedInterfaces adds mynet to nixos-fw-accept, bypassing nixos-fw entirely.
+              # Verify: iptables -L nixos-fw-accept -n -v | grep mynet
+              networking.firewall.trustedInterfaces = [ "mynet" ];
+
               services.kubernetes.roles = [ "master" "node" ];
               services.kubernetes.masterAddress = "${config.networking.hostName}";
               environment.variables.KUBECONFIG = "/etc/${config.services.kubernetes.pki.etcClusterAdminKubeconfig}";
               # services.kubernetes.kubelet.extraOpts = "--fail-swap-on=false"; # If you use swap it is an must!
 
-              services.kubernetes.kubelet.seedDockerImages = (with pkgs; [
-                myCustomImage
-              ]);
+              services.kubernetes.kubelet.seedDockerImages =
+                let
+                  pauseImage = pkgs.dockerTools.buildLayeredImage {
+                    name = "docker.io/library/pause";
+                    tag = "latest";
+                    contents = [ pkgs.coreutils ];
+                    config.Entrypoint = [ "${pkgs.coreutils}/bin/sleep" "infinity" ];
+                  };
+                in
+                if pkgs.stdenv.hostPlatform.isAarch64
+                then
+                  lib.mkForce
+                    (with pkgs; [
+                      myCustomImage
+                      pauseImage
+                      (dockerTools.buildLayeredImage {
+                        name = "coredns/coredns";
+                        tag = "1.10.1";
+                        contents = [ coredns ];
+                        config.Entrypoint = [ "/bin/coredns" ];
+                      })
+                    ])
+                else with pkgs; [ myCustomImage pauseImage ];
 
               #  systemd.services.kubelet-custom-bootstrap = {
               #    description = "Boostrap Custom Kubelet";
