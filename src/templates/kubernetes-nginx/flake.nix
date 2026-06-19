@@ -309,7 +309,7 @@
 
           packages.default = pkgsAllowUnfree.automaticVm;
           packages.automaticVm = pkgsAllowUnfree.automaticVm;
-          packages.kubernetesNginxTest = pkgsAllowUnfree.kubernetesNginxTest;
+          # packages.kubernetesNginxTest = pkgsAllowUnfree.kubernetesNginxTest; # TODO: too slow some how in both archs
 
           apps = {
             allTests = {
