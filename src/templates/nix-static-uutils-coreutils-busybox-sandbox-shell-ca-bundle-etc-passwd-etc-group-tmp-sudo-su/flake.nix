@@ -75,8 +75,10 @@
           copyToRoot = [
             final.caBundleEtcPasswdEtcGroup
             prev.nixStatic
-            prev.uutils-coreutils-noprefix
+            # busybox must come before uutils-coreutils-noprefix so that uutils
+            # binaries (e.g. /bin/ls) overwrite busybox's — last writer wins
             prev.pkgsStatic.busybox
+            prev.uutils-coreutils-noprefix
             prev.su
             prev.sudo
             final.tmpDirs

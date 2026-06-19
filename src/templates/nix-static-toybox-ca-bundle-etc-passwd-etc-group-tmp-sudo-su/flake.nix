@@ -109,6 +109,7 @@
               { config, pkgs, lib, modulesPath, ... }:
               {
                 config.virtualisation.docker.enable = true;
+                config.virtualisation.diskSize = 4096;
               };
 
             globalTimeout = 3 * 60;
