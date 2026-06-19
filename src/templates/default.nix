@@ -396,6 +396,38 @@ let
       description = "OCI image with static Nix, toybox, CA bundle, /etc/passwd, /etc/group and tmp";
       path = ./nix-static-toybox-ca-bundle-etc-passwd-etc-group-tmp;
     };
+    nixStaticBusyboxSandboxShellCaBundleEtcPasswdEtcGroupTmpSudoSu = {
+      description = "OCI image with static Nix, busybox-sandbox-shell, su, sudo, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-busybox-sandbox-shell-ca-bundle-etc-passwd-etc-group-tmp-sudo-su;
+    };
+    nixStaticBashInteractiveCaBundleEtcPasswdEtcGroupTmpSudoSu = {
+      description = "OCI image with static Nix, bashInteractive, su, sudo, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-bash-interactive-ca-bundle-etc-passwd-etc-group-tmp-sudo-su;
+    };
+    nixStaticCoreutilsBashInteractiveCaBundleEtcPasswdEtcGroupTmpSudoSu = {
+      description = "OCI image with static Nix, coreutils, bashInteractive, su, sudo, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-coreutils-bash-interactive-ca-bundle-etc-passwd-etc-group-tmp-sudo-su;
+    };
+    nixStaticToyboxCaBundleEtcPasswdEtcGroupTmpSudoSu = {
+      description = "OCI image with static Nix, toybox, su, sudo, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-toybox-ca-bundle-etc-passwd-etc-group-tmp-sudo-su;
+    };
+    nixStaticUutilsCoreutilsBusyboxSandboxShellCaBundleEtcPasswdEtcGroupTmp = {
+      description = "OCI image with static Nix, uutils-coreutils, busybox-sandbox-shell, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-uutils-coreutils-busybox-sandbox-shell-ca-bundle-etc-passwd-etc-group-tmp;
+    };
+    nixStaticUutilsCoreutilsBusyboxSandboxShellCaBundleEtcPasswdEtcGroupTmpSudoSu = {
+      description = "OCI image with static Nix, uutils-coreutils, busybox-sandbox-shell, su, sudo, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-uutils-coreutils-busybox-sandbox-shell-ca-bundle-etc-passwd-etc-group-tmp-sudo-su;
+    };
+    nixStaticBusyboxCaBundleEtcPasswdEtcGroupTmp = {
+      description = "OCI image with static Nix, busybox (full), CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-busybox-ca-bundle-etc-passwd-etc-group-tmp;
+    };
+    nixStaticBusyboxCaBundleEtcPasswdEtcGroupTmpSudoSu = {
+      description = "OCI image with static Nix, busybox (full), su, sudo, CA bundle, /etc/passwd, /etc/group and tmp";
+      path = ./nix-static-busybox-ca-bundle-etc-passwd-etc-group-tmp-sudo-su;
+    };
   };
 
   binfmtTemplates = {

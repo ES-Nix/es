@@ -99,6 +99,7 @@
               { config, pkgs, lib, modulesPath, ... }:
               {
                 config.virtualisation.docker.enable = true;
+                config.virtualisation.diskSize = 4 * 1024;
               };
 
             globalTimeout = 3 * 60;
@@ -121,7 +122,7 @@
               expected = 'GNU bash'
               assert expected in result, f"expected = {expected}, result = {result}"
 
-              result = machine.succeed(f"docker run --rm {image} bash -c 'cat /etc/passwd'")
+              result = machine.succeed(f"docker run --rm {image} bash -c 'while IFS= read -r line; do printf \"%s\\n\" \"$line\"; done < /etc/passwd'")
               for expected in ('nixuser:x:12345:6789:', 'nixbld1:x:30001:30000:', 'nixbld32:x:30032:30000:'):
                   assert expected in result, f"expected = {expected}, result = {result}"
 

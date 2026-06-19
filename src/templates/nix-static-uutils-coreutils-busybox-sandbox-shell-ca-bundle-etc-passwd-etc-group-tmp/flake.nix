@@ -1,5 +1,5 @@
 {
-  description = "OCI image with static Nix, busybox-sandbox-shell, CA bundle, /etc/passwd, /etc/group and tmp, tested with NixOS test and docker";
+  description = "OCI image with static Nix, uutils-coreutils, busybox-sandbox-shell, CA bundle, /etc/passwd, /etc/group and tmp, tested with NixOS test and docker";
 
   /*
     # 25.11
@@ -69,12 +69,13 @@
           '';
         };
 
-        OCIImageNixStaticBusyboxSandboxShell = prev.dockerTools.buildImage {
-          name = "nix-static-busybox-sandbox-shell-ca-bundle-etc-passwd-etc-group-tmp";
+        OCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell = prev.dockerTools.buildImage {
+          name = "nix-static-uutils-coreutils-busybox-sandbox-shell-ca-bundle-etc-passwd-etc-group-tmp";
           tag = "0.0.1";
           copyToRoot = [
             final.caBundleEtcPasswdEtcGroup
             prev.nixStatic
+            prev.uutils-coreutils-noprefix
             prev.pkgsStatic.busybox
             final.tmpDirs
           ];
@@ -92,13 +93,15 @@
           };
         };
 
-        testOCIImageNixStaticBusyboxSandboxShell = prev.testers.runNixOSTest
+        testOCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell = prev.testers.runNixOSTest
           {
-            name = "test-oci-image-nix-static-busybox-sandbox-shell";
+            name = "test-oci-image-nix-static-uutils-coreutils-busybox-sandbox-shell";
             nodes.machine =
               { config, pkgs, lib, modulesPath, ... }:
               {
                 config.virtualisation.docker.enable = true;
+                config.virtualisation.diskSize = 4096;
+                config.virtualisation.memorySize = 2048;
               };
 
             globalTimeout = 3 * 60;
@@ -108,13 +111,17 @@
 
               machine.wait_for_unit("docker.service")
 
-              machine.succeed("docker load <${final.OCIImageNixStaticBusyboxSandboxShell}")
+              machine.succeed("docker load <${final.OCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell}")
               print(machine.succeed("docker images"))
 
-              image = "nix-static-busybox-sandbox-shell-ca-bundle-etc-passwd-etc-group-tmp:0.0.1"
+              image = "nix-static-uutils-coreutils-busybox-sandbox-shell-ca-bundle-etc-passwd-etc-group-tmp:0.0.1"
 
               result = machine.succeed(f"docker run --rm {image} sh -c 'nix --version'")
               expected = 'nix (Nix) ${prev.nixStatic.version}'
+              assert expected in result, f"expected = {expected}, result = {result}"
+
+              result = machine.succeed(f"docker run --rm {image} sh -c 'ls --version'")
+              expected = 'uutils'
               assert expected in result, f"expected = {expected}, result = {result}"
 
               result = machine.succeed(f"docker run --rm {image} sh -c 'cat /etc/passwd'")
@@ -129,7 +136,7 @@
               expected = 'nixuser'
               assert expected in result, f"expected = {expected}, result = {result}"
             '';
-          } // { meta.mainProgram = "${final.testOCIImageNixStaticBusyboxSandboxShell.name}"; };
+          } // { meta.mainProgram = "${final.testOCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell.name}"; };
 
         allTests = let name = "all-tests"; in final.writeShellApplication
           {
@@ -169,10 +176,10 @@
           inherit (pkgs)
             caBundleEtcPasswdEtcGroup
             tmpDirs
-            OCIImageNixStaticBusyboxSandboxShell
-            testOCIImageNixStaticBusyboxSandboxShell
+            OCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell
+            testOCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell
             ;
-          default = pkgs.testOCIImageNixStaticBusyboxSandboxShell;
+          default = pkgs.testOCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell;
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -180,8 +187,8 @@
         apps = {
           default = {
             type = "app";
-            program = "${pkgs.lib.getExe pkgs.testOCIImageNixStaticBusyboxSandboxShell.driverInteractive}";
-            meta.description = "Run the testOCIImageNixStaticBusyboxSandboxShell NixOS test in an interactive mode";
+            program = "${pkgs.lib.getExe pkgs.testOCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell.driverInteractive}";
+            meta.description = "Run the testOCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell NixOS test in an interactive mode";
           };
 
           allTests = {
@@ -195,10 +202,10 @@
           inherit (pkgs)
             caBundleEtcPasswdEtcGroup
             tmpDirs
-            OCIImageNixStaticBusyboxSandboxShell
-            testOCIImageNixStaticBusyboxSandboxShell
+            OCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell
+            testOCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell
             ;
-          default = pkgs.testOCIImageNixStaticBusyboxSandboxShell;
+          default = pkgs.testOCIImageNixStaticUutilsCoreutilsBusyboxSandboxShell;
         };
 
         devShells.default = with pkgs; mkShell {
