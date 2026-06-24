@@ -496,6 +496,10 @@ let
       description = "";
       path = ./qemu-virtual-machine-nixos-test-bare-base;
     };
+    qemuVirtualMachineNixosTestNixAutoChrootStore = {
+      description = "";
+      path = ./qemu-virtual-machine-nixos-test-nix-auto-chroot-store;
+    };
     qemuVirtualMachineNixosTestBareBaseNixCli = {
       description = "";
       path = ./qemu-virtual-machine-nixos-test-bare-base-nix-cli;
@@ -611,6 +615,11 @@ let
   };
 
   latexTemplates = {
+    poetry2nixLatex = {
+      description = "Python (poetry2nix) generates a LaTeX document compiled to PDF";
+      path = ./poetry2nix-latex;
+    };
+
     fontspecXetex = {
       description = "Minimal xetex document with fontspec — PDF build test";
       path = ./fontspec-xetex;
@@ -639,6 +648,11 @@ let
     pandocManualXelatex = {
       description = "Pandoc MANUAL.txt converted to PDF via xelatex";
       path = ./pandoc-manual-xelatex;
+    };
+
+    pandocFormatMatrix = {
+      description = "Pandoc format transformation matrix — academic paper through all common output formats with chained derivations";
+      path = ./pandoc-format-matrix;
     };
 
     abntex2Examples = {
