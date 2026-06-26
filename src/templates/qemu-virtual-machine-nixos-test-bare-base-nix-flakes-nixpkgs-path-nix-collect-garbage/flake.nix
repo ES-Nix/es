@@ -1,5 +1,5 @@
 {
-  description = "A flake for testing nix in a NixOS virtual machine using QEMU. It includes a test that starts a NixOS VM and checks if it can run the nix command and access the nix store. It also provides an interactive driver for manual testing and a shell with the necessary tools to run the tests.";
+  description = "NixOS VM test: nix-collect-garbage workaround for stale per-user gcroots (NixOS/nix#4419). Deletes /nix/var/nix/gcroots/per-user/$NAME and /nix/var/nix/profiles/per-user/$NAME before running nix-collect-garbage.";
 
   /*
     nix \
@@ -53,13 +53,26 @@
             };
           };
           testScript = { nodes, ... }: ''
-            machineABCZ.succeed("""
-              nix-store --query --graph --include-outputs --force-realise \
-                $(nix build --add-root --print-out-paths nixpkgs#hello) \
-                | dot -Tps > hello.ps
-            """)
+            machineABCZ.start()
+            machineABCZ.wait_for_unit("multi-user.target")
 
-            machineABCZ.succeed("ls -alh hello.ps >&2")
+            # Phase 1: reproduce the bug — stale gcroot symlink causes nix-collect-garbage to fail
+            machineABCZ.succeed("mkdir -p /nix/var/nix/gcroots/per-user/testuser")
+            machineABCZ.succeed(
+                "ln -s /nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-nonexistent "
+                "/nix/var/nix/gcroots/per-user/testuser/stale"
+            )
+            machineABCZ.succeed("mkdir -p /nix/var/nix/profiles/per-user/testuser")
+            machineABCZ.fail("nix-collect-garbage 2>/dev/null")
+
+            # Phase 2: apply workaround — delete per-user entries, then gc must succeed
+            machineABCZ.succeed("rm -rf /nix/var/nix/gcroots/per-user/testuser")
+            machineABCZ.succeed("rm -rf /nix/var/nix/profiles/per-user/testuser")
+            machineABCZ.succeed("nix-collect-garbage")
+
+            # Verify cleanup
+            machineABCZ.fail("test -d /nix/var/nix/gcroots/per-user/testuser")
+            machineABCZ.fail("test -d /nix/var/nix/profiles/per-user/testuser")
           '';
         };
 
