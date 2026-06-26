@@ -17,7 +17,7 @@
             latexmk
             # symbol packages
             wasysym
-            wasy    # font files required by wasysym
+            wasy # font files required by wasysym
             marvosym
             psnfss
             stmaryrd
