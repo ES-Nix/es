@@ -9,18 +9,18 @@
 \usepackage{booktabs}
 \usepackage{array}
 
-% Symbol packages — load order matters for conflict resolution.
-% ifsym loaded without [geometry] to avoid \Circle/\Square/\Diamond clashes
-% with wasysym and amssymb.
+% Symbol packages — load order matters.
+% ifsym loaded with only [clock,alpine] to avoid \Sun/\Lightning/\Letter
+% conflicts with marvosym and wasysym.
+% stmaryrd's \lightning row is excluded to avoid conflict with wasysym.
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{latexsym}
 \usepackage{stmaryrd}
-\usepackage{bbding}
 \usepackage{pifont}
 \usepackage{textcomp}
 \usepackage{marvosym}
-\usepackage[weather,misc,clock,alpine]{ifsym}
+\usepackage[clock,alpine]{ifsym}
 \usepackage{wasysym}
 
 \setlength{\columnsep}{1.2cm}
@@ -383,36 +383,39 @@ $\biguplus$ & \texttt{\textbackslash biguplus} \\
 \smiley & \texttt{\textbackslash smiley} &
 \frownie & \texttt{\textbackslash frownie} \\
 \sun & \texttt{\textbackslash sun} &
-\moon & \texttt{\textbackslash moon} \\
-\mercury & \texttt{\textbackslash mercury} &
-\female & \texttt{\textbackslash female} \\
-\male & \texttt{\textbackslash male} &
-\venus & \texttt{\textbackslash venus} \\
-\earth & \texttt{\textbackslash earth} &
-\mars & \texttt{\textbackslash mars} \\
-\jupiter & \texttt{\textbackslash jupiter} &
-\saturn & \texttt{\textbackslash saturn} \\
-\uranus & \texttt{\textbackslash uranus} &
-\neptune & \texttt{\textbackslash neptune} \\
-\pluto & \texttt{\textbackslash pluto} &
-\phone & \texttt{\textbackslash phone} \\
-\checked & \texttt{\textbackslash checked} &
-\clock & \texttt{\textbackslash clock} \\
-\diameter & \texttt{\textbackslash diameter} &
-\permil & \texttt{\textbackslash permil} \\
-\lightning & \texttt{\textbackslash lightning} &
-\Aquarius & \texttt{\textbackslash Aquarius} \\
-\Aries & \texttt{\textbackslash Aries} &
-\Taurus & \texttt{\textbackslash Taurus} \\
-\Gemini & \texttt{\textbackslash Gemini} &
-\Cancer & \texttt{\textbackslash Cancer} \\
-\Leo & \texttt{\textbackslash Leo} &
-\Virgo & \texttt{\textbackslash Virgo} \\
-\Libra & \texttt{\textbackslash Libra} &
-\Scorpio & \texttt{\textbackslash Scorpio} \\
-\Sagittarius & \texttt{\textbackslash Sagittarius} &
-\Capricorn & \texttt{\textbackslash Capricorn} \\
-\Pisces & \texttt{\textbackslash Pisces} & & \\
+\leftmoon & \texttt{\textbackslash leftmoon} \\
+\rightmoon & \texttt{\textbackslash rightmoon} &
+\fullmoon & \texttt{\textbackslash fullmoon} \\
+\newmoon & \texttt{\textbackslash newmoon} &
+\mercury & \texttt{\textbackslash mercury} \\
+\female & \texttt{\textbackslash female} &
+\male & \texttt{\textbackslash male} \\
+\venus & \texttt{\textbackslash venus} &
+\earth & \texttt{\textbackslash earth} \\
+\mars & \texttt{\textbackslash mars} &
+\jupiter & \texttt{\textbackslash jupiter} \\
+\saturn & \texttt{\textbackslash saturn} &
+\uranus & \texttt{\textbackslash uranus} \\
+\neptune & \texttt{\textbackslash neptune} &
+\pluto & \texttt{\textbackslash pluto} \\
+\phone & \texttt{\textbackslash phone} &
+\checked & \texttt{\textbackslash checked} \\
+\clock & \texttt{\textbackslash clock} &
+\diameter & \texttt{\textbackslash diameter} \\
+\permil & \texttt{\textbackslash permil} &
+\lightning & \texttt{\textbackslash lightning} \\
+\aries & \texttt{\textbackslash aries} &
+\taurus & \texttt{\textbackslash taurus} \\
+\gemini & \texttt{\textbackslash gemini} &
+\cancer & \texttt{\textbackslash cancer} \\
+\leo & \texttt{\textbackslash leo} &
+\virgo & \texttt{\textbackslash virgo} \\
+\libra & \texttt{\textbackslash libra} &
+\scorpio & \texttt{\textbackslash scorpio} \\
+\sagittarius & \texttt{\textbackslash sagittarius} &
+\capricornus & \texttt{\textbackslash capricornus} \\
+\aquarius & \texttt{\textbackslash aquarius} &
+\pisces & \texttt{\textbackslash pisces} \\
 \bottomrule
 \end{tabular}
 
@@ -432,15 +435,32 @@ $\biguplus$ & \texttt{\textbackslash biguplus} \\
 \EURcr & \texttt{\textbackslash EURcr} &
 \EURtm & \texttt{\textbackslash EURtm} \\
 \Info & \texttt{\textbackslash Info} &
-\Attention & \texttt{\textbackslash Attention} \\
-\Stopsign & \texttt{\textbackslash Stopsign} &
-\Radioactivity & \texttt{\textbackslash Radioactivity} \\
-\Biohazard & \texttt{\textbackslash Biohazard} &
-\Recycling & \texttt{\textbackslash Recycling} \\
-\Writinghand & \texttt{\textbackslash Writinghand} &
-\Pointinghand & \texttt{\textbackslash Pointinghand} \\
+\Stopsign & \texttt{\textbackslash Stopsign} \\
+\Radioactivity & \texttt{\textbackslash Radioactivity} &
+\Biohazard & \texttt{\textbackslash Biohazard} \\
+\Recycling & \texttt{\textbackslash Recycling} &
+\Writinghand & \texttt{\textbackslash Writinghand} \\
+\Pointinghand & \texttt{\textbackslash Pointinghand} &
+\Coffeecup & \texttt{\textbackslash Coffeecup} \\
+\Football & \texttt{\textbackslash Football} &
+\Bat & \texttt{\textbackslash Bat} \\
 \Leftscissors & \texttt{\textbackslash Leftscissors} &
 \Rightscissors & \texttt{\textbackslash Rightscissors} \\
+\midrule
+\multicolumn{4}{l}{\textit{Zodiac (marvosym uppercase)}} \\
+\midrule
+\Aries & \texttt{\textbackslash Aries} &
+\Taurus & \texttt{\textbackslash Taurus} \\
+\Gemini & \texttt{\textbackslash Gemini} &
+\Cancer & \texttt{\textbackslash Cancer} \\
+\Leo & \texttt{\textbackslash Leo} &
+\Virgo & \texttt{\textbackslash Virgo} \\
+\Libra & \texttt{\textbackslash Libra} &
+\Scorpio & \texttt{\textbackslash Scorpio} \\
+\Sagittarius & \texttt{\textbackslash Sagittarius} &
+\Capricorn & \texttt{\textbackslash Capricorn} \\
+\Aquarius & \texttt{\textbackslash Aquarius} &
+\Pisces & \texttt{\textbackslash Pisces} \\
 \bottomrule
 \end{tabular}
 
@@ -529,61 +549,24 @@ $\biginterleave$ & \texttt{\textbackslash biginterleave} \\
 \end{tabular}
 
 % ──────────────────────────────────────────────
-\section{bbding (\texttt{bbding})}
+\section{ifsym — Clocks \& Alpine (\texttt{ifsym})}
 
 \begin{tabular}{cl@{\hspace{1em}}cl}
 \toprule Sym & Command & Sym & Command \\ \midrule
-\Checkmark & \texttt{\textbackslash Checkmark} &
-\CheckmarkBold & \texttt{\textbackslash CheckmarkBold} \\
-\XSolid & \texttt{\textbackslash XSolid} &
-\XSolidBold & \texttt{\textbackslash XSolidBold} \\
-\Cross & \texttt{\textbackslash Cross} &
-\CrossBold & \texttt{\textbackslash CrossBold} \\
-\CrossMaltese & \texttt{\textbackslash CrossMaltese} &
-\FourStar & \texttt{\textbackslash FourStar} \\
-\FourStarOpen & \texttt{\textbackslash FourStarOpen} &
-\FiveStar & \texttt{\textbackslash FiveStar} \\
-\FiveStarOpen & \texttt{\textbackslash FiveStarOpen} &
-\SixStar & \texttt{\textbackslash SixStar} \\
-\EightStar & \texttt{\textbackslash EightStar} &
-\EightStarOpen & \texttt{\textbackslash EightStarOpen} \\
-\Snowflake & \texttt{\textbackslash Snowflake} &
-\SnowflakeChevron & \texttt{\textbackslash SnowflakeChevron} \\
-\HandRight & \texttt{\textbackslash HandRight} &
-\HandLeft & \texttt{\textbackslash HandLeft} \\
-\HandUp & \texttt{\textbackslash HandUp} &
-\HandDown & \texttt{\textbackslash HandDown} \\
-\Phone & \texttt{\textbackslash Phone} &
-\PhoneHandset & \texttt{\textbackslash PhoneHandset} \\
-\Envelope & \texttt{\textbackslash Envelope} &
-\Tape & \texttt{\textbackslash Tape} \\
-\Scissors & \texttt{\textbackslash Scissors} &
-\ScissorsDashed & \texttt{\textbackslash ScissorsDashed} \\
-\bottomrule
-\end{tabular}
-
-% ──────────────────────────────────────────────
-\section{ifsym — Weather \& Misc (\texttt{ifsym})}
-
-\begin{tabular}{cl@{\hspace{1em}}cl}
-\toprule Sym & Command & Sym & Command \\ \midrule
-\FilledCloud & \texttt{\textbackslash FilledCloud} &
-\HalfCloud & \texttt{\textbackslash HalfCloud} \\
-\Cloud & \texttt{\textbackslash Cloud} &
-\Rain & \texttt{\textbackslash Rain} \\
-\FilledRain & \texttt{\textbackslash FilledRain} &
-\RainCloud & \texttt{\textbackslash RainCloud} \\
-\Snow & \texttt{\textbackslash Snow} &
-\Hail & \texttt{\textbackslash Hail} \\
-\Lightning & \texttt{\textbackslash Lightning} &
-\Thermometer & \texttt{\textbackslash Thermometer} \\
-\Mountain & \texttt{\textbackslash Mountain} &
-\House & \texttt{\textbackslash House} \\
-\Plane & \texttt{\textbackslash Plane} &
-\Ship & \texttt{\textbackslash Ship} \\
-\Bicycle & \texttt{\textbackslash Bicycle} &
-\Train & \texttt{\textbackslash Train} \\
-\Wheelchair & \texttt{\textbackslash Wheelchair} & & \\
+\StopWatchStart & \texttt{\textbackslash StopWatchStart} &
+\StopWatchEnd & \texttt{\textbackslash StopWatchEnd} \\
+\VarClock & \texttt{\textbackslash VarClock} &
+\Mountain & \texttt{\textbackslash Mountain} \\
+\IceMountain & \texttt{\textbackslash IceMountain} &
+\VarMountain & \texttt{\textbackslash VarMountain} \\
+\Summit & \texttt{\textbackslash Summit} &
+\VarSummit & \texttt{\textbackslash VarSummit} \\
+\Hut & \texttt{\textbackslash Hut} &
+\FilledHut & \texttt{\textbackslash FilledHut} \\
+\Tent & \texttt{\textbackslash Tent} &
+\Flag & \texttt{\textbackslash Flag} \\
+\Joch & \texttt{\textbackslash Joch} &
+\StoneMan & \texttt{\textbackslash StoneMan} \\
 \bottomrule
 \end{tabular}
 
@@ -595,6 +578,6 @@ $\biginterleave$ & \texttt{\textbackslash biginterleave} \\
 \noindent{\small Based on \textit{The Comprehensive \LaTeX{} Symbol List} by Scott Pakin.
 Packages: \texttt{amsmath}, \texttt{amssymb}, \texttt{latexsym},
 \texttt{wasysym}, \texttt{marvosym}, \texttt{pifont}, \texttt{stmaryrd},
-\texttt{bbding}, \texttt{ifsym}, \texttt{textcomp}.}
+\texttt{ifsym}, \texttt{textcomp}.}
 
 \end{document}

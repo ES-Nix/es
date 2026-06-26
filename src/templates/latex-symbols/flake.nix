@@ -17,10 +17,10 @@
             latexmk
             # symbol packages
             wasysym
+            wasy    # font files required by wasysym
             marvosym
             psnfss
             stmaryrd
-            bbding
             ifsym
             # layout
             booktabs
