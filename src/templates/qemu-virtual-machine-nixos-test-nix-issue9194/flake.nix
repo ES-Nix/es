@@ -74,7 +74,9 @@
         '';
 
         channelTarball = final.runCommand "channel-nixexprs" { } ''
-          tar cJf $out -C ${final.minimalChannelDir} .
+          mkdir -p staging/nixpkgs
+          cp ${final.minimalChannelDir}/default.nix staging/nixpkgs/
+          tar cJf $out -C staging .
         '';
 
         testNixIssue9194 = final.testers.runNixOSTest {
@@ -102,19 +104,27 @@
             )
             machine.succeed("chown -R alice:users /home/alice")
 
+            # Create the custom store directory so Nix can write to it
+            machine.succeed("mkdir -p /home/alice/my-nix && chown alice:users /home/alice/my-nix")
+
             # Stop nix daemon — alice uses her custom local store directly
             # (mimics nixStatic on a non-NixOS machine, the exact issue #9194 scenario)
             machine.succeed("systemctl stop nix-daemon.socket nix-daemon.service")
 
+            # Copy tarball to /tmp so it's accessible from alice's custom-store context
+            machine.succeed("cp ${final.channelTarball} /tmp/nixpkgs.tar.xz")
+            machine.succeed("chmod 644 /tmp/nixpkgs.tar.xz")
+
             # Register the local channel tarball (file:// avoids internet)
             machine.succeed(
-                "su - alice -c 'nix-channel --add file://${final.channelTarball} nixpkgs'"
+                "su - alice -c 'nix-channel --add file:///tmp/nixpkgs.tar.xz nixpkgs'"
             )
 
             # Update channel — downloads tarball into alice's custom store
             # (/home/alice/my-nix/nix/store/xxx-nixexprs.tar.xz or similar)
             out = machine.succeed("su - alice -c 'nix-channel --update 2>&1'")
             print(f"nix-channel --update: {out}")
+            assert "error:" not in out.lower(), f"nix-channel --update produced errors: {out}"
 
             # nix-env -q: lists installed packages (nothing installed, so empty output).
             # In buggy Nix this fails: "path ... is not in the Nix store"
