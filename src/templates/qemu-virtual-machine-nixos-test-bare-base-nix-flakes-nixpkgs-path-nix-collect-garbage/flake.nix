@@ -44,14 +44,12 @@
 
               users.users.testuser = {
                 isNormalUser = true;
-                uid = 1001;
               };
 
               nix.extraOptions = "experimental-features = nix-command flakes";
               nix.registry.nixpkgs.flake = nixpkgs;
               nix.settings.flake-registry = "${flake-registry}/flake-registry.json";
               nix.nixPath = [ "nixpkgs=${pkgs.path}" ];
-              nix.settings.trusted-users = [ "root" ];
             };
           };
           testScript = { nodes, ... }: ''
