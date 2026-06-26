@@ -1,0 +1,30 @@
+\documentclass[12pt]{pylatex}
+
+\begin{document}
+
+\section*{Hybrid \LaTeX{} Demo}
+
+This document uses \texttt{hybrid-latex} to execute Python at compile time.
+
+\begin{python}
+   from sympy import *
+   x = symbols('x')
+
+   poly    = expand((x + 1)**5)       # py (poly.101,poly)
+   root    = solve(x**2 - 2, x)[1]   # py (sqrt2.103,root)
+   antider = integrate(x**3, x)      # py (antid.105,antider)
+\end{python}
+
+\[
+  (x+1)^5 = \py*{poly.101}
+\]
+
+\[
+  \sqrt{2} = \py*{sqrt2.103}
+\]
+
+\[
+  \int x^3\,dx = \py*{antid.105} + C
+\]
+
+\end{document}
