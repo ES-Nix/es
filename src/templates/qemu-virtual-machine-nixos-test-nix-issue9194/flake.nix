@@ -287,6 +287,8 @@
             myvm
             testNixAutoChrootStore
             testNixAutoChrootStoreDriverInteractive
+            testNixIssue9194
+            testNixIssue9194DriverInteractive
             ;
           default = pkgs.automaticVm;
         };
@@ -307,6 +309,11 @@
             program = "${pkgs.lib.getExe pkgs.testNixAutoChrootStoreDriverInteractive}";
             meta.description = "Run the auto-chroot-store test in interactive mode";
           };
+          testNixIssue9194DriverInteractive = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.testNixIssue9194DriverInteractive}";
+            meta.description = "Run the nix-issue-9194 test in interactive mode";
+          };
         };
 
         formatter = pkgs.nixpkgs-fmt;
@@ -314,8 +321,10 @@
         checks = {
           inherit (pkgs)
             testNixAutoChrootStoreDriverInteractive
+            testNixIssue9194DriverInteractive
             ;
-          default = pkgs.testNixAutoChrootStore;
+          testNixAutoChrootStore = pkgs.testNixAutoChrootStore;
+          default = pkgs.testNixIssue9194;
         };
 
         devShells.default = with pkgs; mkShell {
