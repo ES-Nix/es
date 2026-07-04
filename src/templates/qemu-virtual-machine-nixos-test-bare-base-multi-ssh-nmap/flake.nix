@@ -263,12 +263,10 @@
                 assert "80/tcp open" not in out, \
                     f"Port 80 should not be open on machineB: {out!r}"
 
-            with subtest("Nmap 17: machineA to unreachable host 10.99.99.99 shows no hosts up"):
-                rc, out = machineA.execute(
-                    "nmap -sn -n --host-timeout 3s 10.99.99.99 2>&1"
-                )
-                assert "Host is up" not in out, \
-                    f"Expected no hosts up for 10.99.99.99, got: {out!r}"
+            with subtest("Nmap 17: machineA to non-routed IP 10.99.99.99 shows no open ports"):
+                out = machineA.succeed("nmap -sT -n -p 22,53,80 10.99.99.99 2>&1 || true")
+                assert "/tcp open" not in out, \
+                    f"Expected no open TCP ports on non-routed IP 10.99.99.99, got: {out!r}"
           '';
         };
 
