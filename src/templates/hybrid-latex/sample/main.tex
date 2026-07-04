@@ -1,10 +1,12 @@
 \documentclass[12pt]{pylatex}
 
+\PySetup{action=hide}
+
 \begin{document}
 
 \section*{Hybrid \LaTeX{} Demo}
 
-This document uses \texttt{hybrid-latex} to execute Python at compile time.
+This document executes Python at compile time via \texttt{hybrid-latex}.
 
 \begin{python}
    from sympy import *
@@ -16,15 +18,15 @@ This document uses \texttt{hybrid-latex} to execute Python at compile time.
 \end{python}
 
 \[
-  (x+1)^5 = \py*{poly.101}
+  (x+1)^5 = \py{poly.101}
 \]
 
 \[
-  \sqrt{2} = \py*{sqrt2.103}
+  \sqrt{2} = \py{sqrt2.103}
 \]
 
 \[
-  \int x^3\,dx = \py*{antid.105} + C
+  \int x^3\,dx = \py{antid.105} + C
 \]
 
 \end{document}

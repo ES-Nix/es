@@ -28,12 +28,14 @@
 
           src = pkgs.fetchFromGitHub {
             owner = "leo-brewin";
-            repo  = "hybrid-latex";
-            rev   = "751aebee2cbde13a6593860bef90fec9575b4df4";
-            hash  = "sha256-q27oItlOHSvYlmRqT7yXhMERj0sNslJNrtUPcceyXEM=";
+            repo = "hybrid-latex";
+            rev = "751aebee2cbde13a6593860bef90fec9575b4df4";
+            hash = "sha256-q27oItlOHSvYlmRqT7yXhMERj0sNslJNrtUPcceyXEM=";
           };
 
-          nativeBuildInputs = [ pkgs.makeWrapper ];
+          nativeBuildInputs = [ pkgs.makeWrapper pythonEnv ];
+
+          dontBuild = true;
 
           installPhase = ''
             runHook preInstall
@@ -46,6 +48,10 @@
             install -m 0755 python/scripts/pycopy.py     $out/bin/
             install -m 0755 python/scripts/merge-src.py  $out/bin/
             install -m 0755 python/scripts/pyclean.sh    $out/bin/
+            install -m 0644 python/scripts/pylatex.sed   $out/bin/.pylatex.sed
+
+            substituteInPlace $out/bin/pylatex.sh \
+              --replace-fail '/opt/homebrew/bin/gsed' 'sed'
 
             install -m 0644 python/python/writecode.py   $out/lib/
             install -m 0644 python/python/cdblib.py      $out/lib/
@@ -68,15 +74,15 @@
 
           meta = {
             description = "Embed and execute Python code inside LaTeX documents";
-            homepage    = "https://github.com/leo-brewin/hybrid-latex";
-            license     = pkgs.lib.licenses.mit;
+            homepage = "https://github.com/leo-brewin/hybrid-latex";
+            license = pkgs.lib.licenses.mit;
             mainProgram = "pylatex.sh";
           };
         };
 
         sampleDoc = pkgs.stdenvNoCC.mkDerivation {
           name = "hybrid-latex-sample";
-          src  = ./sample;
+          src = ./sample;
 
           nativeBuildInputs = [ hybrid-latex pythonEnv texEnv ];
 
@@ -115,11 +121,11 @@
 
         apps = {
           default = {
-            type    = "app";
+            type = "app";
             program = "${pkgs.lib.getExe' hybrid-latex "pylatex.sh"}";
           };
           allTests = {
-            type    = "app";
+            type = "app";
             program = "${pkgs.lib.getExe allTests}";
           };
         };
