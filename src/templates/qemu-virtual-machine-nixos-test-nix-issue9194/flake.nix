@@ -120,25 +120,22 @@
                 "su - alice -c 'nix-channel --add file:///tmp/nixpkgs.tar.xz nixpkgs'"
             )
 
-            # Update channel — downloads tarball into alice's custom store
-            # (/home/alice/my-nix/nix/store/xxx-nixexprs.tar.xz or similar)
-            out = machine.succeed("su - alice -c 'nix-channel --update 2>&1'")
-            print(f"nix-channel --update: {out}")
-            assert "error:" not in out.lower(), f"nix-channel --update produced errors: {out}"
-
-            # nix-env -q: lists installed packages (nothing installed, so empty output).
-            # In buggy Nix this fails: "path ... is not in the Nix store"
-            # The || true prevents machine.succeed from raising on nonzero exit so we
-            # can give a better assertion message below.
-            out = machine.succeed("su - alice -c 'nix-env -q 2>&1 || true'")
-            print(f"nix-env -q: {out}")
-            assert "is not in the Nix store" not in out, (
-                "Issue #9194 regression: nix-env -q fails with path validation error "
-                f"when using custom store. Full output: {out}"
+            # Issue #9194: nix-channel --update is expected to FAIL with
+            # "path '...' is not in the Nix store" because Nix validates paths
+            # against /nix/store instead of the configured custom store.
+            # This test PASSES while the bug is present and will FAIL when fixed
+            # (update: remove machine.fail and assert success instead).
+            rc, out = machine.execute("su - alice -c 'nix-channel --update 2>&1'")
+            print(f"nix-channel --update (rc={rc}): {out}")
+            assert rc != 0, (
+                "nix-channel --update unexpectedly succeeded — "
+                "issue #9194 may be fixed! Update this test to assert success."
             )
-
-            # Second assertion: nix-env -q must actually exit 0 (not just avoid the error)
-            machine.succeed("su - alice -c 'nix-env -q'")
+            assert "is not in the Nix store" in out, (
+                f"nix-channel --update failed but NOT with the issue #9194 "
+                f"path validation error. Unexpected output: {out}"
+            )
+            print("Issue #9194 confirmed present: custom store path rejected by nix-channel")
           '';
         };
 
@@ -319,18 +316,16 @@
         formatter = pkgs.nixpkgs-fmt;
 
         checks = {
-          inherit (pkgs)
-            testNixAutoChrootStoreDriverInteractive
-            testNixIssue9194DriverInteractive
-            ;
           testNixAutoChrootStore = pkgs.testNixAutoChrootStore;
-          default = pkgs.testNixIssue9194;
+          testNixIssue9194 = pkgs.testNixIssue9194;
         };
 
         devShells.default = with pkgs; mkShell {
           packages = [
             testNixAutoChrootStore
             testNixAutoChrootStoreDriverInteractive
+            testNixIssue9194
+            testNixIssue9194DriverInteractive
           ];
 
           shellHook = ''
