@@ -40,7 +40,7 @@
           name = "test-bare-base";
           nodes = {
             machineABCZ = { config, pkgs, ... }: {
-              environment.systemPackages = with pkgs; [ nix ];
+              environment.systemPackages = with pkgs; [ nix python3 ];
 
               users.users.testuser = {
                 isNormalUser = true;
@@ -56,23 +56,84 @@
             machineABCZ.start()
             machineABCZ.wait_for_unit("multi-user.target")
 
-            # Phase 1: reproduce the bug — stale gcroot symlink causes nix-collect-garbage to fail
+            machineABCZ.succeed("echo '=== M0: initial state ===' >&2")
+            machineABCZ.succeed("du -cksh /nix >&2")
+            machineABCZ.succeed(
+                "nix path-info --json --all"
+                " | python3 -c 'import json,sys; d=json.load(sys.stdin);"
+                " print(sum(v[\"narSize\"] for v in d.values() if \"narSize\" in v))' >&2"
+            )
+            machineABCZ.succeed(
+                "nix path-info --closure-size /run/current-system"
+                " | awk '{printf \"closure: %.2f GiB\\n\", $2/1024/1024/1024}' >&2"
+            )
+            machineABCZ.succeed(
+                "echo 'dead paths (sobrando):' >&2"
+                " && nix-store --gc --print-dead 2>/dev/null | wc -l >&2"
+            )
+
+            # Phase 1: broken gcroot symlink — modern Nix (nixos-25.11+) exits 0 and removes it
             machineABCZ.succeed("mkdir -p /nix/var/nix/gcroots/per-user/testuser")
             machineABCZ.succeed(
-                "ln -s /nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-nonexistent "
+                "ln -s /nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-nonexistent "
                 "/nix/var/nix/gcroots/per-user/testuser/stale"
             )
             machineABCZ.succeed("mkdir -p /nix/var/nix/profiles/per-user/testuser")
-            machineABCZ.fail("nix-collect-garbage 2>/dev/null")
+            # find broken gcroots: symlinks in /nix/var/nix/gcroots whose target does not exist
+            machineABCZ.succeed(
+                "find /nix/var/nix/gcroots -type l ! -exec test -e {} \\; -print"
+                " | grep -qF /nix/var/nix/gcroots/per-user/testuser/stale"
+            )
+            # nix-collect-garbage must exit 0 with broken gcroot symlinks (NixOS/nix#4419 fixed in modern Nix)
+            machineABCZ.succeed("nix-collect-garbage")
+            # broken symlink persists — gc does not remove dead gcroot links, workaround still needed
+            machineABCZ.succeed("test -L /nix/var/nix/gcroots/per-user/testuser/stale")
+
+            machineABCZ.succeed("echo '=== M1: after phase-1 gc ===' >&2")
+            machineABCZ.succeed("du -cksh /nix >&2")
+            machineABCZ.succeed(
+                "nix path-info --json --all"
+                " | python3 -c 'import json,sys; d=json.load(sys.stdin);"
+                " print(sum(v[\"narSize\"] for v in d.values() if \"narSize\" in v))' >&2"
+            )
+            machineABCZ.succeed(
+                "nix path-info --closure-size /run/current-system"
+                " | awk '{printf \"closure: %.2f GiB\\n\", $2/1024/1024/1024}' >&2"
+            )
+            machineABCZ.succeed(
+                "echo 'dead paths (sobrando):' >&2"
+                " && nix-store --gc --print-dead 2>/dev/null | wc -l >&2"
+            )
 
             # Phase 2: apply workaround — delete per-user entries, then gc must succeed
             machineABCZ.succeed("rm -rf /nix/var/nix/gcroots/per-user/testuser")
             machineABCZ.succeed("rm -rf /nix/var/nix/profiles/per-user/testuser")
+            # after cleanup, no broken gcroots remain under per-user
+            machineABCZ.fail(
+                "find /nix/var/nix/gcroots/per-user -type l ! -exec test -e {} \\; -print"
+                " | grep -q ."
+            )
             machineABCZ.succeed("nix-collect-garbage")
 
             # Verify cleanup
             machineABCZ.fail("test -d /nix/var/nix/gcroots/per-user/testuser")
             machineABCZ.fail("test -d /nix/var/nix/profiles/per-user/testuser")
+
+            machineABCZ.succeed("echo '=== M2: after phase-2 gc (workaround) ===' >&2")
+            machineABCZ.succeed("du -cksh /nix >&2")
+            machineABCZ.succeed(
+                "nix path-info --json --all"
+                " | python3 -c 'import json,sys; d=json.load(sys.stdin);"
+                " print(sum(v[\"narSize\"] for v in d.values() if \"narSize\" in v))' >&2"
+            )
+            machineABCZ.succeed(
+                "nix path-info --closure-size /run/current-system"
+                " | awk '{printf \"closure: %.2f GiB\\n\", $2/1024/1024/1024}' >&2"
+            )
+            machineABCZ.succeed(
+                "echo 'dead paths (sobrando):' >&2"
+                " && nix-store --gc --print-dead 2>/dev/null | wc -l >&2"
+            )
           '';
         };
 
