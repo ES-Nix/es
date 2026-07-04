@@ -38,7 +38,7 @@ curl http://127.0.0.1:8000
 firefox http://127.0.0.1:8000
 ```
 
-TODO: missing checks that validate code formating, like black.
+Black formatting checked via `nix run '.#allTests'`.
 
 
 

@@ -118,9 +118,8 @@
             ;
 
             config = {
-              # TODO: use builtins.getTOML to get the command!
               # Cmd = [ "${prev.lib.getExe final.myapp.python}" ];
-              Cmd = [ "${final.myapp.meta.mainProgram or (prev.lib.getExe final.myapp)}" ];
+              Cmd = [ "${prev.lib.getExe final.myapp}" ];
               Workingdir = "${final.myapp}/${final.myapp.python.sitePackages}";
 
               Env = [
@@ -137,6 +136,8 @@
             {
               config.virtualisation.docker.enable = true;
               config.virtualisation.podman.enable = true;
+              config.virtualisation.memorySize = 1024 * 4; # 4 GiB — Docker + Podman need more than the 1 GiB default
+              config.virtualisation.diskSize = 1024 * 10; # 10 GiB — both Docker and Podman load image layers
 
               # journalctl --unit docker-podman-load.service -b -f
               config.systemd.services.docker-podman-load = {
@@ -152,6 +153,7 @@
                 '';
                 serviceConfig = {
                   Type = "oneshot";
+                  RemainAfterExit = "yes"; # lets wait_for_unit block until both docker+podman loads complete
                 };
               };
 
@@ -170,36 +172,35 @@
               # ];
 
             };
-          globalTimeout = 2 * 60;
+          globalTimeout = 15 * 60;
           testScript = ''
             start_all()
 
-            # machine.wait_for_unit("docker-podman-load") # TODO
-            machine.wait_until_succeeds("docker images | grep myapp")
+            machine.wait_for_unit("docker-podman-load.service") # blocks until both docker+podman images loaded
 
+            # Docker: run -> assert content -> stop -> assert stopped
             machine.succeed("docker run -d --name=container-app --publish=8000:8000 --rm=true myapp-oci-image:0.0.1")
             machine.wait_for_open_port(8000)
-            # expected = 'Hello world!!'
-            # result = machine.wait_until_succeeds("curl http://0.0.0.0:8000")
-            # assert expected == result, f"expected = {expected}, result = {result}"
+            expected = 'Hello world!!'
+            result = machine.wait_until_succeeds("curl http://0.0.0.0:8000")
+            assert expected in result, f"expected = {expected!r}, result = {result!r}"
 
-            # machine.succeed("docker stop container-app")
-            # expected = "curl: (7) Failed to connect to 127.0.0.1 port 8000 after"
-            # result = machine.fail("curl http://127.0.0.1:8000 2>&1")
-            # assert expected in result, f"expected = {expected}, result = {result}"
+            machine.succeed("docker stop container-app")
+            expected_stop = "curl: (7) Failed to connect"
+            result_stop = machine.fail("curl http://127.0.0.1:8000 2>&1")
+            assert expected_stop in result_stop, f"expected = {expected_stop!r}, result = {result_stop!r}"
 
-            # machine.wait_until_succeeds("podman images | grep myapp")
+            # Podman: run -> assert content -> stop -> assert stopped
+            machine.succeed("podman run -d --name=container-app2 --publish=8000:8000 --rm=true localhost/myapp-oci-image:0.0.1")
+            machine.wait_for_open_port(8000)
+            expected = 'Hello world!!'
+            result = machine.wait_until_succeeds("curl http://0.0.0.0:8000")
+            assert expected in result, f"expected = {expected!r}, result = {result!r}"
 
-            # machine.succeed("podman run -d --name=container-app --publish=8000:8000 --rm=true myapp-oci-image:0.0.1")
-            # machine.wait_for_open_port(8000)
-            # expected = 'Hello world!!'
-            # result = machine.wait_until_succeeds("curl http://0.0.0.0:8000")
-            # assert expected == result, f"expected = {expected}, result = {result}"
-
-            # machine.succeed("podman stop container-app")
-            # expected = "curl: (7) Failed to connect to 127.0.0.1 port 8000 after"
-            # result = machine.fail("curl http://127.0.0.1:8000 2>&1")
-            # assert expected in result, f"expected = {expected}, result = {result}"
+            machine.succeed("podman stop container-app2")
+            expected_stop = "curl: (7) Failed to connect"
+            result_stop = machine.fail("curl http://127.0.0.1:8000 2>&1")
+            assert expected_stop in result_stop, f"expected = {expected_stop!r}, result = {result_stop!r}"
           '';
           # hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs
         };
@@ -427,10 +428,11 @@
         allTests = let name = "all-tests"; in final.writeShellApplication
           {
             name = name;
-            runtimeInputs = with final; [ ];
+            runtimeInputs = with final; [ python3Packages.black ];
             text = ''
-              nix fmt . \
-              && nix flake show --all-systems '.#' \
+              black --check backend/ \
+              && nix fmt . \
+              && nix flake show '.#' \
               && nix flake metadata '.#' \
               && nix build --no-link --print-build-logs --print-out-paths '.#' \
               && nix build --no-link --print-build-logs --print-out-paths --rebuild '.#' \
