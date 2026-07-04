@@ -40,10 +40,6 @@
                 enable = true;
                 listenOn = [ "any" ];
                 listenOnIpv6 = [ "any" ];
-                extraConfig = ''
-                  allow-query { any; };
-                  allow-recursion { any; };
-                '';
                 zones."example.test" = {
                   master = true;
                   file = pkgs.writeText "example.test.zone" ''
