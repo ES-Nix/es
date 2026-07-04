@@ -57,6 +57,13 @@
           hash = "sha256-iDLWXvO3tmCPxlarGzVzlBHRRKsvKZrjQW8JiiVUM1Q=";
         };
 
+        alpine319 = prev.fetchurl {
+          name = "alpine319";
+          url = "https://app.vagrantup.com/generic/boxes/alpine319/versions/4.3.12/providers/libvirt/amd64/vagrant.box";
+          hash = "sha256-eM8BTnlFnQHR2ZvmRFoauJXRkpO9e7hv/sHsnkKYvF0=";
+          meta.boxName = "generic/alpine319";
+        };
+
         # vagrantfiles
         vagrantfileUbuntu = prev.writeText "vagrantfile-ubuntu" ''
           Vagrant.configure("2") do |config|
@@ -125,12 +132,12 @@
         '';
 
 
-        vagrantfileUbuntuTest = prev.writeText "vagrantfile-ubuntu-test" ''
+        vagrantfileAlpineTest = prev.writeText "vagrantfile-alpine-test" ''
           Vagrant.configure("2") do |config|
-            config.vm.box = "generic/ubuntu2204"
+            config.vm.box = "generic/alpine319"
             config.vm.provider :libvirt do |v|
               v.cpus = 1
-              v.memory = "1024"
+              v.memory = "512"
             end
             config.ssh.extra_args = ["-F", "/dev/null"]
             config.vm.synced_folder ".", "/vagrant", disabled: true
@@ -182,23 +189,26 @@
                   file
                   gnutar
                   gzip
+                  openssh
                   procps
                   vagrant
                   xz
                 ];
 
+                serviceConfig.Type = "oneshot";
+
                 script = ''
                   #! ${pkgs.runtimeShell} -e
                   set -x
                   BASE_DIR=/root/vagrant-examples/libvirt
-                  mkdir -pv "$BASE_DIR"/ubuntu
+                  mkdir -pv "$BASE_DIR"/alpine
                   cd "$BASE_DIR"
-                  cp -v "${pkgs.vagrantfileUbuntuTest}" ubuntu/Vagrantfile
+                  cp -v "${pkgs.vagrantfileAlpineTest}" alpine/Vagrantfile
                   vagrant \
                       box \
                       add \
-                      generic/ubuntu2204 \
-                      "${pkgs.ubuntu2204}" \
+                      "${pkgs.alpine319.meta.boxName}" \
+                      "${pkgs.alpine319}" \
                       --force \
                       --provider \
                       libvirt \
@@ -215,47 +225,50 @@
             start_all()
 
             machineWithVagrant.wait_for_unit("multi-user.target")
-            machineWithVagrant.wait_for_unit("copy-vagrant")
 
             machineWithVagrant.succeed("type vagrant")
-            machineWithVagrant.succeed("vagrant box list | grep -q ubuntu2204 >&2")
+            machineWithVagrant.wait_until_succeeds(
+                "systemctl show copy-vagrant.service --property=Result | grep -q 'Result=success'",
+                timeout=120,
+            )
 
             kvm_available = machineWithVagrant.execute("test -e /dev/kvm")[0] == 0
+            host_arch = machineWithVagrant.succeed("uname -m").strip()
 
-            if kvm_available:
+            if kvm_available and host_arch == "x86_64":
                 machineWithVagrant.succeed(
-                    "cd /root/vagrant-examples/libvirt/ubuntu && vagrant up >&2",
-                    timeout=300,
+                    "cd /root/vagrant-examples/libvirt/alpine && vagrant up >&2",
+                    timeout=240,
                 )
 
                 machineWithVagrant.succeed(
-                    "cd /root/vagrant-examples/libvirt/ubuntu && vagrant snapshot save pre-change >&2"
+                    "cd /root/vagrant-examples/libvirt/alpine && vagrant snapshot save pre-change >&2"
                 )
 
                 machineWithVagrant.succeed(
-                    "cd /root/vagrant-examples/libvirt/ubuntu && vagrant ssh -c 'echo hello > /home/vagrant/marker' >&2"
+                    "cd /root/vagrant-examples/libvirt/alpine && vagrant ssh -c 'echo hello > /home/vagrant/marker' >&2"
                 )
                 machineWithVagrant.succeed(
-                    "cd /root/vagrant-examples/libvirt/ubuntu && vagrant ssh -c 'test -f /home/vagrant/marker' >&2"
+                    "cd /root/vagrant-examples/libvirt/alpine && vagrant ssh -c 'test -f /home/vagrant/marker' >&2"
                 )
 
                 machineWithVagrant.succeed(
-                    "cd /root/vagrant-examples/libvirt/ubuntu && vagrant snapshot restore pre-change --no-provision >&2",
+                    "cd /root/vagrant-examples/libvirt/alpine && vagrant snapshot restore pre-change --no-provision >&2",
                     timeout=120,
                 )
 
                 machineWithVagrant.succeed(
-                    "cd /root/vagrant-examples/libvirt/ubuntu && vagrant ssh -c 'test ! -f /home/vagrant/marker' >&2"
+                    "cd /root/vagrant-examples/libvirt/alpine && vagrant ssh -c 'test ! -f /home/vagrant/marker' >&2"
                 )
 
                 machineWithVagrant.succeed(
-                    "cd /root/vagrant-examples/libvirt/ubuntu && vagrant snapshot list >&2"
+                    "cd /root/vagrant-examples/libvirt/alpine && vagrant snapshot list >&2"
                 )
                 machineWithVagrant.succeed(
-                    "cd /root/vagrant-examples/libvirt/ubuntu && vagrant snapshot delete pre-change >&2"
+                    "cd /root/vagrant-examples/libvirt/alpine && vagrant snapshot delete pre-change >&2"
                 )
             else:
-                machineWithVagrant.log("KVM not available — skipping vagrant up + snapshot assertions")
+                machineWithVagrant.log(f"Skipping vagrant up + snapshot: kvm={kvm_available}, arch={host_arch} (need x86_64)")
           '';
         };
 
