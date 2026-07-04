@@ -1,43 +1,30 @@
 # latex-symbols
 
-Reproducible Nix flake producing a PDF reference of the Comprehensive LaTeX Symbol List.
-Covers symbols from: `amsmath`, `amssymb`, `wasysym`, `marvosym`, `pifont`, `stmaryrd`, `ifsym`, `textcomp`.
+Reproducible Nix flake that compiles *The Comprehensive LaTeX Symbol List*
+by Scott Pakin (~271 pages, 225+ packages) from CTAN source via nixpkgs.
 
 ## Quick start
 
 ```bash
-# Build the PDF
+# Build the PDF (~271 pages)
 nix build '.#' && ls result/
 
 # Open in Firefox
 nix run '.#firefox'
 
-# Dev shell (pdflatex + all packages on PATH)
+# Dev shell (pdflatex + Python3 on PATH)
 nix develop
 
 # Run all checks
 nix run '.#allTests'
 ```
 
-## Symbol categories
+## How it works
 
-| Section | Package |
-|---------|---------|
-| Greek Letters | LaTeX core |
-| Binary Operators | LaTeX core |
-| Relation Symbols | LaTeX core |
-| Arrows | LaTeX core |
-| AMS Math | `amssymb` |
-| AMS Arrows | `amssymb` |
-| Miscellaneous Math | LaTeX core + `amssymb` |
-| Large Operators | `amsmath` |
-| Text Mode | `textcomp` |
-| Wasysym (planets, zodiac) | `wasysym` |
-| Marvosym (comm, currency, zodiac) | `marvosym` |
-| Pifont Dingbats | `pifont` (via `psnfss`) |
-| St Mary Road | `stmaryrd` |
-| ifsym Clocks & Alpine | `ifsym` |
+Source is taken from `pkgs.texlive.comprehensive` (texdoc component).
+Packages unavailable in nixpkgs are replaced by `fake*.sty` stubs shipped with the source.
+Build: 4× pdflatex + 2× makeindex (with `patch-idx` and `prune-idx` for index normalization).
 
 ## Reference
 
-Based on *The Comprehensive LaTeX Symbol List* by Scott Pakin.
+Scott Pakin, *The Comprehensive LaTeX Symbol List*, CTAN package `comprehensive`.
