@@ -63,112 +63,115 @@
         # use pymupdf's xref_object() to read the raw /A /D value from each
         # Link annotation and pair it with the text at the link bounding box.
 
-        extractAnnotations = pkgs.runCommand "extract-annotations" {
-          nativeBuildInputs = [ pkgs.python3Packages.pymupdf ];
-        } ''
-          mkdir -p $out
-          python3 - <<EOF
-import fitz, json, sys
-from collections import defaultdict
+        extractAnnotations = pkgs.runCommand "extract-annotations"
+          {
+            nativeBuildInputs = [ pkgs.python3Packages.pymupdf ];
+          } ''
+                    mkdir -p $out
+                    python3 - <<EOF
+          import fitz, json, sys
+          from collections import defaultdict
 
-doc = fitz.open("${samplePdf}/paper.pdf")
+          doc = fitz.open("${samplePdf}/paper.pdf")
 
-# pymupdf >= 1.23 exposes link['nameddest'] for named-destination GoTo links
-# (what natbib+hyperref produces).  natbib emits TWO link annotations per
-# citation: one for "[Author," and one for "Year]".  We collect overlapping
-# words per cite key and extract the author name from the "[Author," word.
-key_words = defaultdict(list)
-for page_num, page in enumerate(doc):
-    words = page.get_text('words')
-    for link in page.get_links():
-        named = link.get('nameddest', "")
-        if not named.startswith('cite.'):
-            continue
-        cite_key = named[len('cite.'):]
-        lr = fitz.Rect(link['from'])
-        key_words[cite_key].extend(w[4] for w in words if fitz.Rect(w[:4]).intersects(lr))
+          # pymupdf >= 1.23 exposes link['nameddest'] for named-destination GoTo links
+          # (what natbib+hyperref produces).  natbib emits TWO link annotations per
+          # citation: one for "[Author," and one for "Year]".  We collect overlapping
+          # words per cite key and extract the author name from the "[Author," word.
+          key_words = defaultdict(list)
+          for page_num, page in enumerate(doc):
+              words = page.get_text('words')
+              for link in page.get_links():
+                  named = link.get('nameddest', "")
+                  if not named.startswith('cite.'):
+                      continue
+                  cite_key = named[len('cite.'):]
+                  lr = fitz.Rect(link['from'])
+                  key_words[cite_key].extend(w[4] for w in words if fitz.Rect(w[:4]).intersects(lr))
 
-result = []
-seen = set()
-for cite_key, wlist in key_words.items():
-    if cite_key in seen:
-        continue
-    seen.add(cite_key)
-    open_words = [w for w in wlist if w.startswith('[') and ',' in w]
-    if not open_words:
-        continue
-    author = open_words[0].lstrip('[').rstrip(',').strip()
-    if author:
-        result.append({'author': author, 'cite_key': cite_key})
+          result = []
+          seen = set()
+          for cite_key, wlist in key_words.items():
+              if cite_key in seen:
+                  continue
+              seen.add(cite_key)
+              open_words = [w for w in wlist if w.startswith('[') and ',' in w]
+              if not open_words:
+                  continue
+              author = open_words[0].lstrip('[').rstrip(',').strip()
+              if author:
+                  result.append({'author': author, 'cite_key': cite_key})
 
-with open("$out/links.json", 'w') as f:
-    json.dump(result, f, ensure_ascii=False, indent=2)
-print(f"Extracted {len(result)} citation(s):", file=sys.stderr)
-for r in result:
-    print(f"  [{r['author']}, YEAR] -> {r['cite_key']}", file=sys.stderr)
-EOF
+          with open("$out/links.json", 'w') as f:
+              json.dump(result, f, ensure_ascii=False, indent=2)
+          print(f"Extracted {len(result)} citation(s):", file=sys.stderr)
+          for r in result:
+              print(f"  [{r['author']}, YEAR] -> {r['cite_key']}", file=sys.stderr)
+          EOF
         '';
 
         # ── STAGE 2: extract plain body text ──────────────────────────────
 
-        extractText = pkgs.runCommand "extract-text" {
-          nativeBuildInputs = [ pkgs.python3Packages.pymupdf ];
-        } ''
-          mkdir -p $out
-          python3 - <<EOF
-import fitz, sys
+        extractText = pkgs.runCommand "extract-text"
+          {
+            nativeBuildInputs = [ pkgs.python3Packages.pymupdf ];
+          } ''
+                    mkdir -p $out
+                    python3 - <<EOF
+          import fitz, sys
 
-doc = fitz.open("${samplePdf}/paper.pdf")
-parts = []
-for page in doc:
-    parts.append(page.get_text('text'))
-text = '\n'.join(parts)
-with open("$out/raw.txt", 'w') as f:
-    f.write(text)
-print(f"Extracted {len(doc)} page(s), {len(text)} chars", file=sys.stderr)
-EOF
+          doc = fitz.open("${samplePdf}/paper.pdf")
+          parts = []
+          for page in doc:
+              parts.append(page.get_text('text'))
+          text = '\n'.join(parts)
+          with open("$out/raw.txt", 'w') as f:
+              f.write(text)
+          print(f"Extracted {len(doc)} page(s), {len(text)} chars", file=sys.stderr)
+          EOF
         '';
 
         # ── STAGE 3: inject citation syntax, strip extracted bibliography ─
 
-        reconstructMd = pkgs.runCommand "reconstruct-md" {
-          nativeBuildInputs = [ pkgs.python3 ];
-        } ''
-          mkdir -p $out
-          python3 - <<PYEOF
-import json, re, sys
+        reconstructMd = pkgs.runCommand "reconstruct-md"
+          {
+            nativeBuildInputs = [ pkgs.python3 ];
+          } ''
+                    mkdir -p $out
+                    python3 - <<PYEOF
+          import json, re, sys
 
-with open("${extractAnnotations}/links.json") as f:
-    links = json.load(f)
+          with open("${extractAnnotations}/links.json") as f:
+              links = json.load(f)
 
-with open("${extractText}/raw.txt") as f:
-    content = f.read()
+          with open("${extractText}/raw.txt") as f:
+              content = f.read()
 
-# natbib renders citations as [Author, Year]; replace with pandoc [@cite_key]
-for entry in links:
-    author = re.escape(entry['author'])
-    key = entry['cite_key']
-    content = re.sub(r'\[' + author + r',\s*\d{4}\]', '[@' + key + ']', content)
+          # natbib renders citations as [Author, Year]; replace with pandoc [@cite_key]
+          for entry in links:
+              author = re.escape(entry['author'])
+              key = entry['cite_key']
+              content = re.sub(r'\[' + author + r',\s*\d{4}\]', '[@' + key + ']', content)
 
-# Drop bibliography section — bibtex regenerates it from references.bib
-content = re.split(r'\nReferences\n|\nBibliography\n', content, maxsplit=1)[0]
+          # Drop bibliography section — bibtex regenerates it from references.bib
+          content = re.split(r'\nReferences\n|\nBibliography\n', content, maxsplit=1)[0]
 
-# Use first non-empty line as document title
-title = "Reconstructed Document"
-for line in content.splitlines():
-    if line.strip():
-        title = line.strip()
-        break
+          # Use first non-empty line as document title
+          title = "Reconstructed Document"
+          for line in content.splitlines():
+              if line.strip():
+                  title = line.strip()
+                  break
 
-frontmatter = '---\ntitle: "' + title + '"\n---\n\n'
-content = content.replace(title + '\n', "", 1)
+          frontmatter = '---\ntitle: "' + title + '"\n---\n\n'
+          content = content.replace(title + '\n', "", 1)
 
-with open("$out/reconstructed.md", 'w') as f:
-    f.write(frontmatter + content.strip() + '\n')
+          with open("$out/reconstructed.md", 'w') as f:
+              f.write(frontmatter + content.strip() + '\n')
 
-citations = re.findall(r'\[@([^\]]+)\]', content)
-print(f"Recovered {len(set(citations))} unique citation(s): {sorted(set(citations))}", file=sys.stderr)
-PYEOF
+          citations = re.findall(r'\[@([^\]]+)\]', content)
+          print(f"Recovered {len(set(citations))} unique citation(s): {sorted(set(citations))}", file=sys.stderr)
+          PYEOF
         '';
 
         # ── STAGE 4: reconstructed Markdown → LaTeX ────────────────────────
@@ -321,19 +324,22 @@ PYEOF
           catalog = objs['obj:1 0 R']['value']
           names_ref = catalog['/Names']
           dests_ref = objs[f'obj:{names_ref}']['value']['/Dests']
-          kids      = objs[f'obj:{dests_ref}']['value'].get('/Kids', [])
+          dests_val = objs[f'obj:{dests_ref}']['value']
 
           named_dests = {}
-          for kid_ref in kids:
-              entries = objs[f'obj:{kid_ref}']['value'].get('/Names', [])
+          def collect_names(entries):
               for i in range(0, len(entries) - 1, 2):
                   name = entries[i]
                   if isinstance(name, str) and name.startswith('u:'):
                       name = name[2:]
-                  dest_val = entries[i + 1]
-                  if isinstance(dest_val, str) and dest_val.endswith(' R'):
-                      dest_val = objs[f'obj:{dest_val}']['value']
-                  named_dests[name] = dest_val
+                  dv = entries[i + 1]
+                  if isinstance(dv, str) and dv.endswith(' R'):
+                      dv = objs[f'obj:{dv}']['value']
+                  named_dests[name] = dv
+
+          collect_names(dests_val.get('/Names', []))
+          for kid_ref in dests_val.get('/Kids', []):
+              collect_names(objs[f'obj:{kid_ref}']['value'].get('/Names', []))
 
           print(f"Named destinations in PDF: {sorted(named_dests.keys())}")
 
