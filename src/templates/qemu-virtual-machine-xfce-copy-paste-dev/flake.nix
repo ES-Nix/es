@@ -199,16 +199,16 @@
                 boot.loader.systemd-boot.enable = true;
                 fileSystems."/" = { device = "/dev/hda1"; };
 
-                boot.binfmt.registrations = {
+                boot.binfmt.registrations = lib.mkIf pkgs.stdenv.hostPlatform.isx86_64 {
                   aarch64-linux = {
                     interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
                     fixBinary = true;
                   };
                 };
 
-                boot.binfmt.emulatedSystems = [
-                  "aarch64-linux"
-                ];
+                boot.binfmt.emulatedSystems = if pkgs.stdenv.hostPlatform.isx86_64
+                  then [ "aarch64-linux" ]
+                  else [ "x86_64-linux" ];
 
                 virtualisation.vmVariant =
                   {
@@ -222,13 +222,14 @@
 
                     virtualisation.resolution = lib.mkForce { x = 1024; y = 768; };
 
-                    virtualisation.qemu.options = [
+                    virtualisation.qemu.options = lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
                       # https://www.spice-space.org/spice-user-manual.html#Running_qemu_manually
                       # remote-viewer spice://localhost:3001
 
                       # "-daemonize" # How to save the QEMU PID?
                       "-machine vmport=off"
                       "-vga qxl"
+                    ] ++ [
                       "-spice port=3001,disable-ticketing=on"
                       "-device virtio-serial"
                       "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
@@ -240,7 +241,7 @@
                   };
 
                 # journalctl --unit docker-custom-bootstrap-1.service -b -f
-                systemd.services.docker-custom-bootstrap-1 = {
+                systemd.services.docker-custom-bootstrap-1 = lib.mkIf pkgs.stdenv.hostPlatform.isx86_64 {
                   description = "Docker Custom Bootstrap 1";
                   wantedBy = [ "multi-user.target" ];
                   after = [ "docker.service" ];
@@ -486,7 +487,7 @@
                 # https://nixos.org/manual/nixos/stable/#sec-xfce
                 services.xserver.desktopManager.xfce.enable = true;
                 services.xserver.desktopManager.xfce.enableScreensaver = false;
-                services.xserver.videoDrivers = [ "qxl" ];
+                services.xserver.videoDrivers = lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [ "qxl" ];
                 services.spice-vdagentd.enable = true; # For copy/paste to work
 
                 /*
