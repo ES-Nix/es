@@ -1,0 +1,9 @@
+.profiles/
+*.qcow2
+.direnv/
+.env
+secrets/
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies

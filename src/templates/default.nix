@@ -1,4 +1,62 @@
 let
+  pythonFlaskNixpkgsTemplates = {
+    pythonFlaskNixpkgsHello = {
+      description = "QEMU VM + Docker + pure nixpkgs Flask hello — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-flask-hello;
+    };
+    pythonFlaskNixpkgsMmh3 = {
+      description = "QEMU VM + Docker + pure nixpkgs Flask + mmh3 — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-flask-mmh3;
+    };
+    pythonFlaskNixpkgsNumpy = {
+      description = "QEMU VM + Docker + pure nixpkgs Flask + numpy — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-flask-numpy;
+    };
+    pythonFlaskNixpkgsScipy = {
+      description = "QEMU VM + Docker + pure nixpkgs Flask + scipy — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-flask-scipy;
+    };
+    pythonFlaskNixpkgsJax = {
+      description = "QEMU VM + Docker + pure nixpkgs Flask + jax — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-flask-jax;
+    };
+    pythonFlaskNixpkgsTinygrad = {
+      description = "QEMU VM + Docker + pure nixpkgs Flask + tinygrad — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-flask-tinygrad;
+    };
+  };
+
+  pythonFastAPINixpkgsTemplates = {
+    pythonFastAPINixpkgsHello = {
+      description = "QEMU VM + Docker + pure nixpkgs FastAPI hello — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-fastapi-hello;
+    };
+    pythonFastAPINixpkgsMmh3 = {
+      description = "QEMU VM + Docker + pure nixpkgs FastAPI + mmh3 — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-fastapi-mmh3;
+    };
+    pythonFastAPINixpkgsNumpy = {
+      description = "QEMU VM + Docker + pure nixpkgs FastAPI + numpy — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-fastapi-numpy;
+    };
+    pythonFastAPINixpkgsScipy = {
+      description = "QEMU VM + Docker + pure nixpkgs FastAPI + scipy — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-fastapi-scipy;
+    };
+    pythonFastAPINixpkgsJax = {
+      description = "QEMU VM + Docker + pure nixpkgs FastAPI + jax — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-fastapi-jax;
+    };
+    pythonFastAPINixpkgsTinygrad = {
+      description = "QEMU VM + Docker + pure nixpkgs FastAPI + tinygrad — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-fastapi-tinygrad;
+    };
+    pythonFastAPINixpkgsF2py = {
+      description = "QEMU VM + Docker + pure nixpkgs FastAPI + f2py (Fortran DGEMM) — bpa/withPackages/mkDerivation";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-nixpkgs-fastapi-f2py;
+    };
+  };
+
   pythonFlaskPoetry2nixTemplates = {
     pythonFlaskPoetry2nixHello = {
       description = "";
@@ -27,6 +85,14 @@ let
     pythonFlaskPoetry2nixScipy = {
       description = "";
       path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-scipy;
+    };
+    pythonFlaskPoetry2nixJax = {
+      description = "QEMU VM + Docker + poetry2nix + Flask + jax";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-jax;
+    };
+    pythonFlaskPoetry2nixTinygrad = {
+      description = "QEMU VM + Docker + poetry2nix + Flask + tinygrad";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-flask-tinygrad;
     };
     # pythonFlaskPoetry2nixBloated = {
     #   description = "";
@@ -62,6 +128,14 @@ let
     pythonFastAPIPoetry2nixScipy = {
       description = "";
       path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-scipy;
+    };
+    pythonFastAPIPoetry2nixJax = {
+      description = "QEMU VM + Docker + poetry2nix + FastAPI + jax";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-jax;
+    };
+    pythonFastAPIPoetry2nixTinygrad = {
+      description = "QEMU VM + Docker + poetry2nix + FastAPI + tinygrad";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-poetry2nix-fastapi-tinygrad;
     };
     pythonFastAPIPoetry2nixDjangoRestFrameworkHello = {
       description = "";
@@ -704,6 +778,14 @@ let
       description = "QEMU VM + Docker + uv2nix + FastAPI + scipy";
       path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-scipy;
     };
+    pythonFastAPIUv2nixJax = {
+      description = "QEMU VM + Docker + uv2nix + FastAPI + jax";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-jax;
+    };
+    pythonFastAPIUv2nixTinygrad = {
+      description = "QEMU VM + Docker + uv2nix + FastAPI + tinygrad";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-tinygrad;
+    };
     pythonFastAPIUv2nixGeopandas = {
       description = "QEMU VM + Docker + uv2nix + FastAPI + geopandas";
       path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-fastapi-geopandas;
@@ -727,6 +809,14 @@ let
     pythonFlaskUv2nixScipy = {
       description = "QEMU VM + Docker + uv2nix + Flask + scipy";
       path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-scipy;
+    };
+    pythonFlaskUv2nixJax = {
+      description = "QEMU VM + Docker + uv2nix + Flask + jax";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-jax;
+    };
+    pythonFlaskUv2nixTinygrad = {
+      description = "QEMU VM + Docker + uv2nix + Flask + tinygrad";
+      path = ./qemu-virtual-machine-xfce-copy-paste-docker-uv2nix-flask-tinygrad;
     };
     pythonFlaskUv2nixGeopandas = {
       description = "QEMU VM + Docker + uv2nix + Flask + geopandas";
@@ -781,8 +871,29 @@ let
     };
   };
 
+  flutterTemplates = {
+    flutterWebHello = {
+      description = "Flutter web hello world — buildFlutterApplication (web) + nginx OCI image + NixOS test";
+      path = ./flutter-web-hello;
+    };
+    flutterLinuxHello = {
+      description = "Flutter Linux desktop hello world — buildFlutterApplication (linux) + QEMU VM + XFCE";
+      path = ./qemu-virtual-machine-xfce-flutter-linux-hello;
+    };
+    flutterAndroidDevshell = {
+      description = "Flutter Android devShell — androidenv SDK 34 + JDK 17 (APK built manually, Gradle not sandbox-safe)";
+      path = ./flutter-android-devshell;
+    };
+    flutterDevshell = {
+      description = "Generic Flutter devShell — all targets: web + Linux desktop + Android in one environment";
+      path = ./flutter-devshell;
+    };
+  };
+
 in
 { }
+//
+flutterTemplates
 //
 otherTemplates
 //
@@ -809,3 +920,7 @@ latexTemplates
 pythonUv2nixTemplates
 //
 jsExampleTemplates
+//
+pythonFlaskNixpkgsTemplates
+//
+pythonFastAPINixpkgsTemplates
