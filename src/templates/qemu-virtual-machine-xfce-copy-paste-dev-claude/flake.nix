@@ -593,7 +593,8 @@
                   exo-open \
                     --launch TerminalEmulator \
                     --zoom=-1 \
-                    --geometry 100x20
+                    --geometry 100x20 \
+                    -e "bash -c 'claude; exec bash'"
                 '';
 
                 # https://nixos.org/manual/nixos/stable/#sec-xfce
