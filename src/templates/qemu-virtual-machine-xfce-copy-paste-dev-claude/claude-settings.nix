@@ -188,10 +188,8 @@ in
               chown nixuser:nixgroup "$CLAUDE_JSON"
             fi
 
-            chown nixuser:nixgroup "$CLAUDE_DIR"
-            chown -R nixuser:nixgroup "$CLAUDE_DIR/hooks" "$CLAUDE_DIR/commands" \
-              "$CLAUDE_DIR/RTK.md" "$CLAUDE_DIR/CLAUDE.md" 2>/dev/null || true
+            chown -R nixuser:nixgroup "$CLAUDE_DIR"
     '';
-    deps = [ ];
+    deps = [ "users" ];
   };
 }
