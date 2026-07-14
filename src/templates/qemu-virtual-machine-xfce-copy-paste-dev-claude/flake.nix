@@ -319,8 +319,8 @@
                     virtualisation.docker.enable = true;
                     virtualisation.podman.enable = true;
 
-                    virtualisation.memorySize = 1024 * 14; # Use MiB memory.
-                    virtualisation.diskSize = 1024 * 50; # Use MiB memory.
+                    virtualisation.memorySize = 1024 * 20; # Use MiB memory.
+                    virtualisation.diskSize = 1024 * 100; # Use MiB memory.
                     virtualisation.cores = 7; # Number of cores.
                     virtualisation.graphics = true;
 
@@ -537,6 +537,7 @@
 
                     fooBar
 
+                    claude-code
                     rtk
                     caveman
                     claude-mem
