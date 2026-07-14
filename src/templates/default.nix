@@ -257,6 +257,11 @@ let
       path = ./qemu-virtual-machine-xfce-copy-paste-dev;
     };
 
+    QEMUVirtualMachineXfceCopyPasteDevClaude = {
+      description = "QEMU Virtual Machine with xfce, copy/paste, dev, and Claude Code configured";
+      path = ./qemu-virtual-machine-xfce-copy-paste-dev-claude;
+    };
+
     QEMUVirtualMachineXfceCopyPasteDevBloated = {
       description = "QEMU Virtual Machine with xfce and copy/paste (dev bloated)";
       path = ./qemu-virtual-machine-xfce-copy-paste-dev-bloated;
