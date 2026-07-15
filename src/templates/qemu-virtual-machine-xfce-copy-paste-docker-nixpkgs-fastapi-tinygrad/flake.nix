@@ -105,7 +105,7 @@
             {
               config.virtualisation.docker.enable = true;
               config.virtualisation.podman.enable = true;
-              config.virtualisation.diskSize = 4096;
+              config.virtualisation.diskSize = 15360;
 
               config.systemd.services.docker-podman-load = {
                 description = "Docker and Podman load OCI Images";

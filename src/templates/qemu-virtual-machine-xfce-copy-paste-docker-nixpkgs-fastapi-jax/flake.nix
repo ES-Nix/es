@@ -128,7 +128,7 @@
 
             machine.wait_until_succeeds("docker images | grep myapp")
             actual_size = int(machine.succeed("docker image inspect myapp-oci-image:0.0.1 --format '{{.Size}}'").strip())
-            expected_size = 929460363
+            expected_size = ${ toString ({ "x86_64-linux" = 965628043; "aarch64-linux" = 929460363; }.${prev.system}) }
             assert actual_size == expected_size, f"OCI image size: {actual_size} bytes ({actual_size // 1024 // 1024} MiB) — set expected_size = {actual_size}"
 
             machine.succeed("docker run -d --name=container-app --publish=5000:5000 --rm=true myapp-oci-image:0.0.1")
