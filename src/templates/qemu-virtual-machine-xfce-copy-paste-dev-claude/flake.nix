@@ -340,7 +340,7 @@
                       "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
                     ];
 
-                    virtualisation.useNixStoreImage = true; # Use disk instead of tmpfs for writable store
+                    virtualisation.useNixStoreImage = false; # TODO: hardening
                     virtualisation.writableStore = true; # TODO: hardening
                   };
 
